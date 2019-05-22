@@ -1,5 +1,6 @@
 #include "Platform.h"
 #include "Debug.h"
+#include "Utils.h"
 #include <unistd.h>
 
 namespace brisbane {
@@ -19,6 +20,7 @@ Platform::~Platform() {
 int Platform::Init(int* argc, char*** argv) {
     if (init_) return BRISBANE_ERR;
     gethostname(debug_prefix_, 256);
+    Utils::logo();
     _check();
     return BRISBANE_OK;
 }

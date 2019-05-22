@@ -1,3 +1,4 @@
+#include <brisbane/brisbane.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -8,6 +9,8 @@ int main(int argc, char** argv) {
     int* B;
     int* C;
     int* D;
+
+    brisbane_init(&argc, &argv);
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
 
@@ -37,6 +40,8 @@ int main(int argc, char** argv) {
     free(B);
     free(C);
     free(D);
+
+    brisbane_finalize();
 
     return 0;
 }
