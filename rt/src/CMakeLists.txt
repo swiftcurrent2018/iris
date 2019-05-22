@@ -2,6 +2,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 set(libsrc
     CAPI.cpp
+    Device.cpp
+    Mem.cpp
     Platform.cpp
     )
 
