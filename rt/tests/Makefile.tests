@@ -1,0 +1,11 @@
+BRISBANE 	:= $(HOME)/work/brisbane
+CC			:= g++
+LD_INC		:= -L$(BRISBANE)/install/lib
+LD_FLAGS	:= -lbrisbane
+C_FLAGS		:= -I$(BRISBANE)/install/include -g
+
+$(TEST):$(TEST).c
+	$(CC) $(C_FLAGS) -o $@ $^ $(LD_INC) $(LD_FLAGS)
+
+clean:
+	rm -f $(TEST)
