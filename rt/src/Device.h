@@ -15,13 +15,15 @@ public:
     void BuildProgram();
 
     void Execute(Task* task);
+    void ExecuteKernel(Command* cmd);
     void ExecuteH2D(Command* cmd);
     void ExecuteD2H(Command* cmd);
-    void ExecuteKernel(Command* cmd);
 
     void Wait();
 
+    int dev_no() { return dev_no_; }
     int type() { return type_; }
+    char* name() { return name_; }
 
 private:
     cl_device_id cldev_;

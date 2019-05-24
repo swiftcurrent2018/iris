@@ -20,7 +20,15 @@ int Kernel::SetArg(int idx, size_t size, void* value) {
     KernelArg* arg = new KernelArg;
     arg->size = size;
     memcpy(arg->value, value, size);
-    arg->mem = platform_->GetMemFromPtr(value);
+    arg->mem = NULL;
+    args_[idx] = arg;
+    return BRISBANE_OK;
+}
+
+int Kernel::SetMem(int idx, Mem* mem, int mode) {
+    KernelArg* arg = new KernelArg;
+    arg->mem = mem;
+    arg->mode = mode;
     args_[idx] = arg;
     return BRISBANE_OK;
 }

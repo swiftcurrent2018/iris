@@ -20,12 +20,20 @@ int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t arg_size, voi
     return Platform::GetPlatform()->KernelSetArg(kernel, idx, arg_size, arg_value);
 }
 
+int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode) {
+    return Platform::GetPlatform()->KernelSetMem(kernel, idx, mem, mode);
+}
+
 int brisbane_kernel_release(brisbane_kernel kernel) {
     return Platform::GetPlatform()->KernelRelease(kernel);
 }
 
 int brisbane_task_create(brisbane_task* task) {
     return Platform::GetPlatform()->TaskCreate(task);
+}
+
+int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size) {
+    return Platform::GetPlatform()->TaskPresent(task, mem, off, size);
 }
 
 int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {

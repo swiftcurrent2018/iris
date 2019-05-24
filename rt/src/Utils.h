@@ -5,19 +5,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 namespace brisbane {
 namespace rt {
 
 class Utils {
 public:
-static void Logo() {
+static void Logo(bool color) {
+    if (color) {
+        srand(time(NULL));
+        char str[12];
+        sprintf(str, "\033[22;3%dm", rand() % 9 + 1);
+        printf(str);
+    }
     printf("██████╗ ██████╗ ██╗███████╗██████╗  █████╗ ███╗   ██╗███████╗\n");
     printf("██╔══██╗██╔══██╗██║██╔════╝██╔══██╗██╔══██╗████╗  ██║██╔════╝\n");
     printf("██████╔╝██████╔╝██║███████╗██████╔╝███████║██╔██╗ ██║█████╗  \n");
     printf("██╔══██╗██╔══██╗██║╚════██║██╔══██╗██╔══██║██║╚██╗██║██╔══╝  \n");
     printf("██████╔╝██║  ██║██║███████║██████╔╝██║  ██║██║ ╚████║███████╗\n");
     printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝\n");
+    if (color) printf("\e[m");
 }
 
 static void ReadFile(char* path, char** string, size_t* len) {

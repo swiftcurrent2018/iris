@@ -4,9 +4,10 @@
 #include <stddef.h>
 
 #define BRISBANE_CMD_NOP        0x1000
-#define BRISBANE_CMD_H2D        0x1001
-#define BRISBANE_CMD_D2H        0x1002
-#define BRISBANE_CMD_KERNEL     0x1003
+#define BRISBANE_CMD_KERNEL     0x1001
+#define BRISBANE_CMD_H2D        0x1002
+#define BRISBANE_CMD_D2H        0x1003
+#define BRISBANE_CMD_PRESENT    0x1004
 
 namespace brisbane {
 namespace rt {
@@ -40,9 +41,11 @@ private:
 
 public:
     static Command* Create(int type);
+    static Command* CreateKernel(Kernel* kernel, int dim, size_t* ndr);
     static Command* CreateH2D(Mem* mem, size_t off, size_t size, void* host);
     static Command* CreateD2H(Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreateKernel(Kernel* kernel, int dim, size_t* ndr);
+    static Command* CreatePresent(Mem* mem, size_t off, size_t size);
+    static void Release(Command* cmd);
 };
 
 } /* namespace rt */

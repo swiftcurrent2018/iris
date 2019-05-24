@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include "Command.h"
 #include "Device.h"
+#include "Executor.h"
 #include "Kernel.h"
 #include "Mem.h"
 #include "Task.h"
@@ -24,7 +25,7 @@ Platform::~Platform() {
 int Platform::Init(int* argc, char*** argv) {
     if (init_) return BRISBANE_ERR;
     gethostname(debug_prefix_, 256);
-    Utils::Logo();
+    Utils::Logo(false);
     GetCLPlatforms();
     return BRISBANE_OK;
 }
@@ -72,6 +73,13 @@ int Platform::KernelSetArg(brisbane_kernel brs_kernel, int idx, size_t arg_size,
     return BRISBANE_OK;
 }
 
+int Platform::KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem brs_mem, int mode) {
+    Kernel* kernel = brs_kernel->class_obj;
+    Mem* mem = brs_mem->class_obj;
+    kernel->SetMem(idx, mem, mode);
+    return BRISBANE_OK;
+}
+
 int Platform::KernelRelease(brisbane_kernel brs_kernel) {
     return BRISBANE_OK;
 }
@@ -79,6 +87,14 @@ int Platform::KernelRelease(brisbane_kernel brs_kernel) {
 int Platform::TaskCreate(brisbane_task* brs_task) {
     Task* task = new Task();
     *brs_task = task->struct_obj();
+    return BRISBANE_OK;
+}
+
+int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* ndr) {
+    Task* task = brs_task->class_obj;
+    Kernel* kernel = brs_kernel->class_obj;
+    Command* cmd = Command::CreateKernel(kernel, dim, ndr);
+    task->Add(cmd);
     return BRISBANE_OK;
 }
 
@@ -98,10 +114,10 @@ int Platform::TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, 
     return BRISBANE_OK;
 }
 
-int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* ndr) {
+int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size) {
     Task* task = brs_task->class_obj;
-    Kernel* kernel = brs_kernel->class_obj;
-    Command* cmd = Command::CreateKernel(kernel, dim, ndr);
+    Mem* mem = brs_mem->class_obj;
+    Command* cmd = Command::CreatePresent(mem, off, size);
     task->Add(cmd);
     return BRISBANE_OK;
 }
@@ -133,13 +149,8 @@ int Platform::MemRelease(brisbane_mem brs_mem) {
     return BRISBANE_OK;
 }
 
-Mem* Platform::GetMemFromPtr(void* ptr) {
-    for (std::set<Mem*>::iterator it = mems_.begin(); it != mems_.end(); ++it) {
-        Mem* mem = *it;
-        brisbane_mem brs_mem = *((brisbane_mem*) ptr);
-        if (brs_mem == mem->struct_obj()) return mem;
-    }
-    return NULL;
+void Platform::ExecuteTask(Task* task) {
+    executor_->Execute(task);
 }
 
 Platform* Platform::singleton_ = NULL;

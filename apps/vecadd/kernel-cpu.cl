@@ -7,3 +7,8 @@ __kernel void loop1(__global int* D, __global int* C) {
     int id = get_global_id(0);
     D[id] = C[id] * 10;
 }
+
+__kernel void loop2(__global int* E, __global int* D) {
+    int id = get_global_id(0);
+    E[id] = D[id] * 2;
+}

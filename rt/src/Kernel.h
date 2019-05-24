@@ -12,6 +12,7 @@ typedef struct _KernelArg {
     size_t size;
     char value[256];
     Mem* mem;
+    int mode;
 } KernelArg;
 
 class Kernel: public Object<struct _brisbane_kernel, Kernel> {
@@ -20,6 +21,7 @@ public:
     virtual ~Kernel();
 
     int SetArg(int idx, size_t size, void* value);
+    int SetMem(int idx, Mem* mem, int mode);
 
     cl_kernel clkernel(int i, cl_program clprog);
 

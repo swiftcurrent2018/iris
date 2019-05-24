@@ -21,7 +21,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) type_ = brisbane_device_fpga;
     else type_ = brisbane_device_phi;
 
-    _info("vendor[%s] device[%s] type[0x%x] version[%s]", vendor_, name_, type_, version_);
+    _info("device[%d] vendor[%s] device[%s] type[0x%x] version[%s]", dev_no_, vendor_, name_, type_, version_);
 
     clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
 
@@ -54,34 +54,13 @@ void Device::Execute(Task* task) {
     for (int i = 0; i < task->num_cmds(); i++) {
         Command* cmd = task->cmd(i);
         switch (cmd->type()) {
+            case BRISBANE_CMD_KERNEL:   ExecuteKernel(cmd);     break;
             case BRISBANE_CMD_H2D:      ExecuteH2D(cmd);        break;
             case BRISBANE_CMD_D2H:      ExecuteD2H(cmd);        break;
-            case BRISBANE_CMD_KERNEL:   ExecuteKernel(cmd);     break;
+            case BRISBANE_CMD_PRESENT:                          break;
             default: _error("cmd type[0x%x]", cmd->type());
         }
     }
-}
-
-void Device::ExecuteH2D(Command* cmd) {
-    Mem* mem = cmd->mem();
-    cl_mem clmem = mem->clmem(platform_no_, clctx_);
-    size_t off = cmd->off();
-    size_t size = cmd->size();
-    void* host = cmd->host();
-
-    clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
-}
-
-void Device::ExecuteD2H(Command* cmd) {
-    Mem* mem = cmd->mem();
-    cl_mem clmem = mem->clmem(platform_no_, clctx_);
-    size_t off = cmd->off();
-    size_t size = cmd->size();
-    void* host = cmd->host();
-
-    clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
 }
 
 void Device::ExecuteKernel(Command* cmd) {
@@ -95,6 +74,7 @@ void Device::ExecuteKernel(Command* cmd) {
         KernelArg* arg = it->second;
         Mem* mem = arg->mem;
         if (mem) {
+            if (arg->mode == brisbane_rdwr || arg->mode == brisbane_wronly) mem->SetOwner(this);
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
             if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
@@ -103,8 +83,30 @@ void Device::ExecuteKernel(Command* cmd) {
             if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
         }
     }
-    _trace("kernel[%s] on %s's %s", kernel->name(), vendor_, name_);
+    _trace("kernel[%s] on %s", kernel->name(), name_);
     clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+}
+
+void Device::ExecuteH2D(Command* cmd) {
+    Mem* mem = cmd->mem();
+    cl_mem clmem = mem->clmem(platform_no_, clctx_);
+    size_t off = cmd->off();
+    size_t size = cmd->size();
+    void* host = cmd->host();
+    mem->SetOwner(this);
+    clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
+    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+}
+
+void Device::ExecuteD2H(Command* cmd) {
+    Mem* mem = cmd->mem();
+    cl_mem clmem = mem->clmem(platform_no_, clctx_);
+    size_t off = cmd->off();
+    size_t size = cmd->size();
+    void* host = cmd->host();
+
+    clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
 }
 

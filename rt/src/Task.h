@@ -15,10 +15,15 @@ public:
 
     void Add(Command* cmd);
     void Submit(int brs_device);
+    void Execute();
     void Wait();
 
     Command* cmd(int i) { return cmds_[i]; }
+    Device* dev() { return dev_; }
     int num_cmds() { return num_cmds_; }
+
+private:
+    int GetDeviceData();
 
 private:
     int num_cmds_;
