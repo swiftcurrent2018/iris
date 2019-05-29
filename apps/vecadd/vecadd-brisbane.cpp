@@ -6,6 +6,7 @@
 int main(int argc, char** argv) {
     int SIZE;
     int *A, *B, *C, *D, *E;
+    int err = 0;
 
     brisbane_init(&argc, &argv);
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv) {
     brisbane_task_h2d(task0, mem_B, 0, SIZE * sizeof(int), B);
     size_t kernel_index_loop0[1] = { SIZE };
     brisbane_task_kernel(task0, kernel_loop0, 1, kernel_index_loop0);
-    brisbane_task_submit(task0, brisbane_device_cpu);
+    brisbane_task_submit(task0, brisbane_device_fpga);
     brisbane_task_wait(task0);
     /*
 #pragma acc parallel loop copyin(A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
     size_t kernel_index_loop2[1] = { SIZE };
     brisbane_task_kernel(task2, kernel_loop2, 1, kernel_index_loop2);
     brisbane_task_d2h(task2, mem_E, 0, SIZE * sizeof(int), E);
-    brisbane_task_submit(task2, brisbane_device_data);
+    brisbane_task_submit(task2, brisbane_device_fpga);
     brisbane_task_wait(task2);
     /*
 #pragma acc parallel loop present(D[0:SIZE]) device(data)
@@ -103,7 +104,9 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < SIZE; i++) {
         printf("[%8d] %8d = (%8d + %8d) * %d\n", i, E[i], A[i], B[i], 20);
+        if (E[i] != (A[i] + B[i]) * 20) err++;
     }
+    printf("Finish: error[%d]\n", err);
 
     brisbane_task_release(task0);
     brisbane_task_release(task1);

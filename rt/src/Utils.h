@@ -1,6 +1,7 @@
 #ifndef BRISBANE_RT_SRC_UTILS_H
 #define BRISBANE_RT_SRC_UTILS_H
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +31,11 @@ static void Logo(bool color) {
 
 static void ReadFile(char* path, char** string, size_t* len) {
     int fd = open((const char*) path, O_RDONLY);
+    if (fd == -1) {
+        _error("path[%s] %s", path, strerror(errno));
+        len = 0UL;
+        return;
+    }
     off_t s = lseek(fd, 0, SEEK_END);
     *string = (char*) malloc(s + 1);
     *len = s + 1;

@@ -10,12 +10,12 @@
 extern "C" {
 #endif
 
-#define brisbane_device_auto        (1 << 0)
-#define brisbane_device_cpu         (1 << 1)
-#define brisbane_device_gpu         (1 << 2)
-#define brisbane_device_phi         (1 << 3)
-#define brisbane_device_fpga        (1 << 4)
-#define brisbane_device_data        (1 << 5)
+#define brisbane_device_auto        1
+#define brisbane_device_cpu         2
+#define brisbane_device_gpu         3
+#define brisbane_device_phi         4
+#define brisbane_device_fpga        5
+#define brisbane_device_data        6
 
 #define brisbane_rdwr               (1 << 0)
 #define brisbane_wronly             (1 << 1)

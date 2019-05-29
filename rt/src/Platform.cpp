@@ -25,7 +25,7 @@ Platform::~Platform() {
 int Platform::Init(int* argc, char*** argv) {
     if (init_) return BRISBANE_ERR;
     gethostname(debug_prefix_, 256);
-    Utils::Logo(false);
+    Utils::Logo(true);
     GetCLPlatforms();
     return BRISBANE_OK;
 }

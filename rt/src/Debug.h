@@ -9,6 +9,7 @@
 #define _DEBUG_ENABLE
 #define _INFO_ENABLE
 #define _ERROR_ENABLE
+#define _CLERROR_ENABLE
 #define _TODO_ENABLE
 
 #define _COLOR_DEBUG
@@ -92,6 +93,14 @@ extern char debug_prefix_[];
 #else
 #define  _error(fmt, ...)
 #define __error(fmt, ...)
+#endif
+
+#ifdef _CLERROR_ENABLE
+#define  _clerror(clerr) { if (clerr != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
+#define __clerror(clerr) { if (clerr != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
+#else
+#define  _clerror(clerr)
+#define __clerror(clerr)
 #endif
 
 #ifdef _TODO_ENABLE

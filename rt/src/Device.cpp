@@ -18,12 +18,16 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
 
     if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_device_cpu;
     else if (cltype_ == CL_DEVICE_TYPE_GPU) type_ = brisbane_device_gpu;
-    else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) type_ = brisbane_device_fpga;
-    else type_ = brisbane_device_phi;
+    else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) {
+        if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_device_fpga;
+        else type_ = brisbane_device_phi;
+    }
+    else type_ = brisbane_device_cpu;
 
-    _info("device[%d] vendor[%s] device[%s] type[0x%x] version[%s]", dev_no_, vendor_, name_, type_, version_);
+    _info("device[%d] vendor[%s] device[%s] type[%d] version[%s]", dev_no_, vendor_, name_, type_, version_);
 
     clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
+    _clerror(clerr_);
 
     BuildProgram();
 }
@@ -32,21 +36,22 @@ Device::~Device() {
 }
 
 void Device::BuildProgram() {
+    cl_int status;
     char path[256];
     memset(path, 0, 256);
-    sprintf(path, "kernel-%s.cl",
-            type_ == brisbane_device_cpu  ? "cpu"  :
-            type_ == brisbane_device_gpu  ? "gpu"  :
-            type_ == brisbane_device_fpga ? "fpga" : "default");
+    sprintf(path, "kernel-%s",
+            type_ == brisbane_device_cpu  ? "cpu.cl"  :
+            type_ == brisbane_device_gpu  ? "gpu.cl"  :
+            type_ == brisbane_device_phi  ? "phi.cl"  :
+            type_ == brisbane_device_fpga ? "fpga.aocx" : "default.cl");
     char* src = NULL;
     size_t srclen = 0;
     Utils::ReadFile(path, &src, &srclen);
-    clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
-
+    if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
+    else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
+    _clerror(clerr_);
     clerr_ = clBuildProgram(clprog_, 1, &cldev_, "", NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
-
+    _clerror(clerr_);
     free(src);
 }
 
@@ -77,15 +82,15 @@ void Device::ExecuteKernel(Command* cmd) {
             if (arg->mode == brisbane_rdwr || arg->mode == brisbane_wronly) mem->SetOwner(this);
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
-            if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+            _clerror(clerr_);
         } else {
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
-            if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+            _clerror(clerr_);
         }
     }
     _trace("kernel[%s] on %s", kernel->name(), name_);
     clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+    _clerror(clerr_);
 }
 
 void Device::ExecuteH2D(Command* cmd) {
@@ -96,7 +101,7 @@ void Device::ExecuteH2D(Command* cmd) {
     void* host = cmd->host();
     mem->SetOwner(this);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+    _clerror(clerr_);
 }
 
 void Device::ExecuteD2H(Command* cmd) {
@@ -107,12 +112,12 @@ void Device::ExecuteD2H(Command* cmd) {
     void* host = cmd->host();
 
     clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+    _clerror(clerr_);
 }
 
 void Device::Wait() {
     clerr_ = clFinish(clcmdq_);
-    if (clerr_ != CL_SUCCESS) _error("clerr[%d]", clerr_);
+    _clerror(clerr_);
 }
 
 } /* namespace rt */

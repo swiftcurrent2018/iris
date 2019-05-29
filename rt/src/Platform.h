@@ -1,6 +1,8 @@
 #ifndef BRISBANE_RT_SRC_PLATFORM_H
 #define BRISBANE_RT_SRC_PLATFORM_H
 
+#define CL_TARGET_OPENCL_VERSION 120
+
 #include <brisbane/brisbane.h>
 #include <CL/cl.h>
 #include <stddef.h>
