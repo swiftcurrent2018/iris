@@ -5,6 +5,7 @@
 int main(int argc, char** argv) {
     int SIZE;
     int *A, *B, *C, *D, *E;
+    int ERROR = 0;
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
 
@@ -42,7 +43,9 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < SIZE; i++) {
         printf("[%8d] %8d = (%8d + %8d) * %d\n", i, E[i], A[i], B[i], 20);
+        if (E[i] != (A[i] + B[i]) * 20) ERROR++;
     }
+    printf("ERROR[%d]\n", ERROR);
 
     free(A);
     free(B);
