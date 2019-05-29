@@ -10,6 +10,7 @@ set(libsrc
     Object.cpp
     Platform.cpp
     Task.cpp
+    Timer.cpp
     )
 
 add_library(brisbane STATIC ${libsrc})

@@ -1,12 +1,12 @@
 BRISBANE=$(HOME)/work/brisbane/install
 
-all: vecadd vecadd-brisbane
+all: epoch epoch-brisbane
 
-vecadd: vecadd.cpp
+epoch: epoch.cpp
 	g++ -o $@ $^
 
-vecadd-brisbane: vecadd-brisbane.cpp
+epoch-brisbane: epoch-brisbane.cpp
 	g++ -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL
 
 clean:
-	rm -f vecadd vecadd-brisbane
+	rm -f epoch epoch-brisbane

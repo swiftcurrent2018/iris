@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
     int ERROR = 0;
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    printf("SIZE[%d]\n", SIZE);
 
     A = (int*) malloc(SIZE * sizeof(int));
     B = (int*) malloc(SIZE * sizeof(int));
@@ -55,4 +56,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-

@@ -26,6 +26,7 @@ public:
     void* host() { return host_; }
     int dim() { return dim_; }
     size_t* ndr() { return ndr_; }
+    size_t ndr(int i) { return ndr_[i]; }
     Kernel* kernel() { return kernel_; }
     Mem* mem() { return mem_; }
 

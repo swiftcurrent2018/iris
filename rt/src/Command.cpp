@@ -19,6 +19,7 @@ Command* Command::CreateKernel(Kernel* kernel, int dim, size_t* ndr) {
     cmd->kernel_ = kernel;
     cmd->dim_ = dim;
     for (int i = 0; i < dim; i++) cmd->ndr_[i] = ndr[i];
+    for (int i = dim; i < 3; i++) cmd->ndr_[i] = 1;
     return cmd;
 }
 

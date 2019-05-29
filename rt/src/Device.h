@@ -7,6 +7,8 @@
 namespace brisbane {
 namespace rt {
 
+class Timer;
+
 class Device {
 public:
     Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no);
@@ -39,6 +41,8 @@ private:
     char vendor_[64];
     char name_[64];
     char version_[64];
+
+    Timer* timer_;
 };
 
 } /* namespace rt */

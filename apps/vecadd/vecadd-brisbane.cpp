@@ -11,6 +11,7 @@ int main(int argc, char** argv) {
     brisbane_init(&argc, &argv);
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    printf("SIZE[%d]\n", SIZE);
 
     A = (int*) malloc(SIZE * sizeof(int));
     B = (int*) malloc(SIZE * sizeof(int));
@@ -32,9 +33,9 @@ int main(int argc, char** argv) {
 
     brisbane_kernel kernel_loop0;
     brisbane_kernel_create("loop0", &kernel_loop0);
-    brisbane_kernel_setmem(kernel_loop0, 0, mem_C, brisbane_wronly);
-    brisbane_kernel_setmem(kernel_loop0, 1, mem_A, brisbane_rdonly);
-    brisbane_kernel_setmem(kernel_loop0, 2, mem_B, brisbane_rdonly);
+    brisbane_kernel_setmem(kernel_loop0, 0, mem_C, brisbane_wr);
+    brisbane_kernel_setmem(kernel_loop0, 1, mem_A, brisbane_rd);
+    brisbane_kernel_setmem(kernel_loop0, 2, mem_B, brisbane_rd);
 
     brisbane_task task0;
     brisbane_task_create(&task0);
@@ -42,8 +43,7 @@ int main(int argc, char** argv) {
     brisbane_task_h2d(task0, mem_B, 0, SIZE * sizeof(int), B);
     size_t kernel_index_loop0[1] = { SIZE };
     brisbane_task_kernel(task0, kernel_loop0, 1, kernel_index_loop0);
-    brisbane_task_submit(task0, brisbane_device_cpu);
-    brisbane_task_wait(task0);
+    brisbane_task_submit(task0, brisbane_device_fpga, true);
     /*
 #pragma acc parallel loop copyin(A[0:SIZE], B[0:SIZE]) device(gpu)
 #pragma omp target teams distribute parallel for map(to:A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -58,16 +58,15 @@ int main(int argc, char** argv) {
 
     brisbane_kernel kernel_loop1;
     brisbane_kernel_create("loop1", &kernel_loop1);
-    brisbane_kernel_setmem(kernel_loop1, 0, mem_D, brisbane_wronly);
-    brisbane_kernel_setmem(kernel_loop1, 1, mem_C, brisbane_rdonly);
+    brisbane_kernel_setmem(kernel_loop1, 0, mem_D, brisbane_wr);
+    brisbane_kernel_setmem(kernel_loop1, 1, mem_C, brisbane_rd);
 
     brisbane_task task1;
     brisbane_task_create(&task1);
     brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int));
     size_t kernel_index_loop1[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_loop1, 1, kernel_index_loop1);
-    brisbane_task_submit(task1, brisbane_device_gpu);
-    brisbane_task_wait(task1);
+    brisbane_task_submit(task1, brisbane_device_gpu, true);
     /*
 #pragma acc parallel loop present(C[0:SIZE]) device(cpu)
 #pragma omp target teams distribute parallel for device(cpu)
@@ -82,8 +81,8 @@ int main(int argc, char** argv) {
 
     brisbane_kernel kernel_loop2;
     brisbane_kernel_create("loop2", &kernel_loop2);
-    brisbane_kernel_setmem(kernel_loop2, 0, mem_E, brisbane_wronly);
-    brisbane_kernel_setmem(kernel_loop2, 1, mem_D, brisbane_rdonly);
+    brisbane_kernel_setmem(kernel_loop2, 0, mem_E, brisbane_wr);
+    brisbane_kernel_setmem(kernel_loop2, 1, mem_D, brisbane_rd);
 
     brisbane_task task2;
     brisbane_task_create(&task2);
@@ -91,8 +90,7 @@ int main(int argc, char** argv) {
     size_t kernel_index_loop2[1] = { SIZE };
     brisbane_task_kernel(task2, kernel_loop2, 1, kernel_index_loop2);
     brisbane_task_d2h(task2, mem_E, 0, SIZE * sizeof(int), E);
-    brisbane_task_submit(task2, brisbane_device_data);
-    brisbane_task_wait(task2);
+    brisbane_task_submit(task2, brisbane_device_fpga, true);
     /*
 #pragma acc parallel loop present(D[0:SIZE]) device(data)
 #pragma omp target teams distribute parallel for map(from:E[0:SIZE]) device(data)
@@ -130,4 +128,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-

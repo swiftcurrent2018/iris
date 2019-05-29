@@ -48,8 +48,8 @@ int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, si
     return Platform::GetPlatform()->TaskKernel(task, kernel, dim, ndr);
 }
 
-int brisbane_task_submit(brisbane_task task, int device) {
-    return Platform::GetPlatform()->TaskSubmit(task, device);
+int brisbane_task_submit(brisbane_task task, int device, bool wait) {
+    return Platform::GetPlatform()->TaskSubmit(task, device, wait);
 }
 
 int brisbane_task_wait(brisbane_task task) {

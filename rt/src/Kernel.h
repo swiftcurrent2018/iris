@@ -4,6 +4,7 @@
 #include "Object.h"
 #include "Platform.h"
 #include <map>
+#include <string>
 
 namespace brisbane {
 namespace rt {
@@ -14,6 +15,11 @@ typedef struct _KernelArg {
     Mem* mem;
     int mode;
 } KernelArg;
+
+typedef struct _KernelProf {
+    double time;
+    int count;
+} KernelProf;
 
 class Kernel: public Object<struct _brisbane_kernel, Kernel> {
 public:

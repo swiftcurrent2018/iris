@@ -27,7 +27,7 @@ public:
     int Init(int* argc, char*** argv);
     int GetCLPlatforms();
 
-    Device* AvailableDevice(int brs_device);
+    Device* AvailableDevice(Task* task, int brs_device);
 
     int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
     int KernelSetArg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
@@ -39,7 +39,7 @@ public:
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size);
-    int TaskSubmit(brisbane_task brs_task, int brs_device);
+    int TaskSubmit(brisbane_task brs_task, int brs_device, bool wait);
     int TaskWait(brisbane_task brs_task);
     int TaskRelease(brisbane_task brs_task);
 
@@ -49,6 +49,11 @@ public:
     void ExecuteTask(Task* task);
 
     Device* device(int dev_no) { return devices_[dev_no]; }
+
+private:
+    Device* GetDeviceHistory(Task* task);
+    Device* GetDeviceData(Task* task);
+    Device* GetDeviceRandom(Task* task);
 
 public:
     static Platform* GetPlatform();

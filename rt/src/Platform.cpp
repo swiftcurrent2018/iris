@@ -16,6 +16,7 @@ char debug_prefix_[256];
 Platform::Platform() {
     init_ = false;
     num_devices_ = 0;
+    srand(time(NULL));
 }
 
 Platform::~Platform() {
@@ -52,12 +53,63 @@ int Platform::GetCLPlatforms() {
     }
 }
 
-Device* Platform::AvailableDevice(int brs_device) {
+Device* Platform::AvailableDevice(Task* task, int brs_device) {
+    if (brs_device == brisbane_device_default)  return devices_[0];
+    if (brs_device == brisbane_device_history)  return GetDeviceHistory(task);
+    if (brs_device == brisbane_device_data)     return GetDeviceData(task);
+    if (brs_device == brisbane_device_random)   return GetDeviceRandom(task);
     for (int i = 0; i < num_devices_; i++) {
         Device* dev = devices_[i];
         if (dev->type() == brs_device) return dev;
     }
     return NULL;
+}
+
+Device* Platform::GetDeviceHistory(Task* task) {
+    _check();
+    Command* cmd = task->cmd_kernel();
+    if (!cmd) return devices_[0];
+    Kernel* kernel = cmd->kernel();
+    _debug("kernel[%s]", kernel->name());
+    char key[256];
+    memset(key, 0, 256);
+    sprintf(key, "%s-%d-%d-%d", kernel->name(), cmd->ndr(0), cmd->ndr(1), cmd->ndr(2));
+    _debug("key[%s]", key);
+    return devices_[0];
+}
+
+Device* Platform::GetDeviceData(Task* task) {
+    size_t total_size[16];
+    for (int i = 0; i < 16; i++) total_size[i] = 0UL;
+    for (int i = 0; i < task->num_cmds(); i++) {
+        Command* cmd = task->cmd(i);
+        if (cmd->type() == BRISBANE_CMD_KERNEL) {
+            Kernel* kernel = cmd->kernel();
+            std::map<int, KernelArg*> args = kernel->args();
+            for (std::map<int, KernelArg*>::iterator it = args.begin(); it != args.end(); ++it) {
+                Mem* mem = it->second->mem;
+                if (!mem || !mem->owner()) continue;
+                total_size[mem->owner()->dev_no()] += mem->size();
+            }
+        } else if (cmd->type() == BRISBANE_CMD_H2D || cmd->type() == BRISBANE_CMD_D2H) {
+            Mem* mem = cmd->mem();
+            if (!mem || !mem->owner()) continue;
+            total_size[mem->owner()->dev_no()] += mem->size();
+        }
+    }
+    int target_dev = 0;
+    size_t max_size = 0;
+    for (int i = 0; i < 16; i++) {
+        if (total_size[i] > max_size) {
+            max_size = total_size[i];
+            target_dev = i;
+        }
+    }
+    return devices_[target_dev];
+}
+
+Device* Platform::GetDeviceRandom(Task* task) {
+    return devices_[rand() % num_devices_];
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
@@ -122,9 +174,10 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
     return BRISBANE_OK;
 }
 
-int Platform::TaskSubmit(brisbane_task brs_task, int brs_device) {
+int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, bool wait) {
     Task* task = brs_task->class_obj;
     task->Submit(brs_device);
+    if (wait) task->Wait();
     return BRISBANE_OK;
 }
 

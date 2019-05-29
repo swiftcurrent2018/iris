@@ -19,15 +19,14 @@ public:
     void Wait();
 
     Command* cmd(int i) { return cmds_[i]; }
+    Command* cmd_kernel() { return cmd_kernel_; }
     Device* dev() { return dev_; }
     int num_cmds() { return num_cmds_; }
 
 private:
-    int GetDeviceData();
-
-private:
     int num_cmds_;
     Command* cmds_[64];
+    Command* cmd_kernel_;
     Device* dev_;
     Platform* platform_;
 };

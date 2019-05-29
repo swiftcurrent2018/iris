@@ -10,16 +10,19 @@
 extern "C" {
 #endif
 
-#define brisbane_device_auto        1
+#define brisbane_device_default     1
 #define brisbane_device_cpu         2
 #define brisbane_device_gpu         3
 #define brisbane_device_phi         4
 #define brisbane_device_fpga        5
-#define brisbane_device_data        6
+#define brisbane_device_auto        10
+#define brisbane_device_data        11
+#define brisbane_device_history     12
+#define brisbane_device_random      99
 
-#define brisbane_rdwr               (1 << 0)
-#define brisbane_wronly             (1 << 1)
-#define brisbane_rdonly             (1 << 2)
+#define brisbane_rd                 (1 << 0)
+#define brisbane_wr                 (1 << 1)
+#define brisbane_rdwr               (brisbane_rd | brisbane_wr)
 
 typedef struct _brisbane_task*      brisbane_task;
 typedef struct _brisbane_mem*       brisbane_mem;
@@ -38,7 +41,7 @@ extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int 
 extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size);
-extern int brisbane_task_submit(brisbane_task task, int device);
+extern int brisbane_task_submit(brisbane_task task, int device, bool wait);
 extern int brisbane_task_wait(brisbane_task task);
 extern int brisbane_task_release(brisbane_task task);
 

@@ -1,6 +1,7 @@
 #include "Device.h"
 #include "Kernel.h"
 #include "Mem.h"
+#include "Timer.h"
 #include "Utils.h"
 
 namespace brisbane {
@@ -11,6 +12,9 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     clctx_ = clctx;
     dev_no_ = dev_no;
     platform_no_ = platform_no;
+    
+    timer_ = new Timer();
+
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_VENDOR, sizeof(vendor_), vendor_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_NAME, sizeof(name_), name_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_TYPE, sizeof(cltype_), &cltype_, NULL);
@@ -33,6 +37,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
 }
 
 Device::~Device() {
+    delete timer_;
 }
 
 void Device::BuildProgram() {
@@ -47,6 +52,7 @@ void Device::BuildProgram() {
     char* src = NULL;
     size_t srclen = 0;
     Utils::ReadFile(path, &src, &srclen);
+    if (srclen == 0) return;
     if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
     else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
     _clerror(clerr_);
@@ -79,7 +85,7 @@ void Device::ExecuteKernel(Command* cmd) {
         KernelArg* arg = it->second;
         Mem* mem = arg->mem;
         if (mem) {
-            if (arg->mode == brisbane_rdwr || arg->mode == brisbane_wronly) mem->SetOwner(this);
+            if (arg->mode & brisbane_wr) mem->SetOwner(this);
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
             _clerror(clerr_);
@@ -88,8 +94,12 @@ void Device::ExecuteKernel(Command* cmd) {
             _clerror(clerr_);
         }
     }
-    _trace("kernel[%s] on %s", kernel->name(), name_);
+    timer_->Start();
     clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    _clerror(clerr_);
+    clerr_ = clFinish(clcmdq_);
+    double time = timer_->Stop();
+    _trace("kernel[%s] on %s time[%lf]", kernel->name(), name_, time);
     _clerror(clerr_);
 }
 
@@ -99,7 +109,7 @@ void Device::ExecuteH2D(Command* cmd) {
     size_t off = cmd->off();
     size_t size = cmd->size();
     void* host = cmd->host();
-    mem->SetOwner(this);
+    mem->AddOwner(this);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
 }
