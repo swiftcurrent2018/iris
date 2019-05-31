@@ -4,10 +4,11 @@
 #include "Object.h"
 #include "Platform.h"
 #include <map>
-#include <string>
 
 namespace brisbane {
 namespace rt {
+
+class History;
 
 typedef struct _KernelArg {
     size_t size;
@@ -15,11 +16,6 @@ typedef struct _KernelArg {
     Mem* mem;
     int mode;
 } KernelArg;
-
-typedef struct _KernelProf {
-    double time;
-    int count;
-} KernelProf;
 
 class Kernel: public Object<struct _brisbane_kernel, Kernel> {
 public:
@@ -34,12 +30,16 @@ public:
     std::map<int, KernelArg*> args() { return args_; }
     char* name() { return name_; }
 
+    Platform* platform() { return platform_; }
+    History* history() { return history_; }
+
 private:
     char name_[256];
     std::map<int, KernelArg*> args_;
     cl_kernel clkernels_[16];
 
     Platform* platform_;
+    History* history_;
 
     cl_int clerr_;
 };

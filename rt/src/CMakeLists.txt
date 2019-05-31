@@ -5,6 +5,7 @@ set(libsrc
     Command.cpp
     Device.cpp
     Executor.cpp
+    History.cpp
     Kernel.cpp
     Mem.cpp
     Object.cpp

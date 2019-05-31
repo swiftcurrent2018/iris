@@ -1,5 +1,6 @@
 #include "Kernel.h"
 #include "Debug.h"
+#include "History.h"
 #include <string.h>
 
 namespace brisbane {
@@ -10,6 +11,7 @@ Kernel::Kernel(const char* name, Platform* platform) {
     strncpy(name_, name, len);
     name_[len] = 0;
     platform_ = platform;
+    history_ = new History(this);
     for (int i = 0; i < 16; i++) clkernels_[i] = NULL;
 }
 

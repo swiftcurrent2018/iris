@@ -39,7 +39,7 @@ public:
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size);
-    int TaskSubmit(brisbane_task brs_task, int brs_device, bool wait);
+    int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait);
     int TaskWait(brisbane_task brs_task);
     int TaskRelease(brisbane_task brs_task);
 
@@ -48,6 +48,7 @@ public:
 
     void ExecuteTask(Task* task);
 
+    int ndevs() { return ndevs_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
 
 private:
@@ -63,7 +64,7 @@ private:
     bool init_;
 
     Device* devices_[16];
-    int num_devices_;
+    int ndevs_;
 
     cl_platform_id cl_platforms_[16];
     cl_context cl_contexts_[16];

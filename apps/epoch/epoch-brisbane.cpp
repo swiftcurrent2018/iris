@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     brisbane_task_h2d(task0, mem_A, 0, SIZE * sizeof(int), A);
     brisbane_task_h2d(task0, mem_B, 0, SIZE * sizeof(int), B);
     brisbane_task_h2d(task0, mem_C, 0, SIZE * sizeof(int), C);
-    brisbane_task_submit(task0, brisbane_device_default, true);
+    brisbane_task_submit(task0, brisbane_device_default, NULL, true);
 
     brisbane_kernel kernel_loop0;
     brisbane_kernel_create("loop0", &kernel_loop0);
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     brisbane_task_present(task1, mem_B, 0, SIZE * sizeof(int));
     size_t kernel_index_loop1[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_loop0, 1, kernel_index_loop1);
-    brisbane_task_submit(task1, brisbane_device_history, true);
+    brisbane_task_submit(task1, brisbane_device_history, NULL, true);
     brisbane_task_release(task1);
     /*
 #pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     brisbane_task task2;
     brisbane_task_create(&task2);
     brisbane_task_d2h(task2, mem_C, 0, SIZE * sizeof(int), C);
-    brisbane_task_submit(task2, brisbane_device_data, true);
+    brisbane_task_submit(task2, brisbane_device_data, NULL, true);
 
     for (int i = 0; i < SIZE; i++) {
         printf("[%8d] %8d = (%8d + %8d) * %d\n", i, C[i], A[i], B[i], EPOCH);
