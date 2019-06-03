@@ -1,5 +1,5 @@
-#ifndef BRINSBANE_INCLUDE_BRISBANE_BRINSBANE_H
-#define BRINSBANE_INCLUDE_BRISBANE_BRINSBANE_H
+#ifndef BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H
+#define BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H
 
 #include <stddef.h>
 
@@ -52,4 +52,4 @@ extern int brisbane_mem_release(brisbane_mem mem);
 } /* end of extern "C" */
 #endif
 
-#endif /* BRINSBANE_INCLUDE_BRISBANE_BRINSBANE_H */
+#endif /* BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H */

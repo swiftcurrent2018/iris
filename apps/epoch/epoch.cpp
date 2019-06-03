@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
 #pragma brisbane data h2d(A[0:SIZE], B[0:SIZE], C[0:SIZE]) d2h(C[0:SIZE])
     for (int e = 0; e < EPOCH; e++) {
-#pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(gpu)
+#pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(history)
     for (int i = 0; i < SIZE; i++) {
         C[i] += A[i] + B[i];
     }
