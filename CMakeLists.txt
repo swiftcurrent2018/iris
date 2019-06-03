@@ -7,4 +7,4 @@ set(BRISBANE_VERSION_MINOR 0)
 set(BRISBANE_VERSION_PATCH 0)
 
 add_subdirectory(include)
-add_subdirectory(rt)
+add_subdirectory(src)

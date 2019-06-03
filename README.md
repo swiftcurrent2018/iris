@@ -1,6 +1,6 @@
-THE BRISBANE FRAMEWORK
+The Brisbane Runtime System
 
-Big files are available from https://code.ornl.gov/hpc/brisbane-data
+Big files including FPGA kernels are available from https://code.ornl.gov/hpc/brisbane-rts-data
 
 Jungwon Kim
 
