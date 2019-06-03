@@ -1,4 +1,4 @@
-BRISBANE=$(HOME)/work/brisbane/install
+BRISBANE=../../install
 
 all: vecadd vecadd-brisbane
 

@@ -79,6 +79,7 @@ void Device::ExecuteKernel(Command* cmd) {
     Kernel* kernel = cmd->kernel();
     cl_kernel clkernel = kernel->clkernel(dev_no_, clprog_);
     int dim = cmd->dim();
+    size_t* off = cmd->off();
     size_t* ndr = cmd->ndr();
     std::map<int, KernelArg*> args = kernel->args();
     for (std::map<int, KernelArg*>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -96,7 +97,7 @@ void Device::ExecuteKernel(Command* cmd) {
         }
     }
     timer_->Start();
-    clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) ndr, NULL, 0, NULL, NULL);
     _clerror(clerr_);
     clerr_ = clFinish(clcmdq_);
     double time = timer_->Stop();
@@ -108,7 +109,7 @@ void Device::ExecuteKernel(Command* cmd) {
 void Device::ExecuteH2D(Command* cmd) {
     Mem* mem = cmd->mem();
     cl_mem clmem = mem->clmem(platform_no_, clctx_);
-    size_t off = cmd->off();
+    size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
     mem->AddOwner(this);
@@ -119,7 +120,7 @@ void Device::ExecuteH2D(Command* cmd) {
 void Device::ExecuteD2H(Command* cmd) {
     Mem* mem = cmd->mem();
     cl_mem clmem = mem->clmem(platform_no_, clctx_);
-    size_t off = cmd->off();
+    size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
 

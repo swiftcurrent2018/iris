@@ -18,6 +18,7 @@ extern "C" {
 #define brisbane_device_auto        10
 #define brisbane_device_data        11
 #define brisbane_device_history     12
+#define brisbane_device_all         13
 #define brisbane_device_random      99
 
 #define brisbane_rd                 (1 << 0)
@@ -37,7 +38,8 @@ extern int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem 
 extern int brisbane_kernel_release(brisbane_kernel kernel);
 
 extern int brisbane_task_create(brisbane_task* task);
-extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* ndr);
+extern int brisbane_task_subcreate(brisbane_task task, brisbane_task* subtask);
+extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
 extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size);

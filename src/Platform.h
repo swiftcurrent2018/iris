@@ -35,7 +35,8 @@ public:
     int KernelRelease(brisbane_kernel kernel);
 
     int TaskCreate(brisbane_task* brs_task);
-    int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* ndr);
+    int TaskSubCreate(brisbane_task brs_task, brisbane_task* brs_subtask);
+    int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr);
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size);
@@ -53,6 +54,7 @@ public:
 
 private:
     Device* GetDeviceHistory(Task* task);
+    Device* GetDeviceAll(Task* task);
     Device* GetDeviceData(Task* task);
     Device* GetDeviceRandom(Task* task);
 

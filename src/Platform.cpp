@@ -56,6 +56,7 @@ int Platform::GetCLPlatforms() {
 Device* Platform::AvailableDevice(Task* task, int brs_device) {
     if (brs_device == brisbane_device_default)  return devices_[0];
     if (brs_device == brisbane_device_history)  return GetDeviceHistory(task);
+    if (brs_device == brisbane_device_all)      return GetDeviceAll(task);
     if (brs_device == brisbane_device_data)     return GetDeviceData(task);
     if (brs_device == brisbane_device_random)   return GetDeviceRandom(task);
     for (int i = 0; i < ndevs_; i++) {
@@ -63,6 +64,11 @@ Device* Platform::AvailableDevice(Task* task, int brs_device) {
         if (dev->type() == brs_device) return dev;
     }
     return NULL;
+}
+
+Device* Platform::GetDeviceAll(Task* task) {
+    _check();
+    return devices_[0];
 }
 
 Device* Platform::GetDeviceHistory(Task* task) {
@@ -133,16 +139,23 @@ int Platform::KernelRelease(brisbane_kernel brs_kernel) {
 }
 
 int Platform::TaskCreate(brisbane_task* brs_task) {
-    Task* task = new Task();
+    Task* task = new Task(NULL);
     *brs_task = task->struct_obj();
     return BRISBANE_OK;
 }
 
-int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* ndr) {
+int Platform::TaskSubCreate(brisbane_task brs_task, brisbane_task* brs_subtask) {
+    Task* task = brs_task->class_obj;
+    Task* subtask = new Task(task);
+    *brs_subtask = subtask->struct_obj();
+    return BRISBANE_OK;
+}
+
+int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr) {
     Task* task = brs_task->class_obj;
     Kernel* kernel = brs_kernel->class_obj;
-    Command* cmd = Command::CreateKernel(kernel, dim, ndr);
-    task->Add(cmd);
+    Command* cmd = Command::CreateKernel(kernel, dim, off, ndr);
+    task->AddCommand(cmd);
     return BRISBANE_OK;
 }
 
@@ -150,7 +163,7 @@ int Platform::TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, 
     Task* task = brs_task->class_obj;
     Mem* mem = brs_mem->class_obj;
     Command* cmd = Command::CreateH2D(mem, off, size, host);
-    task->Add(cmd);
+    task->AddCommand(cmd);
     return BRISBANE_OK;
 }
 
@@ -158,7 +171,7 @@ int Platform::TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, 
     Task* task = brs_task->class_obj;
     Mem* mem = brs_mem->class_obj;
     Command* cmd = Command::CreateD2H(mem, off, size, host);
-    task->Add(cmd);
+    task->AddCommand(cmd);
     return BRISBANE_OK;
 }
 
@@ -166,7 +179,7 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
     Task* task = brs_task->class_obj;
     Mem* mem = brs_mem->class_obj;
     Command* cmd = Command::CreatePresent(mem, off, size);
-    task->Add(cmd);
+    task->AddCommand(cmd);
     return BRISBANE_OK;
 }
 

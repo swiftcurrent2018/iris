@@ -13,11 +13,11 @@ int main(int argc, char** argv) {
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
     printf("SIZE[%d]\n", SIZE);
 
-    A = (int*) malloc(SIZE * sizeof(int));
-    B = (int*) malloc(SIZE * sizeof(int));
-    C = (int*) malloc(SIZE * sizeof(int));
-    D = (int*) malloc(SIZE * sizeof(int));
-    E = (int*) malloc(SIZE * sizeof(int));
+    A = (int*) valloc(SIZE * sizeof(int));
+    B = (int*) valloc(SIZE * sizeof(int));
+    C = (int*) valloc(SIZE * sizeof(int));
+    D = (int*) valloc(SIZE * sizeof(int));
+    E = (int*) valloc(SIZE * sizeof(int));
 
     for (int i = 0; i < SIZE; i++) {
         A[i] = i;
@@ -41,8 +41,9 @@ int main(int argc, char** argv) {
     brisbane_task_create(&task0);
     brisbane_task_h2d(task0, mem_A, 0, SIZE * sizeof(int), A);
     brisbane_task_h2d(task0, mem_B, 0, SIZE * sizeof(int), B);
-    size_t kernel_index_loop0[1] = { SIZE };
-    brisbane_task_kernel(task0, kernel_loop0, 1, kernel_index_loop0);
+    size_t kernel_loop0_off[1] = { 0 };
+    size_t kernel_loop0_idx[1] = { SIZE };
+    brisbane_task_kernel(task0, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);
     brisbane_task_submit(task0, brisbane_device_fpga, NULL, true);
     /*
 #pragma acc parallel loop copyin(A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -64,9 +65,10 @@ int main(int argc, char** argv) {
     brisbane_task task1;
     brisbane_task_create(&task1);
     brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int));
-    size_t kernel_index_loop1[1] = { SIZE };
-    brisbane_task_kernel(task1, kernel_loop1, 1, kernel_index_loop1);
-    brisbane_task_submit(task1, brisbane_device_gpu, NULL, true);
+    size_t kernel_loop1_off[1] = { 0 };
+    size_t kernel_loop1_idx[1] = { SIZE };
+    brisbane_task_kernel(task1, kernel_loop1, 1, kernel_loop1_off, kernel_loop1_idx);
+    brisbane_task_submit(task1, brisbane_device_fpga, NULL, true);
     /*
 #pragma acc parallel loop present(C[0:SIZE]) device(cpu)
 #pragma omp target teams distribute parallel for device(cpu)
@@ -87,8 +89,9 @@ int main(int argc, char** argv) {
     brisbane_task task2;
     brisbane_task_create(&task2);
     brisbane_task_present(task2, mem_D, 0, SIZE * sizeof(int));
-    size_t kernel_index_loop2[1] = { SIZE };
-    brisbane_task_kernel(task2, kernel_loop2, 1, kernel_index_loop2);
+    size_t kernel_loop2_off[1] = { 0 };
+    size_t kernel_loop2_idx[1] = { SIZE };
+    brisbane_task_kernel(task2, kernel_loop2, 1, kernel_loop2_off, kernel_loop2_idx);
     brisbane_task_d2h(task2, mem_E, 0, SIZE * sizeof(int), E);
     brisbane_task_submit(task2, brisbane_device_fpga, NULL, true);
     /*

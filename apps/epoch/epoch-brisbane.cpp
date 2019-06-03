@@ -15,9 +15,9 @@ int main(int argc, char** argv) {
     EPOCH = argc > 2 ? atoi(argv[2]) : 4;
     printf("SIZE[%d] EPOCH[%d]\n", SIZE, EPOCH);
 
-    A = (int*) malloc(SIZE * sizeof(int));
-    B = (int*) malloc(SIZE * sizeof(int));
-    C = (int*) malloc(SIZE * sizeof(int));
+    A = (int*) valloc(SIZE * sizeof(int));
+    B = (int*) valloc(SIZE * sizeof(int));
+    C = (int*) valloc(SIZE * sizeof(int));
 
     for (int i = 0; i < SIZE; i++) {
         A[i] = i;
@@ -52,8 +52,9 @@ int main(int argc, char** argv) {
     brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int));
     brisbane_task_present(task1, mem_A, 0, SIZE * sizeof(int));
     brisbane_task_present(task1, mem_B, 0, SIZE * sizeof(int));
-    size_t kernel_index_loop1[1] = { SIZE };
-    brisbane_task_kernel(task1, kernel_loop0, 1, kernel_index_loop1);
+    size_t kernel_loop0_off[1] = { 0 };
+    size_t kernel_loop0_idx[1] = { SIZE };
+    brisbane_task_kernel(task1, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);
     brisbane_task_submit(task1, brisbane_device_history, NULL, true);
     brisbane_task_release(task1);
     /*

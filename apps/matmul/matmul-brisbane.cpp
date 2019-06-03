@@ -7,6 +7,8 @@ int SIZE;
 double *A, *B, *C;
 
 void ijk() {
+#pragma brisbane kernel h2d(A[0:SIZE*SIZE], B[0:SIZE*SIZE]) d2h(C[0:SIZE*SIZE]) device(all)
+#pragma brisbane data access index(i) h2d(A[i*SIZE:SIZE], B[0:SIZE*SIZE]) d2h(C[i*SIZE:SIZE])
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             double sum = 0.0;
@@ -31,18 +33,18 @@ void kij() {
 
 int main(int argc, char** argv) {
     int ERROR = 0;
-    int DEV = 2;
+    int DEV = 0;
 
     brisbane_init(&argc, &argv);
 
-    SIZE = argc > 1 ? atoi(argv[1]) : 4096;
-    DEV = argc > 2 ? atoi(argv[2]) : 2;
+    SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    DEV = argc > 2 ? atoi(argv[2]) : 13;
 
     printf("SIZE[%d] DEV[%d]\n", SIZE, DEV);
 
-    A = (double*) malloc(SIZE * SIZE * sizeof(double));
-    B = (double*) malloc(SIZE * SIZE * sizeof(double));
-    C = (double*) malloc(SIZE * SIZE * sizeof(double));
+    A = (double*) valloc(SIZE * SIZE * sizeof(double));
+    B = (double*) valloc(SIZE * SIZE * sizeof(double));
+    C = (double*) valloc(SIZE * SIZE * sizeof(double));
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -68,17 +70,32 @@ int main(int argc, char** argv) {
 
     brisbane_task task0;
     brisbane_task_create(&task0);
+    int unit = 4;
+    for (int i = 0; i < SIZE; i += unit) {
+        brisbane_task subtask;
+        brisbane_task_subcreate(task0, &subtask);
+        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), A);
+        brisbane_task_h2d(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
+        size_t kernel_ijk_off[1] = { i };
+        size_t kernel_ijk_idx[1] = { unit };
+        brisbane_task_kernel(subtask, kernel_ijk, 1, kernel_ijk_off, kernel_ijk_idx);
+        brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), C);
+    }
+
+    /*
     brisbane_task_h2d(task0, mem_A, 0, SIZE * SIZE * sizeof(double), A);
     brisbane_task_h2d(task0, mem_B, 0, SIZE * SIZE * sizeof(double), B);
     brisbane_task_h2d(task0, mem_C, 0, SIZE * SIZE * sizeof(double), C);
-    size_t kernel_ijk_index[1] = { SIZE };
-    brisbane_task_kernel(task0, kernel_ijk, 1, kernel_ijk_index);
+    size_t kernel_ijk_idx[1] = { SIZE };
+    brisbane_task_kernel(task0, kernel_ijk, 1, kernel_ijk_idx);
     brisbane_task_d2h(task0, mem_C, 0, SIZE * SIZE * sizeof(double), C);
+    */
+
     brisbane_task_submit(task0, DEV, NULL, true);
 
     //ijk();
 
-#if 0
+#if 1
     printf("[[ A ]]\n");
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {

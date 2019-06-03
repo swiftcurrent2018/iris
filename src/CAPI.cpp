@@ -32,6 +32,10 @@ int brisbane_task_create(brisbane_task* task) {
     return Platform::GetPlatform()->TaskCreate(task);
 }
 
+int brisbane_task_subcreate(brisbane_task task, brisbane_task* subtask) {
+    return Platform::GetPlatform()->TaskSubCreate(task, subtask);
+}
+
 int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size) {
     return Platform::GetPlatform()->TaskPresent(task, mem, off, size);
 }
@@ -44,8 +48,8 @@ int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t s
     return Platform::GetPlatform()->TaskD2H(task, mem, off, size, host);
 }
 
-int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* ndr) {
-    return Platform::GetPlatform()->TaskKernel(task, kernel, dim, ndr);
+int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr) {
+    return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }
 
 int brisbane_task_submit(brisbane_task task, int device, char* opt, bool wait) {
