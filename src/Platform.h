@@ -16,6 +16,7 @@ class Device;
 class Executor;
 class Kernel;
 class Mem;
+class Scheduler;
 class Task;
 
 class Platform {
@@ -35,13 +36,13 @@ public:
     int KernelRelease(brisbane_kernel kernel);
 
     int TaskCreate(brisbane_task* brs_task);
-    int TaskSubCreate(brisbane_task brs_task, brisbane_task* brs_subtask);
     int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr);
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size);
     int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait);
     int TaskWait(brisbane_task brs_task);
+    int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);
     int TaskRelease(brisbane_task brs_task);
 
     int MemCreate(size_t size, brisbane_mem* brs_mem);
@@ -51,6 +52,7 @@ public:
 
     int ndevs() { return ndevs_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
+    Scheduler* scheduler() { return scheduler_; }
 
 private:
     Device* GetDeviceHistory(Task* task);
@@ -76,6 +78,7 @@ private:
     std::set<Kernel*> kernels_;
     std::set<Mem*> mems_;
 
+    Scheduler* scheduler_;
     Executor* executor_;
 
 private:

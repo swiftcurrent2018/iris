@@ -10,11 +10,9 @@ namespace brisbane {
 namespace rt {
 
 Executor::Executor() {
-
 }
 
 Executor::~Executor() {
-
 }
 
 void Executor::Execute(Task* task) {

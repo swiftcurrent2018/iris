@@ -10,7 +10,9 @@ set(libsrc
     Mem.cpp
     Object.cpp
     Platform.cpp
+    Scheduler.cpp
     Task.cpp
+    Thread.cpp
     Timer.cpp
     )
 

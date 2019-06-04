@@ -6,6 +6,7 @@
 #include "Kernel.h"
 #include "History.h"
 #include "Mem.h"
+#include "Scheduler.h"
 #include "Task.h"
 #include <unistd.h>
 
@@ -22,6 +23,8 @@ Platform::Platform() {
 
 Platform::~Platform() {
     if (!init_) return;
+    
+    if (scheduler_) delete scheduler_;
 }
 
 int Platform::Init(int* argc, char*** argv) {
@@ -29,6 +32,12 @@ int Platform::Init(int* argc, char*** argv) {
     gethostname(debug_prefix_, 256);
     Utils::Logo(true);
     GetCLPlatforms();
+
+    scheduler_ = new Scheduler(this);
+    scheduler_->Start();
+
+    init_ = true;
+
     return BRISBANE_OK;
 }
 
@@ -139,15 +148,8 @@ int Platform::KernelRelease(brisbane_kernel brs_kernel) {
 }
 
 int Platform::TaskCreate(brisbane_task* brs_task) {
-    Task* task = new Task(NULL);
+    Task* task = new Task(this);
     *brs_task = task->struct_obj();
-    return BRISBANE_OK;
-}
-
-int Platform::TaskSubCreate(brisbane_task brs_task, brisbane_task* brs_subtask) {
-    Task* task = brs_task->class_obj;
-    Task* subtask = new Task(task);
-    *brs_subtask = subtask->struct_obj();
     return BRISBANE_OK;
 }
 
@@ -185,7 +187,8 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
 
 int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait) {
     Task* task = brs_task->class_obj;
-    task->Submit(brs_device);
+    task->set_brs_device(brs_device);
+    scheduler_->Enqueue(task);
     if (wait) task->Wait();
     return BRISBANE_OK;
 }
@@ -193,6 +196,13 @@ int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool
 int Platform::TaskWait(brisbane_task brs_task) {
     Task* task = brs_task->class_obj;
     task->Wait();
+    return BRISBANE_OK;
+}
+
+int Platform::TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask) {
+    Task* task = brs_task->class_obj;
+    Task* subtask = brs_subtask->class_obj;
+    task->AddSubtask(subtask);
     return BRISBANE_OK;
 }
 

@@ -8,15 +8,20 @@
 namespace brisbane {
 namespace rt {
 
-Task::Task(Task* parent) {
-    parent_ = parent;
+Task::Task(Platform* platform) {
     num_cmds_ = 0;
     cmd_kernel_ = NULL;
-    platform_ = Platform::GetPlatform();
-    if (parent_) parent_->AddSubtask(this); 
+    platform_ = platform;
+    dev_ = NULL;
+    status_ = BRISBANE_NONE;
+
+    pthread_mutex_init(&complete_mutex_, NULL);
+    pthread_cond_init(&complete_cond_, NULL);
 }
 
 Task::~Task() {
+    pthread_mutex_destroy(&complete_mutex_);
+    pthread_cond_destroy(&complete_cond_);
 }
 
 void Task::AddCommand(Command* cmd) {
@@ -28,8 +33,7 @@ void Task::AddCommand(Command* cmd) {
 }
 
 void Task::Submit(int brs_device) {
-    int target_brs_device = brs_device;
-    dev_ = platform_->AvailableDevice(this, target_brs_device);
+    dev_ = platform_->AvailableDevice(this, brs_device);
     if (dev_ == NULL) dev_ = platform_->device(0);
     platform_->ExecuteTask(this);
 }
@@ -38,12 +42,26 @@ void Task::Execute() {
     dev_->Execute(this);
 }
 
+void Task::Complete() {
+    pthread_mutex_lock(&complete_mutex_);
+    status_ = BRISBANE_COMPLETE;
+    pthread_cond_broadcast(&complete_cond_);
+    pthread_mutex_unlock(&complete_mutex_);
+}
+
 void Task::Wait() {
-    dev_->Wait();
+    pthread_mutex_lock(&complete_mutex_);
+    if (status_ != BRISBANE_COMPLETE)
+        pthread_cond_wait(&complete_cond_, &complete_mutex_);
+    pthread_mutex_unlock(&complete_mutex_);
 }
 
 void Task::AddSubtask(Task* subtask) {
     subtasks_.push_back(subtask);
+}
+
+bool Task::HasSubtasks() {
+    return !subtasks_.empty();
 }
 
 } /* namespace rt */

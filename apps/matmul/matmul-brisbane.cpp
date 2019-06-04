@@ -38,9 +38,9 @@ int main(int argc, char** argv) {
     brisbane_init(&argc, &argv);
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
-    DEV = argc > 2 ? atoi(argv[2]) : 13;
+    DEV = argc > 2 ? atoi(argv[2]) : 2;
 
-    printf("SIZE[%d] DEV[%d]\n", SIZE, DEV);
+    printf("SIZE[%d] DEV[0x%x]\n", SIZE, DEV);
 
     A = (double*) valloc(SIZE * SIZE * sizeof(double));
     B = (double*) valloc(SIZE * SIZE * sizeof(double));
@@ -73,14 +73,16 @@ int main(int argc, char** argv) {
     int unit = 4;
     for (int i = 0; i < SIZE; i += unit) {
         brisbane_task subtask;
-        brisbane_task_subcreate(task0, &subtask);
+        brisbane_task_create(&subtask);
         brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), A);
         brisbane_task_h2d(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
         size_t kernel_ijk_off[1] = { i };
         size_t kernel_ijk_idx[1] = { unit };
         brisbane_task_kernel(subtask, kernel_ijk, 1, kernel_ijk_off, kernel_ijk_idx);
         brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), C);
+        brisbane_task_add_subtask(task0, subtask);
     }
+    brisbane_task_submit(task0, DEV, NULL, true);
 
     /*
     brisbane_task_h2d(task0, mem_A, 0, SIZE * SIZE * sizeof(double), A);
@@ -90,8 +92,6 @@ int main(int argc, char** argv) {
     brisbane_task_kernel(task0, kernel_ijk, 1, kernel_ijk_idx);
     brisbane_task_d2h(task0, mem_C, 0, SIZE * SIZE * sizeof(double), C);
     */
-
-    brisbane_task_submit(task0, DEV, NULL, true);
 
     //ijk();
 
