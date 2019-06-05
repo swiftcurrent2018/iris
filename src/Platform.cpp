@@ -2,7 +2,6 @@
 #include "Utils.h"
 #include "Command.h"
 #include "Device.h"
-#include "Executor.h"
 #include "Kernel.h"
 #include "Mem.h"
 #include "Scheduler.h"
@@ -155,10 +154,6 @@ int Platform::MemCreate(size_t size, brisbane_mem* brs_mem) {
 
 int Platform::MemRelease(brisbane_mem brs_mem) {
     return BRISBANE_OK;
-}
-
-void Platform::ExecuteTask(Task* task) {
-    executor_->Execute(task);
 }
 
 Platform* Platform::singleton_ = NULL;

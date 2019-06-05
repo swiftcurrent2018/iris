@@ -14,7 +14,6 @@ namespace brisbane {
 namespace rt {
 
 class Device;
-class Executor;
 class Kernel;
 class Mem;
 class Scheduler;
@@ -47,8 +46,6 @@ public:
     int MemCreate(size_t size, brisbane_mem* brs_mem);
     int MemRelease(brisbane_mem brs_mem);
 
-    void ExecuteTask(Task* task);
-
     int ndevs() { return ndevs_; }
     Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
@@ -73,7 +70,6 @@ private:
     std::set<Mem*> mems_;
 
     Scheduler* scheduler_;
-    Executor* executor_;
 
 private:
     static Platform* singleton_;

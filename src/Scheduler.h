@@ -7,6 +7,7 @@
 namespace brisbane {
 namespace rt {
 
+class Dependency;
 class Device;
 class Task;
 class Platform;
@@ -32,6 +33,7 @@ private:
     LockFreeQueue<Task*>* queue_;
     Platform* platform_;
 
+    Dependency* dependency_;
     Policies* policies_;
     Device** devices_;
     int ndevs_;

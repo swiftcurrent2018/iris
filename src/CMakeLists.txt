@@ -3,8 +3,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 set(libsrc
     CAPI.cpp
     Command.cpp
+    Dependency.cpp
     Device.cpp
-    Executor.cpp
     History.cpp
     Kernel.cpp
     Mem.cpp

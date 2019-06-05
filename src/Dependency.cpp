@@ -1,4 +1,4 @@
-#include "Executor.h"
+#include "Dependency.h"
 #include "Debug.h"
 #include "Device.h"
 #include "Command.h"
@@ -9,22 +9,21 @@
 namespace brisbane {
 namespace rt {
 
-Executor::Executor() {
+Dependency::Dependency() {
 }
 
-Executor::~Executor() {
+Dependency::~Dependency() {
 }
 
-void Executor::Execute(Task* task) {
+void Dependency::Resolve(Task* task) {
     for (int i = 0; i < task->ncmds(); i++) {
         Command* cmd = task->cmd(i);
         if (cmd->type() != BRISBANE_CMD_KERNEL) continue;
-        ResolveDependency(cmd, task);
+        Resolve(task, cmd);
     }
-    task->Execute();
 }
 
-void Executor::ResolveDependency(Command* cmd, Task* task) {
+void Dependency::Resolve(Task* task, Command* cmd) {
     Device* dev = task->dev();
     Kernel* kernel = cmd->kernel();
     std::map<int, KernelArg*>* args = kernel->args();

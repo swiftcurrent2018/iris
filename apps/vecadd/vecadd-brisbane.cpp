@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     size_t kernel_loop2_idx[1] = { SIZE };
     brisbane_task_kernel(task2, kernel_loop2, 1, kernel_loop2_off, kernel_loop2_idx);
     brisbane_task_d2h(task2, mem_E, 0, SIZE * sizeof(int), E);
-    brisbane_task_submit(task2, brisbane_device_data, NULL, true);
+    brisbane_task_submit(task2, brisbane_device_random, NULL, true);
     /*
 #pragma acc parallel loop present(D[0:SIZE]) device(data)
 #pragma omp target teams distribute parallel for map(from:E[0:SIZE]) device(data)

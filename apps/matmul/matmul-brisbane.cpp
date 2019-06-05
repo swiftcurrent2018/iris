@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     brisbane_init(&argc, &argv);
 
     SIZE = argc > 1 ? atoi(argv[1]) : 16;
-    DEV = argc > 2 ? atoi(argv[2]) : 2;
+    DEV = argc > 2 ? atoi(argv[2]) : brisbane_device_cpu;
 
     printf("SIZE[%d] DEV[0x%x]\n", SIZE, DEV);
 
