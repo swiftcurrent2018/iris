@@ -7,14 +7,14 @@ namespace rt {
 
 Mem::Mem(size_t size) {
     size_ = size;
-    for (int i = 0; i < 16; i++) clmems_[i] = NULL;
+    for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) clmems_[i] = NULL;
     owners_[0] = NULL;
     owners_num_ = 0;
     host_inter_ = NULL;
 }
 
 Mem::~Mem() {
-    _todo("release clmems[%d]", 16);
+    _todo("release clmems[%d]", BRISBANE_MAX_NDEVS);
     if (!host_inter_) free(host_inter_);
 }
 

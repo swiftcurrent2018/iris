@@ -22,7 +22,6 @@ public:
     virtual ~Task();
 
     void AddCommand(Command* cmd);
-    void Submit(int brs_device);
     void Execute();
 
     void AddSubtask(Task* subtask);
@@ -36,13 +35,13 @@ public:
     Command* cmd_kernel() { return cmd_kernel_; }
     void set_dev(Device* dev) { dev_ = dev; }
     Device* dev() { return dev_; }
-    int num_cmds() { return num_cmds_; }
+    int ncmds() { return ncmds_; }
     void set_brs_device(int brs_device) { brs_device_ = brs_device; }
     int brs_device() { return brs_device_; }
 
 private:
     Task* parent_;
-    int num_cmds_;
+    int ncmds_;
     Command* cmds_[64];
     Command* cmd_kernel_;
     Device* dev_;

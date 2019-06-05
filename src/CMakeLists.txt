@@ -10,6 +10,13 @@ set(libsrc
     Mem.cpp
     Object.cpp
     Platform.cpp
+    Policies.cpp
+    Policy.cpp
+    PolicyData.cpp
+    PolicyDefault.cpp
+    PolicyHistory.cpp
+    PolicyRandom.cpp
+    PolicySpecific.cpp
     Scheduler.cpp
     Task.cpp
     Thread.cpp

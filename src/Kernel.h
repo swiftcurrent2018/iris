@@ -27,7 +27,7 @@ public:
 
     cl_kernel clkernel(int i, cl_program clprog);
 
-    std::map<int, KernelArg*> args() { return args_; }
+    std::map<int, KernelArg*>* args() { return &args_; }
     char* name() { return name_; }
 
     Platform* platform() { return platform_; }
@@ -36,7 +36,7 @@ public:
 private:
     char name_[256];
     std::map<int, KernelArg*> args_;
-    cl_kernel clkernels_[16];
+    cl_kernel clkernels_[BRISBANE_MAX_NDEVS];
 
     Platform* platform_;
     History* history_;

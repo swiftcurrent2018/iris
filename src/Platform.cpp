@@ -4,21 +4,18 @@
 #include "Device.h"
 #include "Executor.h"
 #include "Kernel.h"
-#include "History.h"
 #include "Mem.h"
 #include "Scheduler.h"
 #include "Task.h"
-#include <unistd.h>
 
 namespace brisbane {
 namespace rt {
 
-char debug_prefix_[256];
+char brisbane_log_prefix_[256];
 
 Platform::Platform() {
     init_ = false;
     ndevs_ = 0;
-    srand(time(NULL));
 }
 
 Platform::~Platform() {
@@ -29,7 +26,7 @@ Platform::~Platform() {
 
 int Platform::Init(int* argc, char*** argv) {
     if (init_) return BRISBANE_ERR;
-    gethostname(debug_prefix_, 256);
+    gethostname(brisbane_log_prefix_, 256);
     Utils::Logo(true);
     GetCLPlatforms();
 
@@ -42,7 +39,7 @@ int Platform::Init(int* argc, char*** argv) {
 }
 
 int Platform::GetCLPlatforms() {
-    cl_uint num_platforms = 16;
+    cl_uint num_platforms = BRISBANE_MAX_NDEVS;
     cl_uint num_devices;
 
     clerr = clGetPlatformIDs(num_platforms, cl_platforms_, &num_platforms);
@@ -60,67 +57,6 @@ int Platform::GetCLPlatforms() {
             ndevs_++;
         }
     }
-}
-
-Device* Platform::AvailableDevice(Task* task, int brs_device) {
-    if (brs_device == brisbane_device_default)  return devices_[0];
-    if (brs_device == brisbane_device_history)  return GetDeviceHistory(task);
-    if (brs_device == brisbane_device_all)      return GetDeviceAll(task);
-    if (brs_device == brisbane_device_data)     return GetDeviceData(task);
-    if (brs_device == brisbane_device_random)   return GetDeviceRandom(task);
-    for (int i = 0; i < ndevs_; i++) {
-        Device* dev = devices_[i];
-        if (dev->type() == brs_device) return dev;
-    }
-    return NULL;
-}
-
-Device* Platform::GetDeviceAll(Task* task) {
-    _check();
-    return devices_[0];
-}
-
-Device* Platform::GetDeviceHistory(Task* task) {
-    Command* cmd = task->cmd_kernel();
-    if (!cmd) return devices_[0];
-    Kernel* kernel = cmd->kernel();
-    History* history = kernel->history();
-    Device* dev = history->OptimalDevice(task);
-    return dev;
-}
-
-Device* Platform::GetDeviceData(Task* task) {
-    size_t total_size[16];
-    for (int i = 0; i < 16; i++) total_size[i] = 0UL;
-    for (int i = 0; i < task->num_cmds(); i++) {
-        Command* cmd = task->cmd(i);
-        if (cmd->type() == BRISBANE_CMD_KERNEL) {
-            Kernel* kernel = cmd->kernel();
-            std::map<int, KernelArg*> args = kernel->args();
-            for (std::map<int, KernelArg*>::iterator it = args.begin(); it != args.end(); ++it) {
-                Mem* mem = it->second->mem;
-                if (!mem || !mem->owner()) continue;
-                total_size[mem->owner()->dev_no()] += mem->size();
-            }
-        } else if (cmd->type() == BRISBANE_CMD_H2D || cmd->type() == BRISBANE_CMD_D2H) {
-            Mem* mem = cmd->mem();
-            if (!mem || !mem->owner()) continue;
-            total_size[mem->owner()->dev_no()] += mem->size();
-        }
-    }
-    int target_dev = 0;
-    size_t max_size = 0;
-    for (int i = 0; i < 16; i++) {
-        if (total_size[i] > max_size) {
-            max_size = total_size[i];
-            target_dev = i;
-        }
-    }
-    return devices_[target_dev];
-}
-
-Device* Platform::GetDeviceRandom(Task* task) {
-    return devices_[rand() % ndevs_];
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {

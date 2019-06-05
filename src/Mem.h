@@ -24,9 +24,9 @@ public:
 
 private:
     size_t size_;
-    cl_mem clmems_[16];
+    cl_mem clmems_[BRISBANE_MAX_NDEVS];
     cl_int clerr_;
-    Device* owners_[16];
+    Device* owners_[BRISBANE_MAX_NDEVS];
     int owners_num_;
     void* host_inter_;
 };

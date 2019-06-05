@@ -51,61 +51,61 @@
 namespace brisbane {
 namespace rt {
 
-extern char debug_prefix_[];
+extern char brisbane_log_prefix_[];
 
 #define __SHORT_FILE__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #ifdef _TRACE_ENABLE
-#define  _trace(fmt, ...) { printf( BLUE "[T] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __trace(fmt, ...) { printf(_BLUE "[T] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define  _trace(fmt, ...) { printf( BLUE "[T] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __trace(fmt, ...) { printf(_BLUE "[T] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
 #else
 #define  _trace(fmt, ...)
 #define __trace(fmt, ...)
 #endif
 
 #ifdef _CHECK_ENABLE
-#define  _check() { printf( PURPLE "[C] %s [%s:%d:%s]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__); fflush(stdout); }
-#define __check() { printf(_PURPLE "[C] %s [%s:%d:%s]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__); fflush(stdout); }
+#define  _check() { printf( PURPLE "[C] %s [%s:%d:%s]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__); fflush(stdout); }
+#define __check() { printf(_PURPLE "[C] %s [%s:%d:%s]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__); fflush(stdout); }
 #else
 #define  _check()
 #define __check()
 #endif
 
 #ifdef _DEBUG_ENABLE
-#define  _debug(fmt, ...) { printf( CYAN "[D] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __debug(fmt, ...) { printf(_CYAN "[D] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define  _debug(fmt, ...) { printf( CYAN "[D] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __debug(fmt, ...) { printf(_CYAN "[D] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
 #else
 #define  _debug(fmt, ...)
 #define __debug(fmt, ...)
 #endif
 
 #ifdef _INFO_ENABLE
-#define  _info(fmt, ...) { printf( YELLOW "[I] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __info(fmt, ...) { printf(_YELLOW "[I] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define  _info(fmt, ...) { printf( YELLOW "[I] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __info(fmt, ...) { printf(_YELLOW "[I] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
 #else
 #define  _info(fmt, ...)
 #define __info(fmt, ...)
 #endif
 
 #ifdef _ERROR_ENABLE
-#define  _error(fmt, ...) { printf( RED "[E] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __error(fmt, ...) { printf(_RED "[E] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define  _error(fmt, ...) { printf( RED "[E] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __error(fmt, ...) { printf(_RED "[E] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
 #else
 #define  _error(fmt, ...)
 #define __error(fmt, ...)
 #endif
 
 #ifdef _CLERROR_ENABLE
-#define  _clerror(clerr) { if (clerr != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
-#define __clerror(clerr) { if (clerr != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
+#define  _clerror(clerr) { if (clerr != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
+#define __clerror(clerr) { if (clerr != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
 #else
 #define  _clerror(clerr)
 #define __clerror(clerr)
 #endif
 
 #ifdef _TODO_ENABLE
-#define  _todo(fmt, ...) { printf( GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __todo(fmt, ...) { printf(_GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", debug_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define  _todo(fmt, ...) { printf( GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __todo(fmt, ...) { printf(_GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
 #else
 #define  _todo(fmt, ...)
 #define __todo(fmt, ...)

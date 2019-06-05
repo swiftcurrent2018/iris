@@ -1,19 +1,24 @@
 #include "Scheduler.h"
 #include "Debug.h"
+#include "Device.h"
 #include "Platform.h"
+#include "Policies.h"
+#include "Policy.h"
 #include "Task.h"
 
 namespace brisbane {
 namespace rt {
 
 Scheduler::Scheduler(Platform* platform) {
-    _check();
     platform_ = platform;
+    devices_ = platform_->devices();
+    ndevs_ = platform_->ndevs();
+    policies_ = new Policies(this);
     queue_ = new LockFreeQueue<Task*>(1024);
 }
 
 Scheduler::~Scheduler() {
-    _check();
+    delete policies_;
 }
 
 void Scheduler::Enqueue(Task* task) {
@@ -22,7 +27,6 @@ void Scheduler::Enqueue(Task* task) {
 }
 
 void Scheduler::Run() {
-    _check();
     while (true) {
         sem_wait(&sem_);
         if (!running_) break;
@@ -32,8 +36,16 @@ void Scheduler::Run() {
 }
 
 void Scheduler::Execute(Task* task) {
-    _check();
+    Device* dev = AvailableDevice(task);
+    task->set_dev(dev);
+    platform_->ExecuteTask(task);
     task->Complete();
+}
+
+Device* Scheduler::AvailableDevice(Task* task) {
+    int brs_device = task->brs_device();
+    Policy* policy = policies_->GetPolicy(brs_device);
+    Device* dev = policy->GetDevice(task);
 }
 
 } /* namespace rt */

@@ -12,7 +12,7 @@ Kernel::Kernel(const char* name, Platform* platform) {
     name_[len] = 0;
     platform_ = platform;
     history_ = new History(this);
-    for (int i = 0; i < 16; i++) clkernels_[i] = NULL;
+    for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) clkernels_[i] = NULL;
 }
 
 Kernel::~Kernel() {

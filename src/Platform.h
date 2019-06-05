@@ -7,6 +7,7 @@
 #include <CL/cl.h>
 #include <stddef.h>
 #include <set>
+#include "Define.h"
 #include "Debug.h"
 
 namespace brisbane {
@@ -27,8 +28,6 @@ private:
 public:
     int Init(int* argc, char*** argv);
     int GetCLPlatforms();
-
-    Device* AvailableDevice(Task* task, int brs_device);
 
     int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
     int KernelSetArg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
@@ -51,14 +50,9 @@ public:
     void ExecuteTask(Task* task);
 
     int ndevs() { return ndevs_; }
+    Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
     Scheduler* scheduler() { return scheduler_; }
-
-private:
-    Device* GetDeviceHistory(Task* task);
-    Device* GetDeviceAll(Task* task);
-    Device* GetDeviceData(Task* task);
-    Device* GetDeviceRandom(Task* task);
 
 public:
     static Platform* GetPlatform();
@@ -67,12 +61,12 @@ public:
 private:
     bool init_;
 
-    Device* devices_[16];
+    Device* devices_[BRISBANE_MAX_NDEVS];
     int ndevs_;
 
-    cl_platform_id cl_platforms_[16];
-    cl_context cl_contexts_[16];
-    cl_device_id cl_devices_[16];
+    cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
+    cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
+    cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
     cl_int clerr;
 
     std::set<Kernel*> kernels_;

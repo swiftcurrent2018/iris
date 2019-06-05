@@ -1,0 +1,6 @@
+#ifndef BRISBANE_RT_SRC_DEFINE_H
+#define BRISBANE_RT_SRC_DEFINE_H
+
+#define BRISBANE_MAX_NDEVS          16
+
+#endif /* BRISBANE_RT_SRC_DEFINE_H */

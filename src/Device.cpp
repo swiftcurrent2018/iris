@@ -63,7 +63,7 @@ void Device::BuildProgram() {
 }
 
 void Device::Execute(Task* task) {
-    for (int i = 0; i < task->num_cmds(); i++) {
+    for (int i = 0; i < task->ncmds(); i++) {
         Command* cmd = task->cmd(i);
         switch (cmd->type()) {
             case BRISBANE_CMD_KERNEL:   ExecuteKernel(cmd);     break;
@@ -81,8 +81,8 @@ void Device::ExecuteKernel(Command* cmd) {
     int dim = cmd->dim();
     size_t* off = cmd->off();
     size_t* ndr = cmd->ndr();
-    std::map<int, KernelArg*> args = kernel->args();
-    for (std::map<int, KernelArg*>::iterator it = args.begin(); it != args.end(); ++it) {
+    std::map<int, KernelArg*>* args = kernel->args();
+    for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;
         KernelArg* arg = it->second;
         Mem* mem = arg->mem;
@@ -97,7 +97,13 @@ void Device::ExecuteKernel(Command* cmd) {
         }
     }
     timer_->Start();
-    clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    if (type_ == brisbane_device_fpga) {
+        if (off[0] != 0 || off[1] != 0 || off[2] != 0)
+            _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
+        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    } else {
+        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) ndr, NULL, 0, NULL, NULL);
+    }
     _clerror(clerr_);
     clerr_ = clFinish(clcmdq_);
     double time = timer_->Stop();
