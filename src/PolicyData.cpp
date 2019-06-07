@@ -16,7 +16,7 @@ PolicyData::PolicyData(Scheduler* scheduler) {
 PolicyData::~PolicyData() {
 }
 
-Device* PolicyData::GetDevice(Task* task) {
+void PolicyData::GetDevices(Task* task, Device** devs, int* ndevs) {
     size_t total_size[BRISBANE_MAX_NDEVS];
     for (int i = 0; i < ndevs_; i++) total_size[i] = 0UL;
     for (int i = 0; i < task->ncmds(); i++) {
@@ -43,7 +43,8 @@ Device* PolicyData::GetDevice(Task* task) {
             target_dev = i;
         }
     }
-    return devices_[target_dev];
+    devs[0] = devices_[target_dev];
+    *ndevs = 1;
 }
 
 } /* namespace rt */

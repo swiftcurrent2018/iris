@@ -8,7 +8,6 @@
 namespace brisbane {
 namespace rt {
 
-class Dependency;
 class Device;
 class Task;
 class Platform;
@@ -29,7 +28,6 @@ private:
     void Execute(Task* task);
     virtual void Run();
 
-    Device* AvailableDevice(Task* task);
     void InitWorkloadManagers();
     void DestroyWorkloadManagers();
 
@@ -37,7 +35,6 @@ private:
     LockFreeQueue<Task*>* queue_;
     Platform* platform_;
 
-    Dependency* dependency_;
     Policies* policies_;
     Device** devices_;
     WorkloadManager* managers_[BRISBANE_MAX_NDEVS];

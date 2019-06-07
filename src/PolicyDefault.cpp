@@ -11,8 +11,9 @@ PolicyDefault::PolicyDefault(Scheduler* scheduler) {
 PolicyDefault::~PolicyDefault() {
 }
 
-Device* PolicyDefault::GetDevice(Task* task) {
-    return devices_[0];
+void PolicyDefault::GetDevices(Task* task, Device** devs, int* ndevs) {
+    devs[0] = devices_[0];
+    *ndevs = 1;
 }
 
 } /* namespace rt */

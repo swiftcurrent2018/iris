@@ -11,10 +11,7 @@ public:
     PolicySpecific(Scheduler* scheduler);
     virtual ~PolicySpecific();
 
-    virtual Device* GetDevice(Task* task);
-
-private:
-    int last_dev_no_;
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 };
 
 } /* namespace rt */

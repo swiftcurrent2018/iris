@@ -26,6 +26,7 @@ public:
     void AddSubtask(Task* subtask);
     bool HasSubtasks();
 
+    bool Executable();
     void Complete();
     void Wait();
 
@@ -55,6 +56,7 @@ private:
     int brs_device_;
 
     int status_;
+    pthread_mutex_t executable_mutex_;
     pthread_mutex_t complete_mutex_;
     pthread_cond_t complete_cond_;
 };

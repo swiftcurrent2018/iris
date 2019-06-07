@@ -17,11 +17,12 @@ PolicyHistory::PolicyHistory(Scheduler* scheduler, Policies* policies) {
 PolicyHistory::~PolicyHistory() {
 }
 
-Device* PolicyHistory::GetDevice(Task* task) {
+void PolicyHistory::GetDevices(Task* task, Device** devs, int* ndevs) {
     Command* cmd = task->cmd_kernel();
-    if (!cmd) return policies_->GetPolicy(brisbane_device_default)->GetDevice(task);
+    if (!cmd) return policies_->GetPolicy(brisbane_device_default)->GetDevices(task, devs, ndevs);
     History* history = cmd->kernel()->history();
-    return history->OptimalDevice(task);
+    devs[0] = history->OptimalDevice(task);
+    *ndevs = 1;
 }
 
 } /* namespace rt */

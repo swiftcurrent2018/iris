@@ -11,7 +11,7 @@ public:
     PolicyData(Scheduler* scheduler);
     virtual ~PolicyData();
 
-    virtual Device* GetDevice(Task* task);
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 };
 

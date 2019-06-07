@@ -17,11 +17,13 @@ Task::Task(Platform* platform) {
     subtasks_complete_ = 0;
     status_ = BRISBANE_NONE;
 
+    pthread_mutex_init(&executable_mutex_, NULL);
     pthread_mutex_init(&complete_mutex_, NULL);
     pthread_cond_init(&complete_cond_, NULL);
 }
 
 Task::~Task() {
+    pthread_mutex_destroy(&executable_mutex_);
     pthread_mutex_destroy(&complete_mutex_);
     pthread_cond_destroy(&complete_cond_);
 }
@@ -39,6 +41,17 @@ void Task::AddCommand(Command* cmd) {
         if (cmd_kernel_) _error("kernel[%s] is already set", cmd->kernel()->name());
         cmd_kernel_ = cmd;
     }
+}
+
+bool Task::Executable() {
+    pthread_mutex_lock(&executable_mutex_);
+    if (status_ == BRISBANE_NONE) {
+        status_ = BRISBANE_RUNNING;
+        pthread_mutex_unlock(&executable_mutex_);
+        return true;
+    }
+    pthread_mutex_unlock(&executable_mutex_);
+    return false;
 }
 
 void Task::Complete() {

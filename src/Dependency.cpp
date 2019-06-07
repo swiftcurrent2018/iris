@@ -24,6 +24,7 @@ void Dependency::Resolve(Task* task) {
 }
 
 void Dependency::Resolve(Task* task, Command* cmd) {
+    if (task->parent()) return;
     Device* dev = task->dev();
     Kernel* kernel = cmd->kernel();
     std::map<int, KernelArg*>* args = kernel->args();

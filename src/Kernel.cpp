@@ -36,7 +36,10 @@ int Kernel::SetMem(int idx, Mem* mem, int mode) {
 }
 
 cl_kernel Kernel::clkernel(int i, cl_program clprog) {
-    if (clkernels_[i] == NULL) clkernels_[i] = clCreateKernel(clprog, (const char*) name_, &clerr_);
+    if (clkernels_[i] == NULL) {
+        clkernels_[i] = clCreateKernel(clprog, (const char*) name_, &clerr_);
+        _clerror(clerr_);
+    }
     return clkernels_[i];
 }
 

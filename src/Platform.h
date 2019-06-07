@@ -67,7 +67,7 @@ private:
     cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
     cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
     cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
-    cl_int clerr;
+    cl_int clerr_;
 
     std::set<Kernel*> kernels_;
     std::set<Mem*> mems_;

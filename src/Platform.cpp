@@ -45,16 +45,17 @@ int Platform::GetCLPlatforms() {
     cl_uint num_platforms = BRISBANE_MAX_NDEVS;
     cl_uint num_devices;
 
-    clerr = clGetPlatformIDs(num_platforms, cl_platforms_, &num_platforms);
+    clerr_ = clGetPlatformIDs(num_platforms, cl_platforms_, &num_platforms);
     _trace("num_platforms[%u]", num_platforms);
     char platform_vendor[64];
     char platform_name[64];
     for (cl_uint i = 0; i < num_platforms; i++) {
-        clerr = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(platform_vendor), platform_vendor, NULL);
-        clerr = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
-        clerr = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-        clerr = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, num_devices, cl_devices_ + ndevs_, NULL);
-        cl_contexts_[i] = clCreateContext(NULL, num_devices, cl_devices_ + ndevs_, NULL, NULL, &clerr);
+        clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(platform_vendor), platform_vendor, NULL);
+        clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+        clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+        clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, num_devices, cl_devices_ + ndevs_, NULL);
+        cl_contexts_[i] = clCreateContext(NULL, num_devices, cl_devices_ + ndevs_, NULL, NULL, &clerr_);
+        _clerror(clerr_);
         for (cl_uint j = 0; j < num_devices; j++) {
             devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
             ndevs_++;

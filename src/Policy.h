@@ -13,7 +13,7 @@ public:
     Policy();
     virtual ~Policy();
 
-    virtual Device* GetDevice(Task* task) = 0;
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs) = 0;
 
 protected:
     void SetScheduler(Scheduler* scheduler);

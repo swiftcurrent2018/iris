@@ -15,8 +15,9 @@ PolicyRandom::PolicyRandom(Scheduler* scheduler) {
 PolicyRandom::~PolicyRandom() {
 }
 
-Device* PolicyRandom::GetDevice(Task* task) {
-    return devices_[rand() % ndevs_];
+void PolicyRandom::GetDevices(Task* task, Device** devs, int* ndevs) {
+    devs[0] = devices_[rand() % ndevs_];
+    *ndevs = 1;
 }
 
 } /* namespace rt */

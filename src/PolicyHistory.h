@@ -13,7 +13,7 @@ public:
     PolicyHistory(Scheduler* scheduler, Policies* policies);
     virtual ~PolicyHistory();
 
-    virtual Device* GetDevice(Task* task);
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 private:
     Policies* policies_;

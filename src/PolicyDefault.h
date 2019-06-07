@@ -11,7 +11,7 @@ public:
     PolicyDefault(Scheduler* scheduler);
     virtual ~PolicyDefault();
 
-    virtual Device* GetDevice(Task* task);
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 };
 

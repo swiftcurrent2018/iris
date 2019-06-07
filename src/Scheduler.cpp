@@ -1,6 +1,5 @@
 #include "Scheduler.h"
 #include "Debug.h"
-#include "Dependency.h"
 #include "Device.h"
 #include "Platform.h"
 #include "Policies.h"
@@ -57,20 +56,13 @@ void Scheduler::Run() {
 }
 
 void Scheduler::Execute(Task* task) {
-    Device* dev = AvailableDevice(task);
-    _debug("dev_no[%d] type[%x]", dev->dev_no(), dev->type());
-    dev->manager()->Enqueue(task);
-    /*
-    task->set_dev(dev);
-    dependency_->Resolve(task);
-    dev->Execute(task);
-    task->Complete();
-    */
-}
-
-Device* Scheduler::AvailableDevice(Task* task) {
     int brs_device = task->brs_device();
-    return policies_->GetPolicy(brs_device)->GetDevice(task);
+    int ndevs = 0;
+    Device* devs[BRISBANE_MAX_NDEVS];
+    policies_->GetPolicy(brs_device)->GetDevices(task, devs, &ndevs);
+    for (int i = 0; i < ndevs; i++) {
+        devs[i]->manager()->Enqueue(task);
+    }
 }
 
 } /* namespace rt */

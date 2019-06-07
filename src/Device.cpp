@@ -110,10 +110,10 @@ void Device::ExecuteKernel(Command* cmd) {
     }
     _clerror(clerr_);
     clerr_ = clFinish(clcmdq_);
+    _clerror(clerr_);
     double time = timer_->Stop();
     _trace("kernel[%s] on %s time[%lf]", kernel->name(), name_, time);
     kernel->history()->Add(cmd, this, time);
-    _clerror(clerr_);
 }
 
 void Device::ExecuteH2D(Command* cmd) {

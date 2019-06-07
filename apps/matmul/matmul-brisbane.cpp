@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-size_t SIZE;
+size_t SIZE, UNIT;
 double *A, *B, *C;
 double t0, t1;
 
@@ -39,9 +39,10 @@ int main(int argc, char** argv) {
     brisbane_init(&argc, &argv);
 
     SIZE = argc > 1 ? atol(argv[1]) : 16;
-    DEV = argc > 2 ? atoi(argv[2]) : brisbane_device_any;
+    UNIT = argc > 2 ? atol(argv[2]) : SIZE / 4;
+    DEV = argc > 3 ? atoi(argv[3]) : brisbane_device_any;
 
-    printf("SIZE[%d] DEV[0x%x]\n", SIZE, DEV);
+    printf("SIZE[%d] MATRIX_SIZE[%lu]MB UNIT[%d] DEV[0x%x]\n", SIZE, SIZE * SIZE * sizeof(double) / 1024 / 1024, UNIT, DEV);
 
     A = (double*) valloc(SIZE * SIZE * sizeof(double));
     B = (double*) valloc(SIZE * SIZE * sizeof(double));
@@ -73,30 +74,20 @@ int main(int argc, char** argv) {
 
     brisbane_task task0;
     brisbane_task_create(&task0);
-    size_t unit = 4;
-    for (size_t i = 0; i < SIZE; i += unit) {
+    for (size_t i = 0; i < SIZE; i += UNIT) {
         brisbane_task subtask;
         brisbane_task_create(&subtask);
-        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), A + (i * SIZE));
+        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), A + (i * SIZE));
         brisbane_task_h2d(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
-        size_t kernel_ijk_off[1] = { i };
-        size_t kernel_ijk_idx[1] = { unit };
-        brisbane_task_kernel(subtask, kernel_ijk, 1, kernel_ijk_off, kernel_ijk_idx);
-        brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), C + (i * SIZE));
+        size_t kernel_ijk_off[2] = { 0, i };
+        size_t kernel_ijk_idx[2] = { SIZE, UNIT };
+        brisbane_task_kernel(subtask, kernel_ijk, 2, kernel_ijk_off, kernel_ijk_idx);
+        brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), C + (i * SIZE));
         brisbane_task_add_subtask(task0, subtask);
     }
     brisbane_task_submit(task0, DEV, NULL, true);
 
     brisbane_timer_now(&t1);
-
-    /*
-    brisbane_task_h2d(task0, mem_A, 0, SIZE * SIZE * sizeof(double), A);
-    brisbane_task_h2d(task0, mem_B, 0, SIZE * SIZE * sizeof(double), B);
-    brisbane_task_h2d(task0, mem_C, 0, SIZE * SIZE * sizeof(double), C);
-    size_t kernel_ijk_idx[1] = { SIZE };
-    brisbane_task_kernel(task0, kernel_ijk, 1, kernel_ijk_idx);
-    brisbane_task_d2h(task0, mem_C, 0, SIZE * SIZE * sizeof(double), C);
-    */
 
     //ijk();
 
@@ -124,8 +115,8 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
-#endif
 
+    printf("Checking errors\n");
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             double sum = 0.0;
@@ -135,6 +126,7 @@ int main(int argc, char** argv) {
             if (sum != C[i * SIZE + j]) ERROR++;
         }
     }
+#endif
 
     printf("ERROR[%d] TIME[%lf]\n", ERROR, t1 - t0);
 

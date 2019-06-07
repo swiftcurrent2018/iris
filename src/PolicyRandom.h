@@ -11,7 +11,7 @@ public:
     PolicyRandom(Scheduler* scheduler);
     virtual ~PolicyRandom();
 
-    virtual Device* GetDevice(Task* task);
+    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 };
 
