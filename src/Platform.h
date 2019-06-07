@@ -18,6 +18,7 @@ class Kernel;
 class Mem;
 class Scheduler;
 class Task;
+class Timer;
 
 class Platform {
 private:
@@ -46,6 +47,8 @@ public:
     int MemCreate(size_t size, brisbane_mem* brs_mem);
     int MemRelease(brisbane_mem brs_mem);
 
+    int TimerNow(double* time);
+
     int ndevs() { return ndevs_; }
     Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
@@ -70,6 +73,7 @@ private:
     std::set<Mem*> mems_;
 
     Scheduler* scheduler_;
+    Timer* timer_;
 
 private:
     static Platform* singleton_;

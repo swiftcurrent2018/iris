@@ -21,6 +21,7 @@ set(libsrc
     Task.cpp
     Thread.cpp
     Timer.cpp
+    WorkloadManager.cpp
     )
 
 add_library(brisbane STATIC ${libsrc})

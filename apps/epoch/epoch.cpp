@@ -3,12 +3,12 @@
 #include <malloc.h>
 
 int main(int argc, char** argv) {
-    int SIZE;
+    size_t SIZE;
     int EPOCH;
     int *A, *B, *C;
     int ERROR = 0;
 
-    SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    SIZE = argc > 1 ? atol(argv[1]) : 16;
     EPOCH = argc > 2 ? atoi(argv[2]) : 4;
     printf("SIZE[%d] EPOCH[%d]\n", SIZE, EPOCH);
 

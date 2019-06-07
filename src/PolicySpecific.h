@@ -13,6 +13,8 @@ public:
 
     virtual Device* GetDevice(Task* task);
 
+private:
+    int last_dev_no_;
 };
 
 } /* namespace rt */

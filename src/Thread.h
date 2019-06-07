@@ -14,6 +14,7 @@ public:
 
     void Start();
     virtual void Stop();
+    virtual void Sleep();
     virtual void Invoke();
 
 protected:

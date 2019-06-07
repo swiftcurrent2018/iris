@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-int SIZE;
+size_t SIZE;
 double *A, *B, *C;
 
 void ijk() {
@@ -31,7 +31,7 @@ void kij() {
 int main(int argc, char** argv) {
     int ERROR = 0;
 
-    SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    SIZE = argc > 1 ? atol(argv[1]) : 16;
     printf("SIZE[%d]\n", SIZE);
 
     A = (double*) malloc(SIZE * SIZE * sizeof(double));

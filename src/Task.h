@@ -22,7 +22,6 @@ public:
     virtual ~Task();
 
     void AddCommand(Command* cmd);
-    void Execute();
 
     void AddSubtask(Task* subtask);
     bool HasSubtasks();
@@ -36,8 +35,13 @@ public:
     void set_dev(Device* dev) { dev_ = dev; }
     Device* dev() { return dev_; }
     int ncmds() { return ncmds_; }
-    void set_brs_device(int brs_device) { brs_device_ = brs_device; }
+    void set_parent(Task* task) { parent_ = task; }
+    void set_brs_device(int brs_device);
     int brs_device() { return brs_device_; }
+    std::vector<Task*>* subtasks() { return &subtasks_; }
+
+private:
+    void CompleteSub();
 
 private:
     Task* parent_;
@@ -47,6 +51,7 @@ private:
     Device* dev_;
     Platform* platform_;
     std::vector<Task*> subtasks_;
+    int subtasks_complete_;
     int brs_device_;
 
     int status_;

@@ -6,6 +6,7 @@
 #include "Mem.h"
 #include "Scheduler.h"
 #include "Task.h"
+#include "Timer.h"
 
 namespace brisbane {
 namespace rt {
@@ -21,6 +22,7 @@ Platform::~Platform() {
     if (!init_) return;
     
     if (scheduler_) delete scheduler_;
+    if (timer_) delete timer_;
 }
 
 int Platform::Init(int* argc, char*** argv) {
@@ -31,6 +33,8 @@ int Platform::Init(int* argc, char*** argv) {
 
     scheduler_ = new Scheduler(this);
     scheduler_->Start();
+
+    timer_ = new Timer();
 
     init_ = true;
 
@@ -153,6 +157,11 @@ int Platform::MemCreate(size_t size, brisbane_mem* brs_mem) {
 }
 
 int Platform::MemRelease(brisbane_mem brs_mem) {
+    return BRISBANE_OK;
+}
+
+int Platform::TimerNow(double* time) {
+    *time = timer_->Now();
     return BRISBANE_OK;
 }
 

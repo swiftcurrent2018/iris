@@ -13,6 +13,8 @@ Task::Task(Platform* platform) {
     cmd_kernel_ = NULL;
     platform_ = platform;
     dev_ = NULL;
+    parent_ = NULL;
+    subtasks_complete_ = 0;
     status_ = BRISBANE_NONE;
 
     pthread_mutex_init(&complete_mutex_, NULL);
@@ -24,6 +26,13 @@ Task::~Task() {
     pthread_cond_destroy(&complete_cond_);
 }
 
+void Task::set_brs_device(int brs_device) {
+    brs_device_ = brs_device;
+    if (!HasSubtasks()) return;
+    for (std::vector<Task*>::iterator it = subtasks_.begin(); it != subtasks_.end(); ++it)
+        (*it)->set_brs_device(brs_device);
+}
+
 void Task::AddCommand(Command* cmd) {
     cmds_[ncmds_++] = cmd;
     if (cmd->type() == BRISBANE_CMD_KERNEL) {
@@ -32,15 +41,16 @@ void Task::AddCommand(Command* cmd) {
     }
 }
 
-void Task::Execute() {
-    dev_->Execute(this);
-}
-
 void Task::Complete() {
     pthread_mutex_lock(&complete_mutex_);
     status_ = BRISBANE_COMPLETE;
     pthread_cond_broadcast(&complete_cond_);
     pthread_mutex_unlock(&complete_mutex_);
+    if (parent_) parent_->CompleteSub();
+}
+
+void Task::CompleteSub() {
+    if (++subtasks_complete_ == subtasks_.size()) Complete();
 }
 
 void Task::Wait() {
@@ -51,6 +61,7 @@ void Task::Wait() {
 }
 
 void Task::AddSubtask(Task* subtask) {
+    subtask->set_parent(this);
     subtasks_.push_back(subtask);
 }
 

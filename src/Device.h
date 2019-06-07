@@ -8,6 +8,7 @@ namespace brisbane {
 namespace rt {
 
 class Timer;
+class WorkloadManager;
 
 class Device {
 public:
@@ -26,6 +27,11 @@ public:
     int dev_no() { return dev_no_; }
     int type() { return type_; }
     char* name() { return name_; }
+    bool busy() { return busy_; }
+    bool idle() { return !busy_; }
+
+    void set_manager(WorkloadManager* manager) { manager_ = manager; }
+    WorkloadManager* manager() { return manager_; }
 
 private:
     cl_device_id cldev_;
@@ -42,6 +48,9 @@ private:
     char name_[64];
     char version_[64];
 
+    bool busy_;
+
+    WorkloadManager* manager_;
     Timer* timer_;
 };
 

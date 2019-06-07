@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-int SIZE;
+size_t SIZE;
 double *A, *B, *C;
+double t0, t1;
 
 void ijk() {
 #pragma brisbane kernel h2d(A[0:SIZE*SIZE], B[0:SIZE*SIZE]) d2h(C[0:SIZE*SIZE]) device(all)
@@ -37,8 +38,8 @@ int main(int argc, char** argv) {
 
     brisbane_init(&argc, &argv);
 
-    SIZE = argc > 1 ? atoi(argv[1]) : 16;
-    DEV = argc > 2 ? atoi(argv[2]) : brisbane_device_cpu;
+    SIZE = argc > 1 ? atol(argv[1]) : 16;
+    DEV = argc > 2 ? atoi(argv[2]) : brisbane_device_any;
 
     printf("SIZE[%d] DEV[0x%x]\n", SIZE, DEV);
 
@@ -68,21 +69,25 @@ int main(int argc, char** argv) {
     brisbane_kernel_setmem(kernel_ijk, 2, mem_B, brisbane_rd);
     brisbane_kernel_setarg(kernel_ijk, 3, sizeof(int), &SIZE);
 
+    brisbane_timer_now(&t0);
+
     brisbane_task task0;
     brisbane_task_create(&task0);
-    int unit = 4;
-    for (int i = 0; i < SIZE; i += unit) {
+    size_t unit = 4;
+    for (size_t i = 0; i < SIZE; i += unit) {
         brisbane_task subtask;
         brisbane_task_create(&subtask);
-        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), A);
+        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), A + (i * SIZE));
         brisbane_task_h2d(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
         size_t kernel_ijk_off[1] = { i };
         size_t kernel_ijk_idx[1] = { unit };
         brisbane_task_kernel(subtask, kernel_ijk, 1, kernel_ijk_off, kernel_ijk_idx);
-        brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), C);
+        brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), unit * SIZE * sizeof(double), C + (i * SIZE));
         brisbane_task_add_subtask(task0, subtask);
     }
     brisbane_task_submit(task0, DEV, NULL, true);
+
+    brisbane_timer_now(&t1);
 
     /*
     brisbane_task_h2d(task0, mem_A, 0, SIZE * SIZE * sizeof(double), A);
@@ -95,7 +100,7 @@ int main(int argc, char** argv) {
 
     //ijk();
 
-#if 1
+#if 0
     printf("[[ A ]]\n");
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -119,6 +124,7 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
+#endif
 
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -129,9 +135,8 @@ int main(int argc, char** argv) {
             if (sum != C[i * SIZE + j]) ERROR++;
         }
     }
-#endif
 
-    printf("ERROR[%d]\n", ERROR);
+    printf("ERROR[%d] TIME[%lf]\n", ERROR, t1 - t0);
 
     brisbane_task_release(task0);
     brisbane_kernel_release(kernel_ijk);

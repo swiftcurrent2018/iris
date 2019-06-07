@@ -72,3 +72,7 @@ int brisbane_mem_release(brisbane_mem mem) {
     return Platform::GetPlatform()->MemRelease(mem);
 }
 
+int brisbane_timer_now(double* time) {
+    return Platform::GetPlatform()->TimerNow(time);
+}
+

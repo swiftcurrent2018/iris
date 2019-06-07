@@ -13,6 +13,8 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     clctx_ = clctx;
     dev_no_ = dev_no;
     platform_no_ = platform_no;
+
+    busy_ = false;
     
     timer_ = new Timer();
 
@@ -63,6 +65,7 @@ void Device::BuildProgram() {
 }
 
 void Device::Execute(Task* task) {
+    busy_ = true;
     for (int i = 0; i < task->ncmds(); i++) {
         Command* cmd = task->cmd(i);
         switch (cmd->type()) {
@@ -73,6 +76,7 @@ void Device::Execute(Task* task) {
             default: _error("cmd type[0x%x]", cmd->type());
         }
     }
+    busy_ = false;
 }
 
 void Device::ExecuteKernel(Command* cmd) {
@@ -129,7 +133,6 @@ void Device::ExecuteD2H(Command* cmd) {
     size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
-
     clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
 }

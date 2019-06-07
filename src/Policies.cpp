@@ -26,10 +26,10 @@ Policies::~Policies() {
 }
 
 Policy* Policies::GetPolicy(int brs_device) {
-    if (brs_device == brisbane_device_cpu || brs_device == brisbane_device_gpu ||
-        brs_device == brisbane_device_phi || brs_device == brisbane_device_fpga) {
-        return policy_specific_;
-    }
+    if (brs_device &  brisbane_device_cpu ||
+        brs_device &  brisbane_device_gpu ||
+        brs_device &  brisbane_device_phi ||
+        brs_device &  brisbane_device_fpga) return policy_specific_;
     if (brs_device == brisbane_device_data) return policy_data_;
     if (brs_device == brisbane_device_default) return policy_default_;
     if (brs_device == brisbane_device_history) return policy_history_;

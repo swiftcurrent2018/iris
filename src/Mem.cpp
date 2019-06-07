@@ -19,7 +19,10 @@ Mem::~Mem() {
 }
 
 cl_mem Mem::clmem(int i, cl_context clctx) {
-    if (clmems_[i] == NULL) clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, size_, NULL, &clerr_);
+    if (clmems_[i] == NULL) {
+        clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, size_, NULL, &clerr_);
+        _clerror(clerr_);
+    }
     return clmems_[i];
 }
 
@@ -31,6 +34,9 @@ void* Mem::host_inter() {
 }
 
 void Mem::AddOwner(Device* dev) {
+    for (int i = 0; i < owners_num_; i++) {
+        if (owners_[i] == dev) return;
+    }
     owners_[owners_num_++] = dev;
 }
 

@@ -3,11 +3,11 @@
 #include <malloc.h>
 
 int main(int argc, char** argv) {
-    int SIZE;
+    size_t SIZE;
     int *A, *B, *C, *D, *E;
     int ERROR = 0;
 
-    SIZE = argc > 1 ? atoi(argv[1]) : 16;
+    SIZE = argc > 1 ? atol(argv[1]) : 16;
     printf("SIZE[%d]\n", SIZE);
 
     A = (int*) malloc(SIZE * sizeof(int));

@@ -28,6 +28,10 @@ void Thread::Stop() {
     thread_ = (pthread_t) NULL;
 }
 
+void Thread::Sleep() {
+    sem_wait(&sem_);
+}
+
 void Thread::Invoke() {
     sem_post(&sem_);
 }
