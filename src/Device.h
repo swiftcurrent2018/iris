@@ -47,6 +47,7 @@ private:
     char vendor_[64];
     char name_[64];
     char version_[64];
+    cl_bool compiler_available_;
 
     bool busy_;
 

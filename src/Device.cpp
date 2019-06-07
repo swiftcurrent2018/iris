@@ -22,6 +22,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_NAME, sizeof(name_), name_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_TYPE, sizeof(cltype_), &cltype_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_VERSION, sizeof(version_), version_, NULL);
+    clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_COMPILER_AVAILABLE, sizeof(compiler_available_), &compiler_available_, NULL);
 
     if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_device_cpu;
     else if (cltype_ == CL_DEVICE_TYPE_GPU) type_ = brisbane_device_gpu;
@@ -31,7 +32,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     }
     else type_ = brisbane_device_cpu;
 
-    _info("device[%d] vendor[%s] device[%s] type[%d] version[%s]", dev_no_, vendor_, name_, type_, version_);
+    _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] compiler_available[%d]", dev_no_, vendor_, name_, type_, version_, compiler_available_);
 
     clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
     _clerror(clerr_);
@@ -61,6 +62,16 @@ void Device::BuildProgram() {
     _clerror(clerr_);
     clerr_ = clBuildProgram(clprog_, 1, &cldev_, "", NULL, NULL);
     _clerror(clerr_);
+    if (clerr_ != CL_SUCCESS) {
+        cl_build_status s;
+        clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_STATUS, sizeof(s), &s, NULL);
+        _clerror(clerr_);
+        char log[1024];
+        clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_LOG, 1024, log, NULL);
+        _clerror(clerr_);
+        _error("status[%d] log:%s", s, log);
+        _error("srclen[%lu] src\n%s", srclen, src);
+    }
     free(src);
 }
 

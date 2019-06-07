@@ -1,6 +1,7 @@
 #include "Mem.h"
 #include "Debug.h"
 #include "Device.h"
+#include <stdlib.h>
 
 namespace brisbane {
 namespace rt {
