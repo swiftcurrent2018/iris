@@ -32,8 +32,8 @@ int brisbane_task_create(brisbane_task* task) {
     return Platform::GetPlatform()->TaskCreate(task);
 }
 
-int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size) {
-    return Platform::GetPlatform()->TaskPresent(task, mem, off, size);
+int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {
+    return Platform::GetPlatform()->TaskPresent(task, mem, off, size, host);
 }
 
 int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {

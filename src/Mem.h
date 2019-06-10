@@ -7,28 +7,39 @@
 namespace brisbane {
 namespace rt {
 
+typedef struct _MemRange {
+    size_t off;
+    size_t size;
+    struct _MemRange* next;
+} MemRange;
+
 class Mem: public Object<struct _brisbane_mem, Mem> {
 public:
-    Mem(size_t size);
+    Mem(size_t size, Platform* platform);
     virtual ~Mem();
 
-    void AddOwner(Device* dev);
     void SetOwner(Device* dev);
     bool IsOwner(Device* dev);
+    void AddOwner(size_t off, size_t size, Device* dev);
+    bool IsOwner(size_t off, size_t size, Device* dev);
+    Device* owner();
 
     cl_mem clmem(int i, cl_context clctx);
 
     size_t size() { return size_; }
-    Device* owner() { return owners_[0]; }
     void* host_inter();
 
 private:
+    void MemRangeInit(MemRange* range);
+
+private:
     size_t size_;
+    Platform* platform_;
     cl_mem clmems_[BRISBANE_MAX_NDEVS];
+    MemRange ranges_[BRISBANE_MAX_NDEVS];
     cl_int clerr_;
-    Device* owners_[BRISBANE_MAX_NDEVS];
-    int owners_num_;
     void* host_inter_;
+    int ndevs_;
 };
 
 } /* namespace rt */

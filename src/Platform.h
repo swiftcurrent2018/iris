@@ -38,7 +38,7 @@ public:
     int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr);
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
-    int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size);
+    int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait);
     int TaskWait(brisbane_task brs_task);
     int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);

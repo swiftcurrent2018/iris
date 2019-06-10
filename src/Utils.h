@@ -33,7 +33,7 @@ static void ReadFile(char* path, char** string, size_t* len) {
     int fd = open((const char*) path, O_RDONLY);
     if (fd == -1) {
         _error("path[%s] %s", path, strerror(errno));
-        len = 0UL;
+        *len = 0UL;
         return;
     }
     off_t s = lseek(fd, 0, SEEK_END);

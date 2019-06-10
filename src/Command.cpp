@@ -47,11 +47,12 @@ Command* Command::CreateD2H(Mem* mem, size_t off, size_t size, void* host) {
     return cmd;
 }
 
-Command* Command::CreatePresent(Mem* mem, size_t off, size_t size) {
+Command* Command::CreatePresent(Mem* mem, size_t off, size_t size, void* host) {
     Command* cmd = Create(BRISBANE_CMD_PRESENT);
     cmd->mem_ = mem;
     cmd->off_[0] = off;
     cmd->size_ = size;
+    cmd->host_ = host;
     return cmd;
 }
 

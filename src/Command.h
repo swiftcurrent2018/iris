@@ -46,7 +46,7 @@ public:
     static Command* CreateKernel(Kernel* kernel, int dim, size_t* off, size_t* ndr);
     static Command* CreateH2D(Mem* mem, size_t off, size_t size, void* host);
     static Command* CreateD2H(Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreatePresent(Mem* mem, size_t off, size_t size);
+    static Command* CreatePresent(Mem* mem, size_t off, size_t size, void* host);
     static void Release(Command* cmd);
 };
 

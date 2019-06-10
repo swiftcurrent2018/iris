@@ -21,6 +21,7 @@ public:
     void ExecuteKernel(Command* cmd);
     void ExecuteH2D(Command* cmd);
     void ExecuteD2H(Command* cmd);
+    void ExecutePresent(Command* cmd);
 
     void Wait();
 

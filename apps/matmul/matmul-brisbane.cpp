@@ -77,8 +77,8 @@ int main(int argc, char** argv) {
     for (size_t i = 0; i < SIZE; i += UNIT) {
         brisbane_task subtask;
         brisbane_task_create(&subtask);
-        brisbane_task_h2d(subtask, mem_A, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), A + (i * SIZE));
-        brisbane_task_h2d(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
+        brisbane_task_present(subtask, mem_A, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), A + (i * SIZE));
+        brisbane_task_present(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
         size_t kernel_ijk_off[2] = { 0, i };
         size_t kernel_ijk_idx[2] = { SIZE, UNIT };
         brisbane_task_kernel(subtask, kernel_ijk, 2, kernel_ijk_off, kernel_ijk_idx);

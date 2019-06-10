@@ -83,7 +83,7 @@ void Device::Execute(Task* task) {
             case BRISBANE_CMD_KERNEL:   ExecuteKernel(cmd);     break;
             case BRISBANE_CMD_H2D:      ExecuteH2D(cmd);        break;
             case BRISBANE_CMD_D2H:      ExecuteD2H(cmd);        break;
-            case BRISBANE_CMD_PRESENT:                          break;
+            case BRISBANE_CMD_PRESENT:  ExecutePresent(cmd);    break;
             default: _error("cmd type[0x%x]", cmd->type());
         }
     }
@@ -123,7 +123,7 @@ void Device::ExecuteKernel(Command* cmd) {
     clerr_ = clFinish(clcmdq_);
     _clerror(clerr_);
     double time = timer_->Stop();
-    _trace("kernel[%s] on %s time[%lf]", kernel->name(), name_, time);
+    _info("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
     kernel->history()->Add(cmd, this, time);
 }
 
@@ -133,7 +133,8 @@ void Device::ExecuteH2D(Command* cmd) {
     size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
-    mem->AddOwner(this);
+    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
+    mem->AddOwner(off, size, this);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
 }
@@ -144,8 +145,20 @@ void Device::ExecuteD2H(Command* cmd) {
     size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
+    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
     clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
+}
+
+void Device::ExecutePresent(Command* cmd) {
+    Mem* mem = cmd->mem();
+    cl_mem clmem = mem->clmem(platform_no_, clctx_);
+    size_t off = cmd->off(0);
+    size_t size = cmd->size();
+    void* host = cmd->host();
+    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
+    if (mem->IsOwner(off, size, this)) return;
+    ExecuteH2D(cmd);
 }
 
 void Device::Wait() {

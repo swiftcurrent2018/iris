@@ -117,10 +117,10 @@ int Platform::TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, 
     return BRISBANE_OK;
 }
 
-int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size) {
+int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host) {
     Task* task = brs_task->class_obj;
     Mem* mem = brs_mem->class_obj;
-    Command* cmd = Command::CreatePresent(mem, off, size);
+    Command* cmd = Command::CreatePresent(mem, off, size, host);
     task->AddCommand(cmd);
     return BRISBANE_OK;
 }
@@ -151,7 +151,7 @@ int Platform::TaskRelease(brisbane_task brs_task) {
 }
 
 int Platform::MemCreate(size_t size, brisbane_mem* brs_mem) {
-    Mem* mem = new Mem(size);
+    Mem* mem = new Mem(size, this);
     *brs_mem = mem->struct_obj();
     mems_.insert(mem);
     return BRISBANE_OK;
