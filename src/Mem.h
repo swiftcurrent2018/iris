@@ -37,6 +37,7 @@ private:
     Platform* platform_;
     cl_mem clmems_[BRISBANE_MAX_NDEVS];
     MemRange ranges_[BRISBANE_MAX_NDEVS];
+    int nowners_;
     cl_int clerr_;
     void* host_inter_;
     int ndevs_;

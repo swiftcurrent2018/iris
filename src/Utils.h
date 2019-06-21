@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include "Debug.h"
 
 namespace brisbane {
 namespace rt {
@@ -26,7 +27,10 @@ static void Logo(bool color) {
     printf("██╔══██╗██╔══██╗██║╚════██║██╔══██╗██╔══██║██║╚██╗██║██╔══╝  \n");
     printf("██████╔╝██║  ██║██║███████║██████╔╝██║  ██║██║ ╚████║███████╗\n");
     printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝\n");
-    if (color) printf("\e[m");
+    if (color) {
+        printf(RESET);
+        fprintf(stderr, RESET);
+    }
 }
 
 static void ReadFile(char* path, char** string, size_t* len) {

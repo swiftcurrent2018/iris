@@ -34,6 +34,7 @@ void Dependency::Resolve(Task* task, Command* cmd) {
         if (!mem || mem->IsOwner(dev)) continue;
 
         Device* owner = mem->owner();
+        _debug("owner[%p]", owner);
         Command* d2h = Command::CreateD2H(mem, 0, mem->size(), mem->host_inter());
         owner->ExecuteD2H(d2h);
 

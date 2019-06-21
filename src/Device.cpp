@@ -96,6 +96,7 @@ void Device::ExecuteKernel(Command* cmd) {
     int dim = cmd->dim();
     size_t* off = cmd->off();
     size_t* ndr = cmd->ndr();
+    _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] ndr[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], ndr[0], ndr[1], ndr[2]);
     std::map<int, KernelArg*>* args = kernel->args();
     for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;

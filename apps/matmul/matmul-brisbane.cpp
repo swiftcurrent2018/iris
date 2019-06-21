@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 
     //ijk();
 
-#if 0
+#if 1
     printf("[[ A ]]\n");
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {

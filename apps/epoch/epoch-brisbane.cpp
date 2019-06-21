@@ -49,9 +49,9 @@ int main(int argc, char** argv) {
     for (int e = 0; e < EPOCH; e++) {
     brisbane_task task1;
     brisbane_task_create(&task1);
-    brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int));
-    brisbane_task_present(task1, mem_A, 0, SIZE * sizeof(int));
-    brisbane_task_present(task1, mem_B, 0, SIZE * sizeof(int));
+    brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int), C);
+    brisbane_task_present(task1, mem_A, 0, SIZE * sizeof(int), A);
+    brisbane_task_present(task1, mem_B, 0, SIZE * sizeof(int), B);
     size_t kernel_loop0_off[1] = { 0 };
     size_t kernel_loop0_idx[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);

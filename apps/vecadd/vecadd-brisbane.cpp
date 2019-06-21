@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
     brisbane_task task1;
     brisbane_task_create(&task1);
-    brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int));
+    brisbane_task_present(task1, mem_C, 0, SIZE * sizeof(int), C);
     size_t kernel_loop1_off[1] = { 0 };
     size_t kernel_loop1_idx[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_loop1, 1, kernel_loop1_off, kernel_loop1_idx);
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 
     brisbane_task task2;
     brisbane_task_create(&task2);
-    brisbane_task_present(task2, mem_D, 0, SIZE * sizeof(int));
+    brisbane_task_present(task2, mem_D, 0, SIZE * sizeof(int), D);
     size_t kernel_loop2_off[1] = { 0 };
     size_t kernel_loop2_idx[1] = { SIZE };
     brisbane_task_kernel(task2, kernel_loop2, 1, kernel_loop2_off, kernel_loop2_idx);

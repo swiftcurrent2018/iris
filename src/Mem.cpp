@@ -10,6 +10,7 @@ Mem::Mem(size_t size, Platform* platform) {
     size_ = size;
     platform_ = platform;
     ndevs_ = platform->ndevs();
+    nowners_ = 0;
     host_inter_ = NULL;
     for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
     for (int i = 0; i < ndevs_; i++) MemRangeInit(ranges_ + i);
@@ -36,10 +37,18 @@ void* Mem::host_inter() {
 }
 
 void Mem::SetOwner(Device* dev) {
+    if (nowners_ == 1 && IsOwner(dev)) return;
+    for (int i = 0; i < ndevs_; i++) {
+        MemRange* range = ranges_ + i;    
+        range->size = 0UL;
+        range->next = NULL;
+    }
+    nowners_ = 0;
     AddOwner(0, size_, dev);
 }
 
 bool Mem::IsOwner(Device* dev) {
+    if (nowners_ == 0) return true;
     return ranges_[dev->dev_no()].size != 0;
 }
 
@@ -59,6 +68,7 @@ void Mem::AddOwner(size_t off, size_t size, Device* dev) {
     MemRange* next = new MemRange;
     MemRangeInit(next);
     last->next = next;
+    nowners_++;
 }
 
 bool Mem::IsOwner(size_t off, size_t size, Device* dev) {
