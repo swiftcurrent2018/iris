@@ -112,7 +112,7 @@ void Device::ExecuteKernel(Command* cmd) {
             _clerror(clerr_);
         }
     }
-    timer_->Start();
+    timer_->Start(11);
     if (type_ == brisbane_device_fpga) {
         if (off[0] != 0 || off[1] != 0 || off[2] != 0)
             _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
@@ -123,7 +123,7 @@ void Device::ExecuteKernel(Command* cmd) {
     _clerror(clerr_);
     clerr_ = clFinish(clcmdq_);
     _clerror(clerr_);
-    double time = timer_->Stop();
+    double time = timer_->Stop(11);
     _info("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
     kernel->history()->Add(cmd, this, time);
 }

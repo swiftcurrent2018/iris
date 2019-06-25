@@ -29,12 +29,14 @@ int Platform::Init(int* argc, char*** argv) {
     if (init_) return BRISBANE_ERR;
     gethostname(brisbane_log_prefix_, 256);
     Utils::Logo(true);
+
+    timer_ = new Timer();
+    timer_->Start(1);
+
     GetCLPlatforms();
 
     scheduler_ = new Scheduler(this);
     scheduler_->Start();
-
-    timer_ = new Timer();
 
     init_ = true;
 
@@ -174,9 +176,11 @@ Platform* Platform::GetPlatform() {
 }
 
 int Platform::Finalize() {
+    double total = singleton_->timer()->Stop(1);
     if (singleton_ == NULL) return BRISBANE_ERR;
     if (singleton_) delete singleton_;
     singleton_ = NULL;
+    _info("total execution time [%lf] sec", total);
     return BRISBANE_OK;
 }
 

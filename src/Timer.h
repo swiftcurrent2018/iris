@@ -1,6 +1,10 @@
 #ifndef BRISBANE_RT_SRC_TIMER_H
 #define BRISBANE_RT_SRC_TIMER_H
 
+#define BRISBANE_TIMER_MAX      128
+
+#include <stddef.h>
+
 namespace brisbane {
 namespace rt {
 
@@ -10,12 +14,19 @@ public:
     ~Timer();
 
     double Now();
-    void Start();
-    double Stop();
+    double Start(int i);
+    double Stop(int i);
+    double Total(int i);
+
+    size_t Inc(int i);
+    size_t Inc(int i, size_t s);
 
 private:
+    double start_[BRISBANE_TIMER_MAX];
+    double total_[BRISBANE_TIMER_MAX];
+    size_t total_ul_[BRISBANE_TIMER_MAX];
+
     double base_sec_;
-    double start_;
 };
 
 } /* namespace rt */

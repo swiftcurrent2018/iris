@@ -53,6 +53,7 @@ public:
     Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
     Scheduler* scheduler() { return scheduler_; }
+    Timer* timer() { return timer_; }
 
 public:
     static Platform* GetPlatform();
