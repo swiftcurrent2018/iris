@@ -7,6 +7,7 @@
 #include "Scheduler.h"
 #include "Task.h"
 #include "Timer.h"
+#include <unistd.h>
 
 namespace brisbane {
 namespace rt {
@@ -156,6 +157,12 @@ int Platform::MemCreate(size_t size, brisbane_mem* brs_mem) {
     Mem* mem = new Mem(size, this);
     *brs_mem = mem->struct_obj();
     mems_.insert(mem);
+    return BRISBANE_OK;
+}
+
+int Platform::MemReduce(brisbane_mem brs_mem, int mode, int type) {
+    Mem* mem = brs_mem->class_obj;
+    mem->Reduce(mode, type);
     return BRISBANE_OK;
 }
 

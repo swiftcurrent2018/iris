@@ -24,6 +24,18 @@ extern "C" {
 #define brisbane_wr                 (1 << 1)
 #define brisbane_rdwr               (brisbane_rd | brisbane_wr)
 
+#define brisbane_int                (1 << 0)
+#define brisbane_long               (1 << 1)
+#define brisbane_float              (1 << 2)
+#define brisbane_double             (1 << 3)
+
+#define brisbane_normal             (1 << 10)
+#define brisbane_reduction          (1 << 11)
+#define brisbane_sum                ((1 << 12) | brisbane_reduction)
+#define brisbane_max                ((1 << 13) | brisbane_reduction)
+#define brisbane_min                ((1 << 14) | brisbane_reduction)
+
+
 typedef struct _brisbane_task*      brisbane_task;
 typedef struct _brisbane_mem*       brisbane_mem;
 typedef struct _brisbane_kernel*    brisbane_kernel;
@@ -47,6 +59,7 @@ extern int brisbane_task_add_subtask(brisbane_task task, brisbane_task subtask);
 extern int brisbane_task_release(brisbane_task task);
 
 extern int brisbane_mem_create(size_t size, brisbane_mem* mem);
+extern int brisbane_mem_reduce(brisbane_mem mem, int mode, int type);
 extern int brisbane_mem_release(brisbane_mem mem);
 
 extern int brisbane_timer_now(double* time);

@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
   brisbane_task_submit(task0, brisbane_device_default, NULL, true);
 
   brisbane_kernel kernel_stencil;
-  brisbane_kernel_create("stencil", &kernel_stencil);
+  brisbane_kernel_create("stencil_2D", &kernel_stencil);
   brisbane_kernel_setarg(kernel_stencil, 0, sizeof(float), &c0);
   brisbane_kernel_setarg(kernel_stencil, 1, sizeof(float), &c1);
   brisbane_kernel_setarg(kernel_stencil, 4, sizeof(int), &nx);
@@ -175,8 +175,8 @@ int main(int argc, char** argv) {
       size_t kernel_stencil_idx[3] = { nx - 2, ny - 2, nz - 2 };
       brisbane_kernel_setmem(kernel_stencil, 2, mem_A0, brisbane_rd);
       brisbane_kernel_setmem(kernel_stencil, 3, mem_Anext, brisbane_wr);
-      brisbane_task_kernel(task1, kernel_stencil, 3, kernel_stencil_off, kernel_stencil_idx);
-      brisbane_task_submit(task1, brisbane_device_history, NULL, true);
+      brisbane_task_kernel(task1, kernel_stencil, 2, kernel_stencil_off, kernel_stencil_idx);
+      brisbane_task_submit(task1, brisbane_device_gpu, NULL, true);
       brisbane_task_release(task1);
 
       brisbane_mem mem_tmp = mem_A0;

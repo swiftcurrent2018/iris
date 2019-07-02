@@ -45,6 +45,7 @@ public:
     int TaskRelease(brisbane_task brs_task);
 
     int MemCreate(size_t size, brisbane_mem* brs_mem);
+    int MemReduce(brisbane_mem brs_mem, int mode, int type);
     int MemRelease(brisbane_mem brs_mem);
 
     int TimerNow(double* time);

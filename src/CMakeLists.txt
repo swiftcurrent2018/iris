@@ -17,10 +17,12 @@ set(libsrc
     PolicyHistory.cpp
     PolicyRandom.cpp
     PolicySpecific.cpp
+    Reduction.cpp
     Scheduler.cpp
     Task.cpp
     Thread.cpp
     Timer.cpp
+    Utils.cpp
     WorkloadManager.cpp
     )
 

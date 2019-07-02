@@ -68,6 +68,10 @@ int brisbane_mem_create(size_t size, brisbane_mem* mem) {
     return Platform::GetPlatform()->MemCreate(size, mem);
 }
 
+int brisbane_mem_reduce(brisbane_mem mem, int mode, int type) {
+    return Platform::GetPlatform()->MemReduce(mem, mode, type);
+}
+
 int brisbane_mem_release(brisbane_mem mem) {
     return Platform::GetPlatform()->MemRelease(mem);
 }

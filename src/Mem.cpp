@@ -8,6 +8,8 @@ namespace rt {
 
 Mem::Mem(size_t size, Platform* platform) {
     size_ = size;
+    mode_ = brisbane_normal;
+    expansion_ = 1;
     platform_ = platform;
     ndevs_ = platform->ndevs();
     nowners_ = 0;
@@ -23,7 +25,7 @@ Mem::~Mem() {
 
 cl_mem Mem::clmem(int i, cl_context clctx) {
     if (clmems_[i] == NULL) {
-        clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, size_, NULL, &clerr_);
+        clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
         _clerror(clerr_);
     }
     return clmems_[i];
@@ -31,7 +33,7 @@ cl_mem Mem::clmem(int i, cl_context clctx) {
 
 void* Mem::host_inter() {
     if (!host_inter_) {
-        host_inter_ = malloc(size_);
+        host_inter_ = malloc(expansion_ * size_);
     }
     return host_inter_;
 }
@@ -77,6 +79,15 @@ bool Mem::IsOwner(size_t off, size_t size, Device* dev) {
         if (range->off == off && range->size == size) return true; 
     }
     return false;
+}
+
+void Mem::Reduce(int mode, int type) {
+    mode_ = mode;
+    type_ = type;
+}
+
+void Mem::Expand(int expansion) {
+    expansion_ = expansion;
 }
 
 void Mem::MemRangeInit(MemRange* range) {

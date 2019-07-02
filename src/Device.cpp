@@ -2,6 +2,7 @@
 #include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
+#include "Reduction.h"
 #include "Timer.h"
 #include "Utils.h"
 
@@ -95,8 +96,8 @@ void Device::ExecuteKernel(Command* cmd) {
     cl_kernel clkernel = kernel->clkernel(dev_no_, clprog_);
     int dim = cmd->dim();
     size_t* off = cmd->off();
-    size_t* ndr = cmd->ndr();
-    _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] ndr[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], ndr[0], ndr[1], ndr[2]);
+    size_t* gws = cmd->ndr();
+    size_t lws[3] = { 16, 1, 1 };
     std::map<int, KernelArg*>* args = kernel->args();
     for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;
@@ -104,6 +105,7 @@ void Device::ExecuteKernel(Command* cmd) {
         Mem* mem = arg->mem;
         if (mem) {
             if (arg->mode & brisbane_wr) mem->SetOwner(this);
+            if (mem->mode() & brisbane_reduction) mem->Expand(gws[0] / lws[0]);
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
             _clerror(clerr_);
@@ -113,12 +115,13 @@ void Device::ExecuteKernel(Command* cmd) {
         }
     }
     timer_->Start(11);
+    _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
     if (type_ == brisbane_device_fpga) {
         if (off[0] != 0 || off[1] != 0 || off[2] != 0)
             _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
-        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) ndr, NULL, 0, NULL, NULL);
+        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
     } else {
-        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) ndr, NULL, 0, NULL, NULL);
+        clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
     }
     _clerror(clerr_);
     clerr_ = clFinish(clcmdq_);
@@ -142,12 +145,17 @@ void Device::ExecuteH2D(Command* cmd) {
 
 void Device::ExecuteD2H(Command* cmd) {
     Mem* mem = cmd->mem();
+    int mode = mem->mode();
     cl_mem clmem = mem->clmem(platform_no_, clctx_);
     size_t off = cmd->off(0);
     size_t size = cmd->size();
+    int expansion = mem->expansion();
     void* host = cmd->host();
-    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
-    clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
+    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", dev_no_, mem->uid(), off, size, expansion, host);
+    if (mode & brisbane_reduction) {
+        clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, mem->size() * expansion, mem->host_inter(), 0, NULL, NULL);
+        Reduction::GetInstance()->Reduce(mem, host, size);
+    } else clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
 }
 
