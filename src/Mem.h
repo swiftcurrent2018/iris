@@ -31,6 +31,7 @@ public:
     size_t size() { return size_; }
     int mode() { return mode_; }
     int type() { return type_; }
+    int type_size() { return type_size_; }
     int expansion() { return expansion_; }
     void* host_inter();
 
@@ -48,6 +49,7 @@ private:
     void* host_inter_;
     int ndevs_;
     int type_;
+    int type_size_;
     int expansion_;
 };
 

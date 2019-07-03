@@ -84,6 +84,13 @@ bool Mem::IsOwner(size_t off, size_t size, Device* dev) {
 void Mem::Reduce(int mode, int type) {
     mode_ = mode;
     type_ = type;
+    switch (type_) {
+        case brisbane_int:      type_size_ = sizeof(int);       break;
+        case brisbane_long:     type_size_ = sizeof(long);      break;
+        case brisbane_float:    type_size_ = sizeof(float);     break;
+        case brisbane_double:   type_size_ = sizeof(double);    break;
+        default: _error("not support type[0x%x]", type_);
+    }
 }
 
 void Mem::Expand(int expansion) {

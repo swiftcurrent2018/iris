@@ -3,8 +3,7 @@ __kernel void init(__global int* restrict A) {
     A[id] = id;
 }
 
-__kernel void reduce_sum(__global int* restrict A, __global unsigned long* restrict sumA) {
-    __local int local_sumA[16];
+__kernel void reduce_sum(__global int* restrict A, __global unsigned long* restrict sumA, __local unsigned long* local_sumA) {
     int gid = get_global_id(0);
     int gsize = get_global_size(0);
     int lid = get_local_id(0);

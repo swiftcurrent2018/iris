@@ -10,6 +10,16 @@
 extern "C" {
 #endif
 
+#define brisbane_default            (1 << 0)
+#define brisbane_cpu                (1 << 1)
+#define brisbane_gpu                (1 << 2)
+#define brisbane_phi                (1 << 3)
+#define brisbane_fpga               (1 << 4)
+#define brisbane_data               (1 << 5)
+#define brisbane_history            (1 << 6)
+#define brisbane_random             (1 << 7)
+#define brisbane_any                (brisbane_cpu | brisbane_gpu | brisbane_phi | brisbane_fpga)
+
 #define brisbane_device_default     (1 << 0)
 #define brisbane_device_cpu         (1 << 1)
 #define brisbane_device_gpu         (1 << 2)
@@ -42,6 +52,8 @@ typedef struct _brisbane_kernel*    brisbane_kernel;
 
 extern int brisbane_init(int* argc, char*** argv);
 extern int brisbane_finalize();
+
+extern int brisbane_info_ndevs(int* ndevs);
 
 extern int brisbane_kernel_create(const char* name, brisbane_kernel* kernel);
 extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);

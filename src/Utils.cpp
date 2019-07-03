@@ -42,6 +42,7 @@ void Utils::ReadFile(char* path, char** string, size_t* len) {
     (*string)[s] = 0;
     lseek(fd, 0, SEEK_SET);
     ssize_t r = read(fd, *string, s);
+    if (r != s) _error("read[%lu] vs [%lu]", r, s);
     close(fd);
 }
 

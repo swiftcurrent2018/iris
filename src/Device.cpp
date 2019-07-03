@@ -97,7 +97,7 @@ void Device::ExecuteKernel(Command* cmd) {
     int dim = cmd->dim();
     size_t* off = cmd->off();
     size_t* gws = cmd->ndr();
-    size_t lws[3] = { 16, 1, 1 };
+    size_t* lws = NULL;
     std::map<int, KernelArg*>* args = kernel->args();
     for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;
@@ -105,7 +105,16 @@ void Device::ExecuteKernel(Command* cmd) {
         Mem* mem = arg->mem;
         if (mem) {
             if (arg->mode & brisbane_wr) mem->SetOwner(this);
-            if (mem->mode() & brisbane_reduction) mem->Expand(gws[0] / lws[0]);
+            if (mem->mode() & brisbane_reduction) {
+                lws = (size_t*) alloca(3 * sizeof(size_t));
+                lws[0] = 16;
+                lws[1] = 1;
+                lws[2] = 1;
+                size_t expansion = gws[0] / lws[0];
+                mem->Expand(expansion);
+                clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, expansion * mem->type_size(), NULL);
+                _clerror(clerr_);
+            }
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
             _clerror(clerr_);
@@ -114,8 +123,13 @@ void Device::ExecuteKernel(Command* cmd) {
             _clerror(clerr_);
         }
     }
+    if (lws) {
+        _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
+    } else {
+        _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[null]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2]);
+    }
+    if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
     timer_->Start(11);
-    _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
     if (type_ == brisbane_device_fpga) {
         if (off[0] != 0 || off[1] != 0 || off[2] != 0)
             _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
@@ -137,7 +151,7 @@ void Device::ExecuteH2D(Command* cmd) {
     size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
-    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
+    _trace("devno[%d] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), clmem, off, size, host);
     mem->AddOwner(off, size, this);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);

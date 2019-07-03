@@ -29,6 +29,8 @@ public:
     int Init(int* argc, char*** argv);
     int GetCLPlatforms();
 
+    int InfoNumDevices(int* ndevs);
+
     int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
     int KernelSetArg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
     int KernelSetMem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);

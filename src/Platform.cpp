@@ -64,6 +64,12 @@ int Platform::GetCLPlatforms() {
             ndevs_++;
         }
     }
+    return BRISBANE_OK;
+}
+
+int Platform::InfoNumDevices(int* ndevs) {
+    *ndevs = ndevs_;
+    return BRISBANE_OK;
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {

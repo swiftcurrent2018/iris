@@ -44,13 +44,13 @@ int main(int argc, char** argv) {
 
     brisbane_kernel kernel_sum;
     brisbane_kernel_create("reduce_sum", &kernel_sum);
+    size_t kernel_sum_off[1] = { 0 };
+    size_t kernel_sum_idx[1] = { SIZE };
     brisbane_kernel_setmem(kernel_sum, 0, mem_A, brisbane_rd);
     brisbane_kernel_setmem(kernel_sum, 1, mem_sumA, brisbane_wr);
 
     brisbane_task task1;
     brisbane_task_create(&task1);
-    size_t kernel_sum_off[1] = { 0 };
-    size_t kernel_sum_idx[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_sum, 1, kernel_sum_off, kernel_sum_idx);
     brisbane_task_d2h(task1, mem_sumA, 0, sizeof(size_t), &sumA);
     brisbane_task_submit(task1, brisbane_device_data, NULL, true);

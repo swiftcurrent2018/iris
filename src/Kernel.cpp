@@ -21,7 +21,7 @@ Kernel::~Kernel() {
 int Kernel::SetArg(int idx, size_t size, void* value) {
     KernelArg* arg = new KernelArg;
     arg->size = size;
-    memcpy(arg->value, value, size);
+    if (value) memcpy(arg->value, value, size);
     arg->mem = NULL;
     args_[idx] = arg;
     return BRISBANE_OK;

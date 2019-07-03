@@ -28,4 +28,6 @@ set(libsrc
 
 add_library(brisbane STATIC ${libsrc})
 
+#target_compile_options(brisbane PRIVATE -Wall)
+
 install(TARGETS brisbane DESTINATION lib)

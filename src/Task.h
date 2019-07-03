@@ -52,7 +52,7 @@ private:
     Device* dev_;
     Platform* platform_;
     std::vector<Task*> subtasks_;
-    int subtasks_complete_;
+    size_t subtasks_complete_;
     int brs_device_;
 
     int status_;

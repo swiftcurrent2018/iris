@@ -1,12 +1,12 @@
 BRISBANE=../../install
 
-all: vecadd vecadd-brisbane
+all: saxpy-m saxpy-m-brisbane
 
-vecadd: vecadd.cpp
+saxpy-m: saxpy-m.cpp
 	g++ -g -o $@ $^
 
-vecadd-brisbane: vecadd-brisbane.cpp
+saxpy-m-brisbane: saxpy-m-brisbane.cpp
 	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
 
 clean:
-	rm -f vecadd vecadd-brisbane
+	rm -f saxpy-m saxpy-m-brisbane

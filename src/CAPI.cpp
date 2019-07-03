@@ -12,6 +12,10 @@ int brisbane_finalize() {
     return Platform::Finalize();
 }
 
+int brisbane_info_ndevs(int* ndevs) {
+    return Platform::GetPlatform()->InfoNumDevices(ndevs);
+}
+
 int brisbane_kernel_create(const char* name, brisbane_kernel* kernel) {
     return Platform::GetPlatform()->KernelCreate(name, kernel);
 }
