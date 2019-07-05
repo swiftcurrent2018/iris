@@ -81,10 +81,11 @@ void Device::Execute(Task* task) {
     for (int i = 0; i < task->ncmds(); i++) {
         Command* cmd = task->cmd(i);
         switch (cmd->type()) {
-            case BRISBANE_CMD_KERNEL:   ExecuteKernel(cmd);     break;
-            case BRISBANE_CMD_H2D:      ExecuteH2D(cmd);        break;
-            case BRISBANE_CMD_D2H:      ExecuteD2H(cmd);        break;
-            case BRISBANE_CMD_PRESENT:  ExecutePresent(cmd);    break;
+            case BRISBANE_CMD_KERNEL:       ExecuteKernel(cmd);     break;
+            case BRISBANE_CMD_H2D:          ExecuteH2D(cmd);        break;
+            case BRISBANE_CMD_D2H:          ExecuteD2H(cmd);        break;
+            case BRISBANE_CMD_PRESENT:      ExecutePresent(cmd);    break;
+            case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
             default: _error("cmd type[0x%x]", cmd->type());
         }
     }
@@ -98,7 +99,7 @@ void Device::ExecuteKernel(Command* cmd) {
     size_t* off = cmd->off();
     size_t* gws = cmd->ndr();
     size_t* lws = NULL;
-    std::map<int, KernelArg*>* args = kernel->args();
+    std::map<int, KernelArg*>* args = cmd->kernel_args();
     for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;
         KernelArg* arg = it->second;
@@ -107,7 +108,7 @@ void Device::ExecuteKernel(Command* cmd) {
             if (arg->mode & brisbane_wr) mem->SetOwner(this);
             if (mem->mode() & brisbane_reduction) {
                 lws = (size_t*) alloca(3 * sizeof(size_t));
-                lws[0] = 16;
+                lws[0] = 2;
                 lws[1] = 1;
                 lws[2] = 1;
                 size_t expansion = gws[0] / lws[0];
@@ -123,11 +124,7 @@ void Device::ExecuteKernel(Command* cmd) {
             _clerror(clerr_);
         }
     }
-    if (lws) {
-        _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
-    } else {
-        _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[null]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2]);
-    }
+    _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
     if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
     timer_->Start(11);
     if (type_ == brisbane_device_fpga) {
@@ -182,6 +179,11 @@ void Device::ExecutePresent(Command* cmd) {
     _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
     if (mem->IsOwner(off, size, this)) return;
     ExecuteH2D(cmd);
+}
+
+void Device::ExecuteReleaseMem(Command* cmd) {
+    Mem* mem = cmd->mem();
+    delete mem; 
 }
 
 void Device::Wait() {

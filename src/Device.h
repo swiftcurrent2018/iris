@@ -22,6 +22,7 @@ public:
     void ExecuteH2D(Command* cmd);
     void ExecuteD2H(Command* cmd);
     void ExecutePresent(Command* cmd);
+    void ExecuteReleaseMem(Command* cmd);
 
     void Wait();
 

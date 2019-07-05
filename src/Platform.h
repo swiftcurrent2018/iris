@@ -45,6 +45,7 @@ public:
     int TaskWait(brisbane_task brs_task);
     int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);
     int TaskRelease(brisbane_task brs_task);
+    int TaskReleaseMem(brisbane_task brs_task, brisbane_mem brs_mem);
 
     int MemCreate(size_t size, brisbane_mem* brs_mem);
     int MemReduce(brisbane_mem brs_mem, int mode, int type);

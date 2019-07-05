@@ -19,12 +19,17 @@ Mem::Mem(size_t size, Platform* platform) {
 }
 
 Mem::~Mem() {
-    _todo("release clmems[%d]", ndevs_);
+    for (int i = 0; i < ndevs_; i++) {
+        if (!clmems_[i]) continue;
+        clerr_ = clReleaseMemObject(clmems_[i]);
+        _clerror(clerr_);
+    }
     if (!host_inter_) free(host_inter_);
 }
 
 cl_mem Mem::clmem(int i, cl_context clctx) {
     if (clmems_[i] == NULL) {
+        _debug("expansion[%d] size[%lu]", expansion_, size_);
         clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
         _clerror(clerr_);
     }

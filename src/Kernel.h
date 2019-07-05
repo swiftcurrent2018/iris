@@ -24,6 +24,7 @@ public:
 
     int SetArg(int idx, size_t size, void* value);
     int SetMem(int idx, Mem* mem, int mode);
+    std::map<int, KernelArg*>* ExportArgs();
 
     cl_kernel clkernel(int i, cl_program clprog);
 

@@ -2,17 +2,18 @@
 #define BRISBANE_RT_SRC_COMMAND_H
 
 #include <stddef.h>
+#include "Kernel.h"
 
-#define BRISBANE_CMD_NOP        0x1000
-#define BRISBANE_CMD_KERNEL     0x1001
-#define BRISBANE_CMD_H2D        0x1002
-#define BRISBANE_CMD_D2H        0x1003
-#define BRISBANE_CMD_PRESENT    0x1004
+#define BRISBANE_CMD_NOP            0x1000
+#define BRISBANE_CMD_KERNEL         0x1001
+#define BRISBANE_CMD_H2D            0x1002
+#define BRISBANE_CMD_D2H            0x1003
+#define BRISBANE_CMD_PRESENT        0x1004
+#define BRISBANE_CMD_RELEASE_MEM    0x1005
 
 namespace brisbane {
 namespace rt {
 
-class Kernel;
 class Mem;
 
 class Command {
@@ -29,6 +30,7 @@ public:
     size_t* ndr() { return ndr_; }
     size_t ndr(int i) { return ndr_[i]; }
     Kernel* kernel() { return kernel_; }
+    std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
     Mem* mem() { return mem_; }
 
 private:
@@ -40,6 +42,7 @@ private:
     size_t ndr_[3];
     Kernel* kernel_;
     Mem* mem_;
+    std::map<int, KernelArg*>* kernel_args_;
 
 public:
     static Command* Create(int type);
@@ -47,6 +50,7 @@ public:
     static Command* CreateH2D(Mem* mem, size_t off, size_t size, void* host);
     static Command* CreateD2H(Mem* mem, size_t off, size_t size, void* host);
     static Command* CreatePresent(Mem* mem, size_t off, size_t size, void* host);
+    static Command* CreateReleaseMem(Mem* mem);
     static void Release(Command* cmd);
 };
 

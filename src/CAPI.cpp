@@ -68,6 +68,10 @@ int brisbane_task_release(brisbane_task task) {
     return Platform::GetPlatform()->TaskRelease(task);
 }
 
+int brisbane_task_release_mem(brisbane_task task, brisbane_mem mem) {
+    return Platform::GetPlatform()->TaskReleaseMem(task, mem);
+}
+
 int brisbane_mem_create(size_t size, brisbane_mem* mem) {
     return Platform::GetPlatform()->MemCreate(size, mem);
 }

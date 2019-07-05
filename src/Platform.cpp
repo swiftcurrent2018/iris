@@ -156,6 +156,15 @@ int Platform::TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask) 
 }
 
 int Platform::TaskRelease(brisbane_task brs_task) {
+    Task* task = brs_task->class_obj;
+    delete task;
+}
+
+int Platform::TaskReleaseMem(brisbane_task brs_task, brisbane_mem brs_mem) {
+    Task* task = brs_task->class_obj;
+    Mem* mem = brs_mem->class_obj;
+    Command* cmd = Command::CreateReleaseMem(mem);
+    task->AddCommand(cmd);
     return BRISBANE_OK;
 }
 
@@ -173,6 +182,8 @@ int Platform::MemReduce(brisbane_mem brs_mem, int mode, int type) {
 }
 
 int Platform::MemRelease(brisbane_mem brs_mem) {
+    Mem* mem = brs_mem->class_obj;
+    delete mem;
     return BRISBANE_OK;
 }
 

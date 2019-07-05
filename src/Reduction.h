@@ -2,6 +2,7 @@
 #define BRISBANE_RT_SRC_REDUCTION_H
 
 #include <stdlib.h>
+#include <pthread.h>
 
 namespace brisbane {
 namespace rt {
@@ -18,13 +19,14 @@ public:
 
 private:
     void Sum(Mem* mem, void* host, size_t size);
-    void SumLong(Mem* mem, void* host, size_t size);
+    void SumLong(Mem* mem, long* host, size_t size);
 
 public:
     static Reduction* GetInstance();
 
 private:
     static Reduction* singleton_;
+    pthread_mutex_t mutex_;
 };
 
 } /* namespace rt */

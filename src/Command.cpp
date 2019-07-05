@@ -5,9 +5,14 @@ namespace rt {
 
 Command::Command(int type) {
     type_ = type;
+    kernel_args_ = NULL;
 }
 
 Command::~Command() {
+    if (kernel_args_) {
+        for (std::map<int, KernelArg*>::iterator it = kernel_args_->begin(); it != kernel_args_->end(); ++it)
+            delete it->second;
+    }
 }
 
 Command* Command::Create(int type) {
@@ -17,6 +22,7 @@ Command* Command::Create(int type) {
 Command* Command::CreateKernel(Kernel* kernel, int dim, size_t* off, size_t* ndr) {
     Command* cmd = Create(BRISBANE_CMD_KERNEL);
     cmd->kernel_ = kernel;
+    cmd->kernel_args_ = kernel->ExportArgs();
     cmd->dim_ = dim;
     for (int i = 0; i < dim; i++) {
         cmd->off_[i] = off[i];
@@ -53,6 +59,12 @@ Command* Command::CreatePresent(Mem* mem, size_t off, size_t size, void* host) {
     cmd->off_[0] = off;
     cmd->size_ = size;
     cmd->host_ = host;
+    return cmd;
+}
+
+Command* Command::CreateReleaseMem(Mem* mem) {
+    Command* cmd = Create(BRISBANE_CMD_RELEASE_MEM);
+    cmd->mem_ = mem;
     return cmd;
 }
 

@@ -16,6 +16,8 @@ Kernel::Kernel(const char* name, Platform* platform) {
 }
 
 Kernel::~Kernel() {
+    for (std::map<int, KernelArg*>::iterator it = args_.begin(); it != args_.end(); ++it)
+        delete it->second;
 }
 
 int Kernel::SetArg(int idx, size_t size, void* value) {
@@ -33,6 +35,24 @@ int Kernel::SetMem(int idx, Mem* mem, int mode) {
     arg->mode = mode;
     args_[idx] = arg;
     return BRISBANE_OK;
+}
+
+std::map<int, KernelArg*>* Kernel::ExportArgs() {
+    std::map<int, KernelArg*>* new_args = new std::map<int, KernelArg*>();
+    for (std::map<int, KernelArg*>::iterator it = args_.begin(); it != args_.end(); ++it) {
+        KernelArg* arg = it->second;
+        KernelArg* new_arg = new KernelArg;
+        if (arg->mem) {
+            new_arg->mem = arg->mem;
+            new_arg->mode = arg->mode;
+        } else {
+            new_arg->size = arg->size; 
+            memcpy(new_arg->value, arg->value, arg->size);
+            new_arg->mem = NULL;
+        }
+        (*new_args)[it->first] = new_arg;
+    }
+    return new_args;
 }
 
 cl_kernel Kernel::clkernel(int i, cl_program clprog) {

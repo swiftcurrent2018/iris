@@ -7,9 +7,11 @@ namespace brisbane {
 namespace rt {
 
 Reduction::Reduction() {
+    pthread_mutex_init(&mutex_, NULL);
 }
 
 Reduction::~Reduction() {
+    pthread_mutex_destroy(&mutex_);
 }
 
 
@@ -23,16 +25,18 @@ void Reduction::Reduce(Mem* mem, void* host, size_t size) {
 
 void Reduction::Sum(Mem* mem, void* host, size_t size) {
     int type = mem->type();
-    if (type == brisbane_long) return SumLong(mem, host, size);
+    if (type == brisbane_long) return SumLong(mem, (long*) host, size);
     _error("not support type[0x%x]", type);
 }
 
-void Reduction::SumLong(Mem* mem, void* host, size_t size) {
+void Reduction::SumLong(Mem* mem, long* host, size_t size) {
     long* src = (long*) mem->host_inter();
     long sum = 0;
     for (int i = 0; i < mem->expansion(); i++) sum += src[i]; 
     if (size != sizeof(sum)) _error("size[%lu] sizeof(sum[%lu])", size, sizeof(sum));
-    memcpy(host, &sum, size);
+    pthread_mutex_lock(&mutex_);
+    *host += sum;
+    pthread_mutex_unlock(&mutex_);
 }
 
 Reduction* Reduction::singleton_ = NULL;
