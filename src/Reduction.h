@@ -20,6 +20,7 @@ public:
 private:
     void Sum(Mem* mem, void* host, size_t size);
     void SumLong(Mem* mem, long* host, size_t size);
+    void SumDouble(Mem* mem, double* host, size_t size);
 
 public:
     static Reduction* GetInstance();

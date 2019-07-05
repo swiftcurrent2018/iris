@@ -1,12 +1,14 @@
 BRISBANE=../../install
+CFLAGS=-I. -Wno-write-strings -DSPEC
 
 all: ep ep-brisbane
 
+
 ep: c_timers.c ep.c print_results.c randdp.c wtime.c
-	g++ -I . -DSPEC -o $@ $^
+	g++ $(CFLAGS) -o $@ $^
 
 ep-brisbane: c_timers.c ep-brisbane.c print_results.c randdp.c wtime.c
-	g++ -I. -I$(BRISBANE)/include -DSPEC -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
+	g++ $(CFLAGS) -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
 
 run: ep
 	./$^ -o 64x64x64.out 64 64 64 10

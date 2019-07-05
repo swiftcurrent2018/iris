@@ -44,6 +44,7 @@
 //  not affect the results.
 //--------------------------------------------------------------------
 
+#include <brisbane/brisbane.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -156,12 +157,13 @@ INLINE double randlc_ep( double *x, double a )
 
 int main()
 {
+  brisbane_init(NULL, NULL);
   double Mops, t1, t2, t3, t4, x1, x2;
   double sx, sy, tm, an, tt, gc;
   double sx_verify_value, sy_verify_value, sx_err, sy_err;
   int    np;
   int    i, ik, kk, l, k, nit;
-  int    k_offset, j;
+  int    j;
   int verified, timers_enabled;
   double q0, q1, q2, q3, q4, q5, q6, q7, q8, q9;
 
@@ -250,18 +252,54 @@ int main()
   //  sure these initializations cannot be eliminated as dead code.
   //--------------------------------------------------------------------
   printf("[%s:%d] nk[%d] blksize[%d] nq[%d]\n", __FILE__, __LINE__, nk, blksize, nq);
+
+  brisbane_mem mem_x;
+  brisbane_mem mem_xx;
+  brisbane_mem mem_q;
+  brisbane_mem mem_qq;
+  brisbane_mem_create(2 * nk * sizeof(double), &mem_x);
+  brisbane_mem_create(blksize * 2 * nk * sizeof(double), &mem_xx);
+  brisbane_mem_create(nq * sizeof(double), &mem_q);
+  brisbane_mem_create(blksize * nq * sizeof(double), &mem_qq);
+
   #pragma omp target data map(alloc:x[0:2*nk],xx[0:blksize*2*nk],qq[0:blksize*nq]) map(from:q[0:nq])
   {
     dum[0] = randlc_ep(&dum[1], dum[2]);
 
+      size_t kernel_init_x_off[1] = { 0 };
+      size_t kernel_init_x_idx[1] = { 2 * nk };
+      brisbane_kernel kernel_init_x;
+      brisbane_kernel_create("init_x", &kernel_init_x);
+      brisbane_kernel_setmem(kernel_init_x, 0, mem_x, brisbane_wr);
+
+      brisbane_task task0;
+      brisbane_task_create(&task0);
+      brisbane_task_kernel(task0, kernel_init_x, 1, kernel_init_x_off, kernel_init_x_idx);
+      brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+
+      /*
       #pragma omp target teams distribute parallel for simd map(x[:0])
       for (i = 0; i < 2 * nk; i++) {
         x[i] = -1.0e99;
       }
+      */
+
+      size_t kernel_init_q_off[1] = { 0 };
+      size_t kernel_init_q_idx[1] = { nq };
+      brisbane_kernel kernel_init_q;
+      brisbane_kernel_create("init_q", &kernel_init_q);
+      brisbane_kernel_setmem(kernel_init_q, 0, mem_q, brisbane_wr);
+
+      brisbane_task task1;
+      brisbane_task_create(&task1);
+      brisbane_task_kernel(task1, kernel_init_q, 1, kernel_init_q_off, kernel_init_q_idx);
+      brisbane_task_submit(task1, brisbane_gpu, NULL, true);
+      /*
       #pragma omp target teams distribute parallel for simd map(q[:0])
       for (i = 0; i < nq; i++) {
         q[i] = 0.0;
       }
+      */
 
     Mops = log(sqrt(fabs(MAX(1.0, 1.0))));
 
@@ -289,7 +327,6 @@ int main()
     gc = 0.0;
     sx = 0.0;
     sy = 0.0;
-    k_offset = -1;
 
     for (blk=0; blk < numblks; ++blk) {
 
@@ -300,6 +337,22 @@ int main()
       }
 
      
+      size_t kernel_qq_xx_off[1] = { 0 };
+      size_t kernel_qq_xx_idx[1] = { blksize };
+      brisbane_kernel kernel_qq_xx;
+      brisbane_kernel_create("qq_xx", &kernel_qq_xx);
+      brisbane_kernel_setmem(kernel_qq_xx, 0, mem_qq, brisbane_wr);
+      brisbane_kernel_setmem(kernel_qq_xx, 1, mem_xx, brisbane_wr);
+      brisbane_kernel_setmem(kernel_qq_xx, 2, mem_x, brisbane_rd);
+      brisbane_kernel_setarg(kernel_qq_xx, 3, sizeof(int), &nq);
+      brisbane_kernel_setarg(kernel_qq_xx, 4, sizeof(int), &nk);
+
+      brisbane_task task2;
+      brisbane_task_create(&task2);
+      brisbane_task_kernel(task2, kernel_qq_xx, 1, kernel_qq_xx_off, kernel_qq_xx_idx);
+      brisbane_task_submit(task2, brisbane_gpu, NULL, true);
+
+      /*
         #pragma omp target teams distribute parallel for map(x[:0],xx[:0],qq[:0])
         for(k=0; k<blksize; k++)
         {
@@ -310,14 +363,45 @@ int main()
           for(i=0; i<2*nk; i++)
             xx[k*2*nk + i] = x[i];
         }
+        */
         //--------------------------------------------------------------------
         //  Each instance of this loop may be performed independently. We compute
         //  the k offsets separately to take into account the fact that some nodes
         //  have more numbers to generate than others
         //--------------------------------------------------------------------
-        #pragma omp target teams distribute parallel for map(tofrom: sx,sy) private(i,t1,t2,t3,l,kk,ik,in_t1,in_t2,in_t3,in_t4,in_a1,in_a2,in_x1,in_x2,x1,x2,t4,in_z,tmp_sx,tmp_sy) shared(k_offset,koff,an,xx,nk,blksize,qq,nq) default(none) reduction(+:sx,sy) map(xx[:0],qq[:0])
-        for (k = 1; k <= blksize; k++) {
-          kk = k_offset + k + koff;
+        
+      brisbane_mem mem_sx;
+      brisbane_mem mem_sy;
+      brisbane_mem_create(sizeof(double), &mem_sx);
+      brisbane_mem_create(sizeof(double), &mem_sy);
+      brisbane_mem_reduce(mem_sx, brisbane_sum, brisbane_double);
+      brisbane_mem_reduce(mem_sy, brisbane_sum, brisbane_double);
+
+      size_t kernel_core_off[1] = { 0 };
+      size_t kernel_core_idx[1] = { blksize };
+      brisbane_kernel kernel_core;
+      brisbane_kernel_create("core", &kernel_core);
+      brisbane_kernel_setmem(kernel_core, 0, mem_xx, brisbane_rdwr);
+      brisbane_kernel_setmem(kernel_core, 1, mem_qq, brisbane_rdwr);
+      brisbane_kernel_setarg(kernel_core, 2, sizeof(int), &koff);
+      brisbane_kernel_setarg(kernel_core, 3, sizeof(double), &an);
+      brisbane_kernel_setarg(kernel_core, 4, sizeof(int), &nk);
+      brisbane_kernel_setarg(kernel_core, 5, sizeof(int), &blksize);
+      brisbane_kernel_setarg(kernel_core, 6, sizeof(int), &nq);
+      brisbane_kernel_setmem(kernel_core, 7, mem_sx, brisbane_rdwr);
+      brisbane_kernel_setmem(kernel_core, 9, mem_sy, brisbane_rdwr);
+
+      brisbane_task task3;
+      brisbane_task_create(&task3);
+      brisbane_task_kernel(task3, kernel_core, 1, kernel_core_off, kernel_core_idx);
+      brisbane_task_d2h(task3, mem_sx, 0, sizeof(double), &sx);
+      brisbane_task_d2h(task3, mem_sy, 0, sizeof(double), &sy);
+      brisbane_task_submit(task3, brisbane_gpu, NULL, true);
+
+#if 0
+        #pragma omp target teams distribute parallel for map(tofrom: sx,sy) private(i,t1,t2,t3,l,kk,ik,in_t1,in_t2,in_t3,in_t4,in_a1,in_a2,in_x1,in_x2,x1,x2,t4,in_z,tmp_sx,tmp_sy) shared(koff,an,xx,nk,blksize,qq,nq) default(none) reduction(+:sx,sy) map(xx[:0],qq[:0])
+        for (k = 0; k < blksize; k++) {
+          kk = k + koff;
           t1 = S;
           t2 = an;
 
@@ -351,7 +435,7 @@ int main()
             in_t3 = t23*in_z + in_a2 *in_x2;
             in_t4 = (int)(r46 * in_t3);
             t1 = in_t3 - t46 * in_t4;
-            xx[(k-1)*2*nk + i] = r46 * t1;
+            xx[k*2*nk + i] = r46 * t1;
           }
 
           //--------------------------------------------------------------------
@@ -365,15 +449,15 @@ int main()
           tmp_sy = 0.0;
 
           for (i = 0; i < nk; i++) {
-            x1 = 2.0 * xx[(k-1)*2*nk + 2*i] - 1.0;
-            x2 = 2.0 * xx[(k-1)*2*nk + (2*i+1)] - 1.0;
+            x1 = 2.0 * xx[k*2*nk + 2*i] - 1.0;
+            x2 = 2.0 * xx[k*2*nk + (2*i+1)] - 1.0;
             t1 = x1 * x1 + x2 * x2;
             if (t1 <= 1.0) {
               t2   = sqrt(-2.0 * log(t1) / t1);
               t3   = (x1 * t2);
               t4   = (x2 * t2);
               l    = MAX(fabs(t3), fabs(t4));
-              qq[(k-1)*nq + l] += 1.0;
+              qq[k*nq + l] += 1.0;
               tmp_sx   = tmp_sx + t3;
               tmp_sy   = tmp_sy + t4;
             }
@@ -383,7 +467,29 @@ int main()
           sy += tmp_sy;
 
         }
+#endif
 
+        brisbane_mem mem_gc;
+        brisbane_mem_create(sizeof(double), &mem_gc);
+        brisbane_mem_reduce(mem_gc, brisbane_sum, brisbane_double);
+
+        size_t kernel_gc_off[1] = { 0 };
+        size_t kernel_gc_idx[1] = { nq };
+        brisbane_kernel kernel_gc;
+        brisbane_kernel_create("gc", &kernel_gc);
+        brisbane_kernel_setmem(kernel_gc, 0, mem_qq, brisbane_rd);
+        brisbane_kernel_setmem(kernel_gc, 1, mem_q, brisbane_rdwr);
+        brisbane_kernel_setarg(kernel_gc, 2, sizeof(int), &blksize);
+        brisbane_kernel_setarg(kernel_gc, 3, sizeof(int), &nq);
+        brisbane_kernel_setmem(kernel_gc, 4, mem_gc, brisbane_rdwr);
+
+        brisbane_task task4;
+        brisbane_task_create(&task4);
+        brisbane_task_kernel(task4, kernel_gc, 1, kernel_gc_off, kernel_gc_idx);
+        brisbane_task_d2h(task4, mem_q, 0, nq * sizeof(double), q);
+        brisbane_task_d2h(task4, mem_gc, 0, sizeof(double), &gc);
+        brisbane_task_submit(task4, brisbane_gpu, NULL, true);
+#if 0
         #pragma omp target teams distribute map(tofrom: gc) reduction(+:gc) map(qq[:0],q[:0])
         for(i=0; i<nq; i++)
         {
@@ -396,6 +502,7 @@ int main()
           /*final sum of q*/
           gc += sum_qi;
         }
+#endif
      
     }//end for
   }/*end omp data*/
@@ -470,6 +577,8 @@ int main()
   free(q);
   free(xx);
   free(qq);
+
+  brisbane_finalize();
 
   return 0;
 }
