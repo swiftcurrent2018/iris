@@ -251,7 +251,7 @@ int main()
   //  Also, call all mathematical functions that are used. Make
   //  sure these initializations cannot be eliminated as dead code.
   //--------------------------------------------------------------------
-  printf("[%s:%d] nk[%d] blksize[%d] nq[%d]\n", __FILE__, __LINE__, nk, blksize, nq);
+  printf("[%s:%d] np[%d] nk[%d] blksize[%d] nq[%d]\n", __FILE__, __LINE__, np, nk, blksize, nq);
 
   brisbane_mem mem_x;
   brisbane_mem mem_xx;
@@ -275,7 +275,7 @@ int main()
       brisbane_task task0;
       brisbane_task_create(&task0);
       brisbane_task_kernel(task0, kernel_init_x, 1, kernel_init_x_off, kernel_init_x_idx);
-      brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+      brisbane_task_submit(task0, brisbane_cpu, NULL, true);
 
       /*
       #pragma omp target teams distribute parallel for simd map(x[:0])
@@ -293,7 +293,7 @@ int main()
       brisbane_task task1;
       brisbane_task_create(&task1);
       brisbane_task_kernel(task1, kernel_init_q, 1, kernel_init_q_off, kernel_init_q_idx);
-      brisbane_task_submit(task1, brisbane_gpu, NULL, true);
+      brisbane_task_submit(task1, brisbane_cpu, NULL, true);
       /*
       #pragma omp target teams distribute parallel for simd map(q[:0])
       for (i = 0; i < nq; i++) {
@@ -350,7 +350,7 @@ int main()
       brisbane_task task2;
       brisbane_task_create(&task2);
       brisbane_task_kernel(task2, kernel_qq_xx, 1, kernel_qq_xx_off, kernel_qq_xx_idx);
-      brisbane_task_submit(task2, brisbane_gpu, NULL, true);
+      brisbane_task_submit(task2, brisbane_cpu, NULL, true);
 
       /*
         #pragma omp target teams distribute parallel for map(x[:0],xx[:0],qq[:0])
@@ -396,7 +396,7 @@ int main()
       brisbane_task_kernel(task3, kernel_core, 1, kernel_core_off, kernel_core_idx);
       brisbane_task_d2h(task3, mem_sx, 0, sizeof(double), &sx);
       brisbane_task_d2h(task3, mem_sy, 0, sizeof(double), &sy);
-      brisbane_task_submit(task3, brisbane_gpu, NULL, true);
+      brisbane_task_submit(task3, brisbane_cpu, NULL, true);
 
 #if 0
         #pragma omp target teams distribute parallel for map(tofrom: sx,sy) private(i,t1,t2,t3,l,kk,ik,in_t1,in_t2,in_t3,in_t4,in_a1,in_a2,in_x1,in_x2,x1,x2,t4,in_z,tmp_sx,tmp_sy) shared(koff,an,xx,nk,blksize,qq,nq) default(none) reduction(+:sx,sy) map(xx[:0],qq[:0])
@@ -488,7 +488,7 @@ int main()
         brisbane_task_kernel(task4, kernel_gc, 1, kernel_gc_off, kernel_gc_idx);
         brisbane_task_d2h(task4, mem_q, 0, nq * sizeof(double), q);
         brisbane_task_d2h(task4, mem_gc, 0, sizeof(double), &gc);
-        brisbane_task_submit(task4, brisbane_gpu, NULL, true);
+        brisbane_task_submit(task4, brisbane_cpu, NULL, true);
 #if 0
         #pragma omp target teams distribute map(tofrom: gc) reduction(+:gc) map(qq[:0],q[:0])
         for(i=0; i<nq; i++)

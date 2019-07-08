@@ -2,12 +2,14 @@
 #include "Utils.h"
 #include "Command.h"
 #include "Device.h"
+#include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
 #include "Scheduler.h"
 #include "Task.h"
 #include "Timer.h"
 #include <unistd.h>
+#include <algorithm>
 
 namespace brisbane {
 namespace rt {
@@ -73,6 +75,13 @@ int Platform::InfoNumDevices(int* ndevs) {
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
+    for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
+        Kernel* kernel = *it;
+        if (strcmp(kernel->name(), name) == 0) {
+            *brs_kernel = kernel->struct_obj();
+            return BRISBANE_OK;
+        }
+    }
     Kernel* kernel = new Kernel(name, this);
     *brs_kernel = kernel->struct_obj();
     kernels_.insert(kernel);
@@ -192,6 +201,15 @@ int Platform::TimerNow(double* time) {
     return BRISBANE_OK;
 }
 
+int Platform::ShowKernelHistory() {
+    for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
+        Kernel* kernel = *it;
+        History* history = kernel->history();
+        _info("kernel[%s] time[%lf] count[%lu]", kernel->name(), history->time(), history->cnt());
+    }
+    return BRISBANE_OK;
+}
+
 Platform* Platform::singleton_ = NULL;
 
 Platform* Platform::GetPlatform() {
@@ -200,6 +218,7 @@ Platform* Platform::GetPlatform() {
 }
 
 int Platform::Finalize() {
+    singleton_->ShowKernelHistory();
     double total = singleton_->timer()->Stop(1);
     if (singleton_ == NULL) return BRISBANE_ERR;
     if (singleton_) delete singleton_;

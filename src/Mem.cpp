@@ -29,7 +29,6 @@ Mem::~Mem() {
 
 cl_mem Mem::clmem(int i, cl_context clctx) {
     if (clmems_[i] == NULL) {
-        _debug("expansion[%d] size[%lu]", expansion_, size_);
         clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
         _clerror(clerr_);
     }

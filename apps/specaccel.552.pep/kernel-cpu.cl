@@ -106,7 +106,6 @@ __kernel void core(__global double* restrict xx, __global double* restrict qq, i
     int lid = get_local_id(0);
     local_sx[lid] = tmp_sx;
     local_sy[lid] = tmp_sy;
-
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
         if (lid < s) local_sx[lid] += local_sx[lid + s];
@@ -115,7 +114,6 @@ __kernel void core(__global double* restrict xx, __global double* restrict qq, i
         barrier(CLK_LOCAL_MEM_FENCE);
         if (lid < s) local_sy[lid] += local_sy[lid + s];
     }
-
     if (lid == 0) sx[get_group_id(0)] = local_sx[0];
     if (lid == 0) sy[get_group_id(0)] = local_sy[0];
 }
@@ -129,12 +127,10 @@ __kernel void gc(__global double* restrict qq, __global double* restrict q, int 
 
     int lid = get_local_id(0);
     local_gc[lid] = sum_qi;
-
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
         if (lid < s) local_gc[lid] += local_gc[lid + s];
     }
-
     if (lid == 0) gc[get_group_id(0)] = local_gc[0];
 }
 

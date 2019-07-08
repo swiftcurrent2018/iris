@@ -59,6 +59,9 @@ public:
     Scheduler* scheduler() { return scheduler_; }
     Timer* timer() { return timer_; }
 
+private:
+    int ShowKernelHistory();
+
 public:
     static Platform* GetPlatform();
     static int Finalize();

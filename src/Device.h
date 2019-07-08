@@ -49,6 +49,8 @@ private:
     char vendor_[64];
     char name_[64];
     char version_[64];
+    int max_compute_units_;
+    size_t max_work_item_sizes_[3];
     cl_bool compiler_available_;
 
     bool busy_;

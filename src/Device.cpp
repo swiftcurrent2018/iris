@@ -23,6 +23,8 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_NAME, sizeof(name_), name_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_TYPE, sizeof(cltype_), &cltype_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_VERSION, sizeof(version_), version_, NULL);
+    clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(max_compute_units_), &max_compute_units_, NULL);
+    clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(max_work_item_sizes_), max_work_item_sizes_, NULL);
     clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_COMPILER_AVAILABLE, sizeof(compiler_available_), &compiler_available_, NULL);
 
     if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_device_cpu;
@@ -33,7 +35,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     }
     else type_ = brisbane_device_cpu;
 
-    _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] compiler_available[%d]", dev_no_, vendor_, name_, type_, version_, compiler_available_);
+    _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu] compiler_available[%d]", dev_no_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], compiler_available_);
 
     clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
     _clerror(clerr_);
@@ -108,10 +110,13 @@ void Device::ExecuteKernel(Command* cmd) {
             if (arg->mode & brisbane_wr) mem->SetOwner(this);
             if (mem->mode() & brisbane_reduction) {
                 lws = (size_t*) alloca(3 * sizeof(size_t));
-                lws[0] = 2;
+                lws[0] = 32;
+                lws[0] = 100;
                 lws[1] = 1;
                 lws[2] = 1;
+                if (gws[0] < lws[0]) lws[0] = gws[0];
                 size_t expansion = gws[0] / lws[0];
+                _debug("expansion[%d]", expansion);
                 mem->Expand(expansion);
                 clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, expansion * mem->type_size(), NULL);
                 _clerror(clerr_);

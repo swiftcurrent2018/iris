@@ -1,5 +1,5 @@
 BRISBANE=../../install
-CFLAGS=-I. -Wno-write-strings -DSPEC
+CFLAGS=-I. -Wno-write-strings -DSPEC -DSPEC_BLOCK_SIZE=4096
 
 all: ep ep-brisbane
 

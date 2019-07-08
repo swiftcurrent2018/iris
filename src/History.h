@@ -21,11 +21,15 @@ public:
     void Add(Command* cmd, Device* dev, double time);
     Device* OptimalDevice(Task* task);
 
+    double time();
+    int cnt();
+
 private:
     Kernel* kernel_;
     Platform* platform_;
     int ndevs_;
     double times_[16];
+    double times_avg_[16];
     int cnts_[16];
 };
 
