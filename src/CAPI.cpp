@@ -48,6 +48,14 @@ int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t s
     return Platform::GetPlatform()->TaskD2H(task, mem, off, size, host);
 }
 
+int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host) {
+    return Platform::GetPlatform()->TaskH2DFull(task, mem, host);
+}
+
+int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host) {
+    return Platform::GetPlatform()->TaskD2HFull(task, mem, host);
+}
+
 int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr) {
     return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }

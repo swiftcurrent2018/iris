@@ -101,25 +101,32 @@ void Device::ExecuteKernel(Command* cmd) {
     size_t* off = cmd->off();
     size_t* gws = cmd->ndr();
     size_t* lws = NULL;
+    bool reduction = false;
+    int max_idx = 0;
     std::map<int, KernelArg*>* args = cmd->kernel_args();
     for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
         int idx = it->first;
+        if (idx > max_idx) max_idx = idx;
         KernelArg* arg = it->second;
         Mem* mem = arg->mem;
         if (mem) {
             if (arg->mode & brisbane_wr) mem->SetOwner(this);
             if (mem->mode() & brisbane_reduction) {
                 lws = (size_t*) alloca(3 * sizeof(size_t));
-                lws[0] = 32;
-                lws[0] = 100;
+                lws[0] = 1;
                 lws[1] = 1;
                 lws[2] = 1;
-                if (gws[0] < lws[0]) lws[0] = gws[0];
-                size_t expansion = gws[0] / lws[0];
-                _debug("expansion[%d]", expansion);
+                while (max_compute_units_ * lws[0] < gws[0]) lws[0] <<= 1;
+                while (max_work_item_sizes_[0] < lws[0]) lws[0] >>= 1;
+                lws[0] = 100;
+                size_t expansion = (gws[0] + lws[0] - 1) / lws[0];
+                gws[0] = lws[0] * expansion;
+                _debug("expansion[%d] mem->type_size[%lu]", expansion, mem->type_size());
                 mem->Expand(expansion);
-                clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, expansion * mem->type_size(), NULL);
+                clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
                 _clerror(clerr_);
+                reduction = true;
+                if (idx + 1 > max_idx) max_idx = idx + 1;
             }
             cl_mem clmem = mem->clmem(platform_no_, clctx_);
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
@@ -128,6 +135,11 @@ void Device::ExecuteKernel(Command* cmd) {
             clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
             _clerror(clerr_);
         }
+    }
+    if (reduction) {
+        _debug("max_idx+1[%d] gws[%lu]", max_idx + 1, gws[0]);
+        clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), gws);
+        _clerror(clerr_);
     }
     _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
     if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);

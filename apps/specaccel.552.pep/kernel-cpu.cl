@@ -47,7 +47,7 @@ double randlc_ep(double* x, double a) {
   return r;
 }
 
-__kernel void core(__global double* restrict xx, __global double* restrict qq, int koff, double an, int nk, int blksize, int nq, __global double* restrict sx, __local double* local_sx, __global double* restrict sy, __local double* local_sy) {
+__kernel void core(__global double* restrict xx, __global double* restrict qq, int koff, double an, int nk, int blksize, int nq, __global double* restrict sx, __local double* local_sx, __global double* restrict sy, __local double* local_sy, unsigned long gws0) {
     int k = get_global_id(0);
     double t1, t2, t3, t4, a1, a2, x1, x2, z;
     int i, ik, kk, l;
@@ -118,7 +118,7 @@ __kernel void core(__global double* restrict xx, __global double* restrict qq, i
     if (lid == 0) sy[get_group_id(0)] = local_sy[0];
 }
 
-__kernel void gc(__global double* restrict qq, __global double* restrict q, int blksize, int nq, __global double* restrict gc, __local double* local_gc) {
+__kernel void gc(__global double* restrict qq, __global double* restrict q, int blksize, int nq, __global double* restrict gc, __local double* local_gc, unsigned long gws0) {
     int i = get_global_id(0);
     double sum_qi = 0.0;
     for(int k=0; k<blksize; k++)

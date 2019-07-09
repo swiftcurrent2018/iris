@@ -22,7 +22,7 @@ public:
     Device* OptimalDevice(Task* task);
 
     double time();
-    int cnt();
+    size_t cnt();
 
 private:
     Kernel* kernel_;
@@ -30,7 +30,7 @@ private:
     int ndevs_;
     double times_[16];
     double times_avg_[16];
-    int cnts_[16];
+    size_t cnts_[16];
 };
 
 } /* namespace rt */

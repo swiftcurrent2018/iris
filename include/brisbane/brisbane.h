@@ -32,6 +32,7 @@ extern "C" {
 
 #define brisbane_rd                 (1 << 0)
 #define brisbane_wr                 (1 << 1)
+#define brisbane_rw                 (brisbane_rd | brisbane_wr)
 #define brisbane_rdwr               (brisbane_rd | brisbane_wr)
 
 #define brisbane_int                (1 << 0)
@@ -64,6 +65,8 @@ extern int brisbane_task_create(brisbane_task* task);
 extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
 extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
+extern int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host);
+extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_submit(brisbane_task task, int device, char* opt, bool wait);
 extern int brisbane_task_wait(brisbane_task task);

@@ -25,7 +25,7 @@ History::~History() {
 void History::Add(Command* cmd, Device* dev, double time) {
     Kernel* kernel = cmd->kernel();
     int dev_no = dev->dev_no();
-    int c = cnts_[dev_no];
+    size_t c = cnts_[dev_no];
     times_[dev_no] += time;
     cnts_[dev_no]++;
     times_avg_[dev_no] = (times_avg_[dev_no] * c + time) / (c + 1);
@@ -55,8 +55,8 @@ double History::time() {
     return time;
 }
 
-int History::cnt() {
-    double cnt = 0.0;
+size_t History::cnt() {
+    size_t cnt = 0;
     for (int i = 0; i < ndevs_; i++) {
         cnt += cnts_[i];
     }

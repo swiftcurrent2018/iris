@@ -13,18 +13,19 @@ __kernel void loop1(__global double* restrict q, __global double* restrict z, __
     p[j] = 0.0;
 }
 
-__kernel void loop2(__global double* restrict x, __global double* restrict z, __global double* restrict norm_temp1, __local double* local_norm_temp1, __global double* restrict norm_temp2, __local double* local_norm_temp2) {
+__kernel void loop2(__global double* restrict x, __global double* restrict z, __global double* restrict norm_temp1, __local double* local_norm_temp1, __global double* restrict norm_temp2, __local double* local_norm_temp2, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     local_norm_temp1[lid] = x[j] * z[j];
     local_norm_temp2[lid] = z[j] * z[j];
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_norm_temp1[lid] += local_norm_temp1[lid + s];
+        if (lid < s) local_norm_temp1[lid] += j + s > gws0 ? 0 : local_norm_temp1[lid + s];
     }
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_norm_temp2[lid] += local_norm_temp2[lid + s];
+        if (lid < s) local_norm_temp2[lid] += j + s > gws0 ? 0 : local_norm_temp2[lid + s];
     }
     if (lid == 0) norm_temp1[get_group_id(0)] = local_norm_temp1[0];
     if (lid == 0) norm_temp2[get_group_id(0)] = local_norm_temp2[0];
@@ -43,13 +44,14 @@ __kernel void loop4(__global double* restrict x, __global double* restrict q, __
     p[j] = r[j];
 }
 
-__kernel void loop5(__global double* restrict r, __global double* restrict rho, __local double* local_rho) {
+__kernel void loop5(__global double* restrict r, __global double* restrict rho, __local double* local_rho, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     local_rho[lid] = r[j] * r[j];
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_rho[lid] += local_rho[lid + s];
+        if (lid < s) local_rho[lid] += j + s > gws0 ? 0 : local_rho[lid + s];
     }
     if (lid == 0) rho[get_group_id(0)] = local_rho[0];
 }
@@ -66,13 +68,14 @@ __kernel void loop6(__global int* restrict rowstr, __global int* restrict colidx
     q[j] = sum;
 }
 
-__kernel void loop7(__global double* restrict p, __global double* restrict q, __global double* restrict d, __local double* local_d) {
+__kernel void loop7(__global double* restrict p, __global double* restrict q, __global double* restrict d, __local double* local_d, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     local_d[lid] = p[j] * q[j];
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_d[lid] += local_d[lid + s];
+        if (lid < s) local_d[lid] += j + s > gws0 ? 0 : local_d[lid + s];
     }
     if (lid == 0) d[get_group_id(0)] = local_d[0];
 }
@@ -83,13 +86,14 @@ __kernel void loop8(__global double* restrict z, __global double* restrict p, __
     r[j] = r[j] - alpha * q[j];
 }
 
-__kernel void loop9(__global double* restrict r, __global double* restrict rho, __local double* local_rho) {
+__kernel void loop9(__global double* restrict r, __global double* restrict rho, __local double* local_rho, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     local_rho[lid] = r[j] * r[j];
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_rho[lid] += local_rho[lid + s];
+        if (lid < s) local_rho[lid] += j + s > gws0 ? 0 : local_rho[lid + s];
     }
     if (lid == 0) rho[get_group_id(0)] = local_rho[0];
 }
@@ -111,18 +115,19 @@ __kernel void loop11(__global int* restrict rowstr, __global int* restrict colid
     r[j] = d;
 }
 
-__kernel void loop12(__global double* restrict x, __global double* restrict z, __global double* restrict norm_temp1, __local double* local_norm_temp1, __global double* restrict norm_temp2, __local double* local_norm_temp2) {
+__kernel void loop12(__global double* restrict x, __global double* restrict z, __global double* restrict norm_temp1, __local double* local_norm_temp1, __global double* restrict norm_temp2, __local double* local_norm_temp2, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     local_norm_temp1[lid] = x[j] * z[j];
     local_norm_temp2[lid] = z[j] * z[j];
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_norm_temp1[lid] += local_norm_temp1[lid + s];
+        if (lid < s) local_norm_temp1[lid] += j + s > gws0 ? 0 : local_norm_temp1[lid + s];
     }
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_norm_temp2[lid] += local_norm_temp2[lid + s];
+        if (lid < s) local_norm_temp2[lid] += j + s > gws0 ? 0 : local_norm_temp2[lid + s];
     }
     if (lid == 0) norm_temp1[get_group_id(0)] = local_norm_temp1[0];
     if (lid == 0) norm_temp2[get_group_id(0)] = local_norm_temp2[0];
@@ -138,14 +143,15 @@ __kernel void loop14(__global double* restrict x) {
     x[i] = 1.0;
 }
 
-__kernel void loop15(__global double* restrict x, __global double* restrict r, __global double* restrict sum, __local double* local_sum) {
+__kernel void loop15(__global double* restrict x, __global double* restrict r, __global double* restrict sum, __local double* local_sum, unsigned long gws0) {
     int j = get_global_id(0);
     int lid = get_local_id(0);
+    if (j > gws0) return;
     double d = x[j] - r[j];
     local_sum[lid] = d * d;
     for (int s = get_local_size(0) / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_sum[lid] += local_sum[lid + s];
+        if (lid < s) local_sum[lid] += j + s > gws0 ? 0 : local_sum[lid + s];
     }
     if (lid == 0) sum[get_group_id(0)] = local_sum[0];
 }

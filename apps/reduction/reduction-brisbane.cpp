@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     size_t kernel_init_off[1] = { 0 };
     size_t kernel_init_idx[1] = { SIZE };
     brisbane_task_kernel(task0, kernel_init, 1, kernel_init_off, kernel_init_idx);
-    brisbane_task_submit(task0, brisbane_device_gpu, NULL, true);
+    brisbane_task_submit(task0, brisbane_device_cpu, NULL, true);
     /*
 #pragma omp target teams distribute parallel for map(to:A[0:SIZE]) device(gpu)
     for (int i = 0; i < SIZE; i++) {
@@ -83,12 +83,12 @@ int main(int argc, char** argv) {
     }
     */
 
-    printf("sumA[%lu] maxA[%lu]\n", sumA, maxA);
-
-    if (sumA != (SIZE - 1) * (SIZE / 2)) ERROR++;
+    size_t sum = 0;
+    for (size_t i = 0; i < SIZE; i++) sum += i;
+    if (sumA != sum) ERROR++;
     if (maxA != SIZE - 1) ERROR++;
 
-    printf("ERROR[%d]\n", ERROR);
+    printf("ERROR[%d] sum[%lu] sumA[%lu] maxA[%lu]\n", ERROR, sum, sumA, maxA);
 
     free(A);
 

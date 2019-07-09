@@ -135,6 +135,14 @@ int Platform::TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, 
     return BRISBANE_OK;
 }
 
+int Platform::TaskH2DFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host) {
+    return TaskH2D(brs_task, brs_mem, 0ULL, brs_mem->class_obj->size(), host);
+}
+
+int Platform::TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host) {
+    return TaskD2H(brs_task, brs_mem, 0ULL, brs_mem->class_obj->size(), host);
+}
+
 int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host) {
     Task* task = brs_task->class_obj;
     Mem* mem = brs_mem->class_obj;

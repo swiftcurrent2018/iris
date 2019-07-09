@@ -3,17 +3,19 @@ __kernel void init(__global int* restrict A) {
     A[id] = id;
 }
 
-__kernel void reduce_sum(__global int* restrict A, __global unsigned long* restrict sumA, __local unsigned long* local_sumA) {
+__kernel void reduce_sum(__global int* restrict A, __global unsigned long* restrict sumA, __local unsigned long* local_sumA, unsigned long gws0) {
     int gid = get_global_id(0);
     int gsize = get_global_size(0);
     int lid = get_local_id(0);
     int lsize = get_local_size(0); 
 
+    if (gid > gws0) return;
+
     local_sumA[lid] = A[gid];
 
     for (int s = lsize / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_sumA[lid] += local_sumA[lid + s];
+        if (lid < s) local_sumA[lid] += gid + s > gws0 ? 0 : local_sumA[lid + s];
     }
 
     if (lid == 0) sumA[get_group_id(0)] = local_sumA[0];
