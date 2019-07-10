@@ -748,4 +748,362 @@ __kernel void y_solve_11(__global double* restrict rhs_, __global double* restri
     }
 }
 
+/*
+  double lhsZ[5][ny2+1][IMAXP+1][IMAXP+1];
+  double lhspZ[5][ny2+1][IMAXP+1][IMAXP+1];
+  double lhsmZ[5][ny2+1][IMAXP+1][IMAXP+1];
+  double rhosZ[ny2+1][IMAXP+1][PROBLEM_SIZE];
+  */
+
+__kernel void z_solve_0(__global double* restrict lhsZ_, __global double* restrict lhspZ_, __global double* restrict lhsmZ_, int ni) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 5; m++) {
+        lhsZ[m][j][0][i] = 0.0;
+        lhspZ[m][j][0][i] = 0.0;
+        lhsmZ[m][j][0][i] = 0.0;
+        lhsZ[m][j][ni][i] = 0.0;
+        lhspZ[m][j][ni][i] = 0.0;
+        lhsmZ[m][j][ni][i] = 0.0;
+    }
+    lhsZ[2][j][0][i] = 1.0;
+    lhspZ[2][j][0][i] = 1.0;
+    lhsmZ[2][j][0][i] = 1.0;
+    lhsZ[2][j][ni][i] = 1.0;
+    lhspZ[2][j][ni][i] = 1.0;
+    lhsmZ[2][j][ni][i] = 1.0;
+}
+
+__kernel void z_solve_1(__global double* restrict rho_i_, __global double* restrict rhosZ_, double dz1, double dz4, double dz5, double dzmax, double c1c5, double c3c4, double con43) {
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+    __global double (*rhosZ)[IMAXP+1][PROBLEM_SIZE] = (__global double (*)[IMAXP+1][PROBLEM_SIZE]) rhosZ_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int k = get_global_id(0);
+
+    double ru1;
+
+    ru1 = c3c4*rho_i[k][j][i];
+    rhosZ[j][i][k] = max(max(dz4+con43*ru1, dz5+c1c5*ru1), max(dzmax+ru1, dz1));
+}
+
+__kernel void z_solve_2(__global double* restrict lhsZ_, __global double* restrict ws_, __global double* restrict rhosZ_, double dttz1, double dttz2, double c2dttz1) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*rhosZ)[IMAXP+1][PROBLEM_SIZE] = (__global double (*)[IMAXP+1][PROBLEM_SIZE]) rhosZ_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int k = get_global_id(0);
+
+    lhsZ[0][j][k][i] =  0.0;
+    lhsZ[1][j][k][i] = -dttz2 * ws[k-1][j][i] - dttz1 * rhosZ[j][i][k-1];
+    lhsZ[2][j][k][i] =  1.0 + c2dttz1 * rhosZ[j][i][k];
+    lhsZ[3][j][k][i] =  dttz2 * ws[k+1][j][i] - dttz1 * rhosZ[j][i][k+1];
+    lhsZ[4][j][k][i] =  0.0;
+}
+
+__kernel void z_solve_3(__global double* restrict lhsZ_, double comz1, double comz4, double comz5, double comz6) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int k;
+
+    k = 1;
+    lhsZ[2][j][k][i] = lhsZ[2][j][k][i] + comz5;
+    lhsZ[3][j][k][i] = lhsZ[3][j][k][i] - comz4;
+    lhsZ[4][j][k][i] = lhsZ[4][j][k][i] + comz1;
+
+    k = 2;
+    lhsZ[1][j][k][i] = lhsZ[1][j][k][i] - comz4;
+    lhsZ[2][j][k][i] = lhsZ[2][j][k][i] + comz6;
+    lhsZ[3][j][k][i] = lhsZ[3][j][k][i] - comz4;
+    lhsZ[4][j][k][i] = lhsZ[4][j][k][i] + comz1;
+}
+
+__kernel void z_solve_4(__global double* restrict lhsZ_, double comz1, double comz4, double comz6) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+
+    int j = get_global_id(2);
+    int k = get_global_id(1);
+    int i = get_global_id(0);
+
+    lhsZ[0][j][k][i] = lhsZ[0][j][k][i] + comz1;
+    lhsZ[1][j][k][i] = lhsZ[1][j][k][i] - comz4;
+    lhsZ[2][j][k][i] = lhsZ[2][j][k][i] + comz6;
+    lhsZ[3][j][k][i] = lhsZ[3][j][k][i] - comz4;
+    lhsZ[4][j][k][i] = lhsZ[4][j][k][i] + comz1;
+}
+
+__kernel void z_solve_5(__global double* restrict lhsZ_, double comz1, double comz4, double comz5, double comz6) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int k;
+
+    k = nz2-1;
+    lhsZ[0][j][k][i] = lhsZ[0][j][k][i] + comz1;
+    lhsZ[1][j][k][i] = lhsZ[1][j][k][i] - comz4;
+    lhsZ[2][j][k][i] = lhsZ[2][j][k][i] + comz6;
+    lhsZ[3][j][k][i] = lhsZ[3][j][k][i] - comz4;
+
+    k = nz2;
+    lhsZ[0][j][k][i] = lhsZ[0][j][k][i] + comz1;
+    lhsZ[1][j][k][i] = lhsZ[1][j][k][i] - comz4;
+    lhsZ[2][j][k][i] = lhsZ[2][j][k][i] + comz5;
+}
+
+__kernel void z_solve_6(__global double* restrict lhsZ_, __global double* restrict lhspZ_, __global double* restrict lhsmZ_, __global double* restrict speed_, double dttz2) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+    __global double (*speed)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) speed_;
+
+    int j = get_global_id(2);
+    int k = get_global_id(1);
+    int i = get_global_id(0);
+
+    lhspZ[0][j][k][i] = lhsZ[0][j][k][i];
+    lhspZ[1][j][k][i] = lhsZ[1][j][k][i] - dttz2 * speed[k-1][j][i];
+    lhspZ[2][j][k][i] = lhsZ[2][j][k][i];
+    lhspZ[3][j][k][i] = lhsZ[3][j][k][i] + dttz2 * speed[k+1][j][i];
+    lhspZ[4][j][k][i] = lhsZ[4][j][k][i];
+    lhsmZ[0][j][k][i] = lhsZ[0][j][k][i];
+    lhsmZ[1][j][k][i] = lhsZ[1][j][k][i] + dttz2 * speed[k-1][j][i];
+    lhsmZ[2][j][k][i] = lhsZ[2][j][k][i];
+    lhsmZ[3][j][k][i] = lhsZ[3][j][k][i] - dttz2 * speed[k+1][j][i];
+    lhsmZ[4][j][k][i] = lhsZ[4][j][k][i];
+}
+
+__kernel void z_solve_7(__global double* restrict lhsZ_, __global double* restrict rhs_, int gp23) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m, k, k1, k2;
+    double fac1;
+
+    for (k = 0; k <= gp23; k++) {
+        k1 = k + 1;
+        k2 = k + 2;
+        fac1 = 1.0/lhsZ[2][j][k][i];
+        lhsZ[3][j][k][i] = fac1*lhsZ[3][j][k][i];
+        lhsZ[4][j][k][i] = fac1*lhsZ[4][j][k][i];
+        for (m = 0; m < 3; m++) {
+            rhs[m][k][j][i] = fac1*rhs[m][k][j][i];
+        }
+        lhsZ[2][j][k1][i] = lhsZ[2][j][k1][i] - lhsZ[1][j][k1][i]*lhsZ[3][j][k][i];
+        lhsZ[3][j][k1][i] = lhsZ[3][j][k1][i] - lhsZ[1][j][k1][i]*lhsZ[4][j][k][i];
+        for (m = 0; m < 3; m++) {
+            rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhsZ[1][j][k1][i]*rhs[m][k][j][i];
+        }
+        lhsZ[1][j][k2][i] = lhsZ[1][j][k2][i] - lhsZ[0][j][k2][i]*lhsZ[3][j][k][i];
+        lhsZ[2][j][k2][i] = lhsZ[2][j][k2][i] - lhsZ[0][j][k2][i]*lhsZ[4][j][k][i];
+        for (m = 0; m < 3; m++) {
+            rhs[m][k2][j][i] = rhs[m][k2][j][i] - lhsZ[0][j][k2][i]*rhs[m][k][j][i];
+        }
+    }
+}
+
+__kernel void z_solve_8(__global double* restrict lhsZ_, __global double* restrict rhs_, int k, int k1) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+    double fac1, fac2;
+
+    fac1 = 1.0/lhsZ[2][j][k][i];
+    lhsZ[3][j][k][i] = fac1*lhsZ[3][j][k][i];
+    lhsZ[4][j][k][i] = fac1*lhsZ[4][j][k][i];
+    for (m = 0; m < 3; m++) {
+        rhs[m][k][j][i] = fac1*rhs[m][k][j][i];
+    }
+    lhsZ[2][j][k1][i] = lhsZ[2][j][k1][i] - lhsZ[1][j][k1][i]*lhsZ[3][j][k][i];
+    lhsZ[3][j][k1][i] = lhsZ[3][j][k1][i] - lhsZ[1][j][k1][i]*lhsZ[4][j][k][i];
+    for (m = 0; m < 3; m++) {
+        rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhsZ[1][j][k1][i]*rhs[m][k][j][i];
+    }
+
+    fac2 = 1.0/lhsZ[2][j][k1][i];
+    for (m = 0; m < 3; m++) {
+        rhs[m][k1][j][i] = fac2*rhs[m][k1][j][i];
+    }
+}
+
+__kernel void z_solve_9(__global double* restrict lhspZ_, __global double* restrict lhsmZ_, __global double* restrict rhs_, int gp23) {
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m, k, k1, k2;
+    double fac1;
+
+    for (k = 0; k <= gp23; k++) {
+        k1 = k + 1;
+        k2 = k + 2;
+        m = 3;
+        fac1 = 1.0/lhspZ[2][j][k][i];
+        lhspZ[3][j][k][i]    = fac1*lhspZ[3][j][k][i];
+        lhspZ[4][j][k][i]    = fac1*lhspZ[4][j][k][i];
+        rhs[m][k][j][i]  = fac1*rhs[m][k][j][i];
+        lhspZ[2][j][k1][i]   = lhspZ[2][j][k1][i] - lhspZ[1][j][k1][i]*lhspZ[3][j][k][i];
+        lhspZ[3][j][k1][i]   = lhspZ[3][j][k1][i] - lhspZ[1][j][k1][i]*lhspZ[4][j][k][i];
+        rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhspZ[1][j][k1][i]*rhs[m][k][j][i];
+        lhspZ[1][j][k2][i]   = lhspZ[1][j][k2][i] - lhspZ[0][j][k2][i]*lhspZ[3][j][k][i];
+        lhspZ[2][j][k2][i]   = lhspZ[2][j][k2][i] - lhspZ[0][j][k2][i]*lhspZ[4][j][k][i];
+        rhs[m][k2][j][i] = rhs[m][k2][j][i] - lhspZ[0][j][k2][i]*rhs[m][k][j][i];
+
+        m = 4;
+        fac1 = 1.0/lhsmZ[2][j][k][i];
+        lhsmZ[3][j][k][i]    = fac1*lhsmZ[3][j][k][i];
+        lhsmZ[4][j][k][i]    = fac1*lhsmZ[4][j][k][i];
+        rhs[m][k][j][i]  = fac1*rhs[m][k][j][i];
+        lhsmZ[2][j][k1][i]   = lhsmZ[2][j][k1][i] - lhsmZ[1][j][k1][i]*lhsmZ[3][j][k][i];
+        lhsmZ[3][j][k1][i]   = lhsmZ[3][j][k1][i] - lhsmZ[1][j][k1][i]*lhsmZ[4][j][k][i];
+        rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhsmZ[1][j][k1][i]*rhs[m][k][j][i];
+        lhsmZ[1][j][k2][i]   = lhsmZ[1][j][k2][i] - lhsmZ[0][j][k2][i]*lhsmZ[3][j][k][i];
+        lhsmZ[2][j][k2][i]   = lhsmZ[2][j][k2][i] - lhsmZ[0][j][k2][i]*lhsmZ[4][j][k][i];
+        rhs[m][k2][j][i] = rhs[m][k2][j][i] - lhsmZ[0][j][k2][i]*rhs[m][k][j][i];
+    }
+}
+
+__kernel void z_solve_10(__global double* restrict lhspZ_, __global double* restrict lhsmZ_, __global double* restrict rhs_, int k, int k1) {
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+    double fac1;
+
+    m = 3;
+    fac1 = 1.0/lhspZ[2][j][k][i];
+    lhspZ[3][j][k][i]    = fac1*lhspZ[3][j][k][i];
+    lhspZ[4][j][k][i]    = fac1*lhspZ[4][j][k][i];
+    rhs[m][k][j][i]  = fac1*rhs[m][k][j][i];
+    lhspZ[2][j][k1][i]   = lhspZ[2][j][k1][i] - lhspZ[1][j][k1][i]*lhspZ[3][j][k][i];
+    lhspZ[3][j][k1][i]   = lhspZ[3][j][k1][i] - lhspZ[1][j][k1][i]*lhspZ[4][j][k][i];
+    rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhspZ[1][j][k1][i]*rhs[m][k][j][i];
+
+    m = 4;
+    fac1 = 1.0/lhsmZ[2][j][k][i];
+    lhsmZ[3][j][k][i]    = fac1*lhsmZ[3][j][k][i];
+    lhsmZ[4][j][k][i]    = fac1*lhsmZ[4][j][k][i];
+    rhs[m][k][j][i]  = fac1*rhs[m][k][j][i];
+    lhsmZ[2][j][k1][i]   = lhsmZ[2][j][k1][i] - lhsmZ[1][j][k1][i]*lhsmZ[3][j][k][i];
+    lhsmZ[3][j][k1][i]   = lhsmZ[3][j][k1][i] - lhsmZ[1][j][k1][i]*lhsmZ[4][j][k][i];
+    rhs[m][k1][j][i] = rhs[m][k1][j][i] - lhsmZ[1][j][k1][i]*rhs[m][k][j][i];
+
+    rhs[3][k1][j][i] = rhs[3][k1][j][i]/lhspZ[2][j][k1][i];
+    rhs[4][k1][j][i] = rhs[4][k1][j][i]/lhsmZ[2][j][k1][i];
+}
+
+__kernel void z_solve_11(__global double* restrict lhsZ_, __global double* restrict lhspZ_, __global double* restrict lhsmZ_, __global double* restrict rhs_, int k, int k1) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 3; m++) {
+        rhs[m][k][j][i] = rhs[m][k][j][i] - lhsZ[3][j][k][i]*rhs[m][k1][j][i];
+    }
+
+    rhs[3][k][j][i] = rhs[3][k][j][i] - lhspZ[3][j][k][i]*rhs[3][k1][j][i];
+    rhs[4][k][j][i] = rhs[4][k][j][i] - lhsmZ[3][j][k][i]*rhs[4][k1][j][i];
+}
+
+__kernel void z_solve_12(__global double* restrict lhsZ_, __global double* restrict lhspZ_, __global double* restrict lhsmZ_, __global double* restrict rhs_, int gp23) {
+    __global double (*lhsZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsZ_;
+    __global double (*lhspZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhspZ_;
+    __global double (*lhsmZ)[ny2+1][IMAXP+1][IMAXP+1] = (__global double (*)[ny2+1][IMAXP+1][IMAXP+1]) lhsmZ_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m, k, k1, k2;
+
+    for (k = gp23; k >= 0; k--) {
+        k1 = k + 1;
+        k2 = k + 2;
+        for (m = 0; m < 3; m++) {
+            rhs[m][k][j][i] = rhs[m][k][j][i] - 
+                lhsZ[3][j][k][i]*rhs[m][k1][j][i] -
+                lhsZ[4][j][k][i]*rhs[m][k2][j][i];
+        }
+
+        rhs[3][k][j][i] = rhs[3][k][j][i] - 
+            lhspZ[3][j][k][i]*rhs[3][k1][j][i] -
+            lhspZ[4][j][k][i]*rhs[3][k2][j][i];
+        rhs[4][k][j][i] = rhs[4][k][j][i] - 
+            lhsmZ[3][j][k][i]*rhs[4][k1][j][i] -
+            lhsmZ[4][j][k][i]*rhs[4][k2][j][i];
+    }
+}
+
+__kernel void txinvr_0(__global double* restrict rho_i_, __global double* restrict us_, __global double* restrict vs_, __global double* restrict ws_, __global double* restrict rhs_, __global double* restrict speed_, __global double* restrict qs_, double c2, double bt) {
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+    __global double (*us)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) us_;
+    __global double (*vs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) vs_;
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*speed)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) speed_;
+    __global double (*qs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) qs_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    double ru1, uu, vv, ww, ac, ac2inv, r1, r2, r3, r4, r5, t1, t2, t3;
+
+    ru1 = rho_i[k][j][i];
+    uu = us[k][j][i];
+    vv = vs[k][j][i];
+    ww = ws[k][j][i];
+    ac = speed[k][j][i];
+    ac2inv = ac*ac;
+
+    r1 = rhs[0][k][j][i];
+    r2 = rhs[1][k][j][i];
+    r3 = rhs[2][k][j][i];
+    r4 = rhs[3][k][j][i];
+    r5 = rhs[4][k][j][i];
+
+    t1 = c2 / ac2inv * ( qs[k][j][i]*r1 - uu*r2  - vv*r3 - ww*r4 + r5 );
+    t2 = bt * ru1 * ( uu * r1 - r2 );
+    t3 = ( bt * ru1 * ac ) * t1;
+
+    rhs[0][k][j][i] = r1 - t1;
+    rhs[1][k][j][i] = - ru1 * ( ww*r1 - r4 );
+    rhs[2][k][j][i] =   ru1 * ( vv*r1 - r3 );
+    rhs[3][k][j][i] = - t2 + t3;
+    rhs[4][k][j][i] =   t2 + t3;
+}
 
