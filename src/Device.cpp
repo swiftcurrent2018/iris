@@ -156,7 +156,7 @@ void Device::ExecuteKernel(Command* cmd) {
     _clerror(clerr_);
     double time = timer_->Stop(11);
     _info("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
-    kernel->history()->Add(cmd, this, time);
+    kernel->history()->AddKernel(cmd, this, time);
 }
 
 void Device::ExecuteH2D(Command* cmd) {
@@ -167,8 +167,11 @@ void Device::ExecuteH2D(Command* cmd) {
     void* host = cmd->host();
     _trace("devno[%d] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), clmem, off, size, host);
     mem->AddOwner(off, size, this);
+    timer_->Start(12);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
+    double time = timer_->Stop(12);
+    cmd->task()->cmd_kernel()->kernel()->history()->AddH2D(cmd, this, time);
 }
 
 void Device::ExecuteD2H(Command* cmd) {
@@ -180,11 +183,14 @@ void Device::ExecuteD2H(Command* cmd) {
     int expansion = mem->expansion();
     void* host = cmd->host();
     _trace("devno[%d] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", dev_no_, mem->uid(), off, size, expansion, host);
+    timer_->Start(13);
     if (mode & brisbane_reduction) {
         clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, mem->size() * expansion, mem->host_inter(), 0, NULL, NULL);
         Reduction::GetInstance()->Reduce(mem, host, size);
     } else clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
+    double time = timer_->Stop(13);
+    cmd->task()->cmd_kernel()->kernel()->history()->AddD2H(cmd, this, time);
 }
 
 void Device::ExecutePresent(Command* cmd) {

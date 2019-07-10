@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
   brisbane_mem_create(1 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_qs);
   brisbane_mem_create(1 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_rho_i);
   brisbane_mem_create(1 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_speed);
+  brisbane_mem_create(1 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_square);
   brisbane_mem_create(5 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_rhs);
   brisbane_mem_create(5 * KMAX * (JMAXP + 1) * (IMAXP + 1) * sizeof(double), &mem_forcing);
 

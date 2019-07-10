@@ -1107,3 +1107,429 @@ __kernel void txinvr_0(__global double* restrict rho_i_, __global double* restri
     rhs[4][k][j][i] =   t2 + t3;
 }
 
+__kernel void compute_rhs_0(__global double* restrict u_, __global double* restrict rho_i_, __global double* restrict us_, __global double* restrict vs_, __global double* restrict ws_, __global double* restrict square_, __global double* restrict qs_, __global double* restrict speed_, double c1c2) {
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+    __global double (*us)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) us_;
+    __global double (*vs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) vs_;
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*square)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) square_;
+    __global double (*qs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) qs_;
+    __global double (*speed)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) speed_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    double rho_inv, aux;
+
+    rho_inv = 1.0/u[0][k][j][i];
+    rho_i[k][j][i] = rho_inv;
+    us[k][j][i] = u[1][k][j][i] * rho_inv;
+    vs[k][j][i] = u[2][k][j][i] * rho_inv;
+    ws[k][j][i] = u[3][k][j][i] * rho_inv;
+    square[k][j][i] = 0.5* (
+            u[1][k][j][i]*u[1][k][j][i] + 
+            u[2][k][j][i]*u[2][k][j][i] +
+            u[3][k][j][i]*u[3][k][j][i] ) * rho_inv;
+    qs[k][j][i] = square[k][j][i] * rho_inv;
+    aux = c1c2*rho_inv* (u[4][k][j][i] - square[k][j][i]);
+    speed[k][j][i] = sqrt(aux);
+}
+
+__kernel void compute_rhs_1(__global double* restrict rhs_, __global double* restrict forcing_, int gp0) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*forcing)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) forcing_;
+
+    int k = get_global_id(1);
+    int j = get_global_id(0);
+
+    int i, m;
+
+    for (i = 0; i <= gp0-1; i++) {
+        for (m = 0; m < 5; m++) {
+            rhs[m][k][j][i] = forcing[m][k][j][i];
+        }
+    }
+}
+
+__kernel void compute_rhs_2(__global double* restrict us_, __global double* restrict rhs_, __global double* restrict u_, __global double* restrict square_, __global double* restrict vs_, __global double* restrict ws_, __global double* restrict qs_, __global double* restrict rho_i_, double dx1tx1, double dx2tx1, double dx3tx1, double dx4tx1, double dx5tx1, double tx2, double xxcon2, double xxcon3, double xxcon4, double xxcon5, double con43, double c1, double c2) {
+    __global double (*us)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) us_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+    __global double (*square)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) square_;
+    __global double (*vs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) vs_;
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*qs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) qs_;
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    double uijk, up1, um1;
+
+    uijk = us[k][j][i];
+    up1  = us[k][j][i+1];
+    um1  = us[k][j][i-1];
+
+    rhs[0][k][j][i] = rhs[0][k][j][i] + dx1tx1 * 
+        (u[0][k][j][i+1] - 2.0*u[0][k][j][i] + u[0][k][j][i-1]) -
+        tx2 * (u[1][k][j][i+1] - u[1][k][j][i-1]);
+
+    rhs[1][k][j][i] = rhs[1][k][j][i] + dx2tx1 * 
+        (u[1][k][j][i+1] - 2.0*u[1][k][j][i] + u[1][k][j][i-1]) +
+        xxcon2*con43 * (up1 - 2.0*uijk + um1) -
+        tx2 * (u[1][k][j][i+1]*up1 - u[1][k][j][i-1]*um1 +
+                (u[4][k][j][i+1] - square[k][j][i+1] -
+                 u[4][k][j][i-1] + square[k][j][i-1]) * c2);
+
+    rhs[2][k][j][i] = rhs[2][k][j][i] + dx3tx1 * 
+        (u[2][k][j][i+1] - 2.0*u[2][k][j][i] + u[2][k][j][i-1]) +
+        xxcon2 * (vs[k][j][i+1] - 2.0*vs[k][j][i] + vs[k][j][i-1]) -
+        tx2 * (u[2][k][j][i+1]*up1 - u[2][k][j][i-1]*um1);
+
+    rhs[3][k][j][i] = rhs[3][k][j][i] + dx4tx1 * 
+        (u[3][k][j][i+1] - 2.0*u[3][k][j][i] + u[3][k][j][i-1]) +
+        xxcon2 * (ws[k][j][i+1] - 2.0*ws[k][j][i] + ws[k][j][i-1]) -
+        tx2 * (u[3][k][j][i+1]*up1 - u[3][k][j][i-1]*um1);
+
+    rhs[4][k][j][i] = rhs[4][k][j][i] + dx5tx1 * 
+        (u[4][k][j][i+1] - 2.0*u[4][k][j][i] + u[4][k][j][i-1]) +
+        xxcon3 * (qs[k][j][i+1] - 2.0*qs[k][j][i] + qs[k][j][i-1]) +
+        xxcon4 * (up1*up1 -       2.0*uijk*uijk + um1*um1) +
+        xxcon5 * (u[4][k][j][i+1]*rho_i[k][j][i+1] - 
+                2.0*u[4][k][j][i]*rho_i[k][j][i] +
+                u[4][k][j][i-1]*rho_i[k][j][i-1]) -
+        tx2 * ( (c1*u[4][k][j][i+1] - c2*square[k][j][i+1])*up1 -
+                (c1*u[4][k][j][i-1] - c2*square[k][j][i-1])*um1 );
+}
+
+__kernel void compute_rhs_3(__global double* restrict rhs_, __global double* restrict u_, double dssp, int i) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i]- dssp * 
+        (5.0*u[m][k][j][i] - 4.0*u[m][k][j][i+1] + u[m][k][j][i+2]);
+}
+
+__kernel void compute_rhs_4(__global double* restrict rhs_, __global double* restrict u_, double dssp, int i) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int m = get_global_id(2);
+    int k = get_global_id(1);
+    int j = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+        (-4.0*u[m][k][j][i-1] + 6.0*u[m][k][j][i] -
+         4.0*u[m][k][j][i+1] + u[m][k][j][i+2]);
+}
+
+__kernel void compute_rhs_5(__global double* restrict rhs_, __global double* restrict u_, double dssp) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 5; m++) {
+        rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+            ( u[m][k][j][i-2] - 4.0*u[m][k][j][i-1] + 
+              6.0*u[m][k][j][i] - 4.0*u[m][k][j][i+1] + 
+              u[m][k][j][i+2] );
+    }
+}
+
+__kernel void compute_rhs_6(__global double* restrict rhs_, __global double* restrict u_, double dssp, int i) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(0);
+
+    int j, m;
+
+    for (j = 1; j <= ny2; j++) {
+        for (m = 0; m < 5; m++) {
+            rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+                ( u[m][k][j][i-2] - 4.0*u[m][k][j][i-1] + 
+                  6.0*u[m][k][j][i] - 4.0*u[m][k][j][i+1] );
+        }
+    }
+}
+
+__kernel void compute_rhs_7(__global double* restrict rhs_, __global double* restrict u_, double dssp, int i) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(0);
+
+    int j, m;
+    for (j = 1; j <= ny2; j++) {
+        for (m = 0; m < 5; m++) {
+            rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+                ( u[m][k][j][i-2] - 4.0*u[m][k][j][i-1] + 5.0*u[m][k][j][i] );
+        }
+    }
+}
+
+__kernel void compute_rhs_8(__global double* restrict vs_, __global double* restrict rhs_, __global double* restrict u_, __global double* restrict us_, __global double* restrict square_, __global double* restrict ws_, __global double* restrict qs_, __global double* restrict rho_i_, double dy1ty1, double dy2ty1, double dy3ty1, double dy4ty1, double dy5ty1, double ty2, double yycon2, double yycon3, double yycon4, double yycon5, double con43, double c1, double c2) {
+    __global double (*vs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) vs_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+    __global double (*us)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) us_;
+    __global double (*square)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) square_;
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*qs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) qs_;
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    double vijk, vp1, vm1;
+
+    vijk = vs[k][j][i];
+    vp1  = vs[k][j+1][i];
+    vm1  = vs[k][j-1][i];
+
+    rhs[0][k][j][i] = rhs[0][k][j][i] + dy1ty1 * 
+        (u[0][k][j+1][i] - 2.0*u[0][k][j][i] + u[0][k][j-1][i]) -
+        ty2 * (u[2][k][j+1][i] - u[2][k][j-1][i]);
+
+    rhs[1][k][j][i] = rhs[1][k][j][i] + dy2ty1 * 
+        (u[1][k][j+1][i] - 2.0*u[1][k][j][i] + u[1][k][j-1][i]) +
+        yycon2 * (us[k][j+1][i] - 2.0*us[k][j][i] + us[k][j-1][i]) -
+        ty2 * (u[1][k][j+1][i]*vp1 - u[1][k][j-1][i]*vm1);
+
+    rhs[2][k][j][i] = rhs[2][k][j][i] + dy3ty1 * 
+        (u[2][k][j+1][i] - 2.0*u[2][k][j][i] + u[2][k][j-1][i]) +
+        yycon2*con43 * (vp1 - 2.0*vijk + vm1) -
+        ty2 * (u[2][k][j+1][i]*vp1 - u[2][k][j-1][i]*vm1 +
+                (u[4][k][j+1][i] - square[k][j+1][i] - 
+                 u[4][k][j-1][i] + square[k][j-1][i]) * c2);
+
+    rhs[3][k][j][i] = rhs[3][k][j][i] + dy4ty1 * 
+        (u[3][k][j+1][i] - 2.0*u[3][k][j][i] + u[3][k][j-1][i]) +
+        yycon2 * (ws[k][j+1][i] - 2.0*ws[k][j][i] + ws[k][j-1][i]) -
+        ty2 * (u[3][k][j+1][i]*vp1 - u[3][k][j-1][i]*vm1);
+
+    rhs[4][k][j][i] = rhs[4][k][j][i] + dy5ty1 * 
+        (u[4][k][j+1][i] - 2.0*u[4][k][j][i] + u[4][k][j-1][i]) +
+        yycon3 * (qs[k][j+1][i] - 2.0*qs[k][j][i] + qs[k][j-1][i]) +
+        yycon4 * (vp1*vp1       - 2.0*vijk*vijk + vm1*vm1) +
+        yycon5 * (u[4][k][j+1][i]*rho_i[k][j+1][i] - 
+                2.0*u[4][k][j][i]*rho_i[k][j][i] +
+                u[4][k][j-1][i]*rho_i[k][j-1][i]) -
+        ty2 * ((c1*u[4][k][j+1][i] - c2*square[k][j+1][i]) * vp1 -
+                (c1*u[4][k][j-1][i] - c2*square[k][j-1][i]) * vm1);
+}
+
+__kernel void compute_rhs_9(__global double* restrict rhs_, __global double* restrict u_, double dssp, int j) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i]- dssp * 
+        ( 5.0*u[m][k][j][i] - 4.0*u[m][k][j+1][i] + u[m][k][j+2][i]);
+}
+
+__kernel void compute_rhs_10(__global double* restrict rhs_, __global double* restrict u_, double dssp, int j) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+        (-4.0*u[m][k][j-1][i] + 6.0*u[m][k][j][i] -
+         4.0*u[m][k][j+1][i] + u[m][k][j+2][i]);
+}
+
+__kernel void compute_rhs_11(__global double* restrict rhs_, __global double* restrict u_, double dssp) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 5; m++) {
+        rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+            ( u[m][k][j-2][i] - 4.0*u[m][k][j-1][i] + 
+              6.0*u[m][k][j][i] - 4.0*u[m][k][j+1][i] + 
+              u[m][k][j+2][i] );
+    }
+}
+
+__kernel void compute_rhs_12(__global double* restrict rhs_, __global double* restrict u_, double dssp, int j) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+        ( u[m][k][j-2][i] - 4.0*u[m][k][j-1][i] + 
+          6.0*u[m][k][j][i] - 4.0*u[m][k][j+1][i] );
+}
+
+__kernel void compute_rhs_13(__global double* restrict rhs_, __global double* restrict u_, double dssp, int j) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+        ( u[m][k][j-2][i] - 4.0*u[m][k][j-1][i] + 5.0*u[m][k][j][i] );
+}
+
+__kernel void compute_rhs_14(__global double* restrict ws_, __global double* restrict rhs_, __global double* restrict u_, __global double* restrict us_, __global double* restrict vs_, __global double* restrict square_, __global double* restrict qs_, __global double* restrict rho_i_, double dz1tz1, double dz2tz1, double dz3tz1, double dz4tz1, double dz5tz1, double tz2, double zzcon2, double zzcon3, double zzcon4, double zzcon5, double con43, double c1, double c2) {
+    __global double (*ws)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) ws_;
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+    __global double (*us)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) us_;
+    __global double (*vs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) vs_;
+    __global double (*square)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) square_;
+    __global double (*qs)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) qs_;
+    __global double (*rho_i)[JMAXP+1][IMAXP+1] = (__global double (*)[JMAXP+1][IMAXP+1]) rho_i_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    double wijk, wp1, wm1;
+
+    wijk = ws[k][j][i];
+    wp1  = ws[k+1][j][i];
+    wm1  = ws[k-1][j][i];
+
+    rhs[0][k][j][i] = rhs[0][k][j][i] + dz1tz1 * 
+        (u[0][k+1][j][i] - 2.0*u[0][k][j][i] + u[0][k-1][j][i]) -
+        tz2 * (u[3][k+1][j][i] - u[3][k-1][j][i]);
+
+    rhs[1][k][j][i] = rhs[1][k][j][i] + dz2tz1 * 
+        (u[1][k+1][j][i] - 2.0*u[1][k][j][i] + u[1][k-1][j][i]) +
+        zzcon2 * (us[k+1][j][i] - 2.0*us[k][j][i] + us[k-1][j][i]) -
+        tz2 * (u[1][k+1][j][i]*wp1 - u[1][k-1][j][i]*wm1);
+
+    rhs[2][k][j][i] = rhs[2][k][j][i] + dz3tz1 * 
+        (u[2][k+1][j][i] - 2.0*u[2][k][j][i] + u[2][k-1][j][i]) +
+        zzcon2 * (vs[k+1][j][i] - 2.0*vs[k][j][i] + vs[k-1][j][i]) -
+        tz2 * (u[2][k+1][j][i]*wp1 - u[2][k-1][j][i]*wm1);
+
+    rhs[3][k][j][i] = rhs[3][k][j][i] + dz4tz1 * 
+        (u[3][k+1][j][i] - 2.0*u[3][k][j][i] + u[3][k-1][j][i]) +
+        zzcon2*con43 * (wp1 - 2.0*wijk + wm1) -
+        tz2 * (u[3][k+1][j][i]*wp1 - u[3][k-1][j][i]*wm1 +
+                (u[4][k+1][j][i] - square[k+1][j][i] - 
+                 u[4][k-1][j][i] + square[k-1][j][i]) * c2);
+
+    rhs[4][k][j][i] = rhs[4][k][j][i] + dz5tz1 * 
+        (u[4][k+1][j][i] - 2.0*u[4][k][j][i] + u[4][k-1][j][i]) +
+        zzcon3 * (qs[k+1][j][i] - 2.0*qs[k][j][i] + qs[k-1][j][i]) +
+        zzcon4 * (wp1*wp1 - 2.0*wijk*wijk + wm1*wm1) +
+        zzcon5 * (u[4][k+1][j][i]*rho_i[k+1][j][i] - 
+                2.0*u[4][k][j][i]*rho_i[k][j][i] +
+                u[4][k-1][j][i]*rho_i[k-1][j][i]) -
+        tz2 * ((c1*u[4][k+1][j][i] - c2*square[k+1][j][i])*wp1 -
+                (c1*u[4][k-1][j][i] - c2*square[k-1][j][i])*wm1);
+}
+
+__kernel void compute_rhs_15(__global double* restrict rhs_, __global double* restrict u_, double dssp, int k) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i]- dssp * 
+        (5.0*u[m][k][j][i] - 4.0*u[m][k+1][j][i] + u[m][k+2][j][i]);
+}
+
+__kernel void compute_rhs_16(__global double* restrict rhs_, __global double* restrict u_, double dssp, int k) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+        (-4.0*u[m][k-1][j][i] + 6.0*u[m][k][j][i] -
+         4.0*u[m][k+1][j][i] + u[m][k+2][j][i]);
+}
+
+__kernel void compute_rhs_17(__global double* restrict rhs_, __global double* restrict u_, double dssp) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 5; m++) {
+        rhs[m][k][j][i] = rhs[m][k][j][i] - dssp * 
+            ( u[m][k-2][j][i] - 4.0*u[m][k-1][j][i] + 
+              6.0*u[m][k][j][i] - 4.0*u[m][k+1][j][i] + 
+              u[m][k+2][j][i] );
+    }
+}
+
+__kernel void compute_rhs_18(__global double* restrict rhs_, __global double* restrict u_, double dssp, int k) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+        ( u[m][k-2][j][i] - 4.0*u[m][k-1][j][i] + 
+          6.0*u[m][k][j][i] - 4.0*u[m][k+1][j][i] );
+}
+
+__kernel void compute_rhs_19(__global double* restrict rhs_, __global double* restrict u_, double dssp, int k) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+    __global double (*u)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) u_;
+
+    int j = get_global_id(2);
+    int i = get_global_id(1);
+    int m = get_global_id(0);
+
+    rhs[m][k][j][i] = rhs[m][k][j][i] - dssp *
+        ( u[m][k-2][j][i] - 4.0*u[m][k-1][j][i] + 5.0*u[m][k][j][i] );
+}
+
+__kernel void compute_rhs_20(__global double* restrict rhs_, double dt) {
+    __global double (*rhs)[KMAX][JMAXP+1][IMAXP+1] = (__global double (*)[KMAX][JMAXP+1][IMAXP+1]) rhs_;
+
+    int k = get_global_id(2);
+    int j = get_global_id(1);
+    int i = get_global_id(0);
+
+    int m;
+
+    for (m = 0; m < 5; m++) {
+        rhs[m][k][j][i] = rhs[m][k][j][i] * dt;
+    }
+}

@@ -32,8 +32,10 @@ extern "C" {
 
 #define brisbane_rd                 (1 << 0)
 #define brisbane_wr                 (1 << 1)
-#define brisbane_rw                 (brisbane_rd | brisbane_wr)
 #define brisbane_rdwr               (brisbane_rd | brisbane_wr)
+#define brisbane_r                  brisbane_rd
+#define brisbane_w                  brisbane_wr
+#define brisbane_rw                 brisbane_rdwr
 
 #define brisbane_int                (1 << 0)
 #define brisbane_long               (1 << 1)

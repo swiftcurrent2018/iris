@@ -13,54 +13,93 @@ History::History(Kernel* kernel) {
     platform_ = kernel_->platform();
     ndevs_ = platform_->ndevs();
     for (int i = 0; i < ndevs_; i++) {
-        times_[i] = 0.0;
-        times_avg_[i] = 0.0;
-        cnts_[i] = 0;
+        t_kernel_[i] = 0.0;
+        t_h2d_[i] = 0.0;
+        t_d2h_[i] = 0.0;
+        ta_kernel_[i] = 0.0;
+        ta_h2d_[i] = 0.0;
+        ta_d2h_[i] = 0.0;
+        c_kernel_[i] = 0;
+        c_h2d_[i] = 0;
+        c_d2h_[i] = 0;
     }
 }
 
 History::~History() {
 }
 
-void History::Add(Command* cmd, Device* dev, double time) {
+void History::AddKernel(Command* cmd, Device* dev, double time) {
+    return Add(cmd, dev, time, t_kernel_, ta_kernel_, c_kernel_);
+}
+
+void History::AddH2D(Command* cmd, Device* dev, double time) {
+    return Add(cmd, dev, time, t_h2d_, ta_h2d_, c_h2d_);
+}
+
+void History::AddD2H(Command* cmd, Device* dev, double time) {
+    return Add(cmd, dev, time, t_d2h_, ta_d2h_, c_d2h_);
+}
+
+void History::Add(Command* cmd, Device* dev, double time, double* t, double *ta, size_t* c) {
     Kernel* kernel = cmd->kernel();
     int dev_no = dev->dev_no();
-    size_t c = cnts_[dev_no];
-    times_[dev_no] += time;
-    cnts_[dev_no]++;
-    times_avg_[dev_no] = (times_avg_[dev_no] * c + time) / (c + 1);
+    size_t cnt = c[dev_no];
+    t[dev_no] += time;
+    c[dev_no]++;
+    ta[dev_no] = (ta[dev_no] * cnt + time) / (cnt + 1);
 }
 
 Device* History::OptimalDevice(Task* task) {
     for (int i = 0; i < ndevs_; i++) {
-        if (cnts_[i] == 0) return platform_->device(i);
+        if (c_kernel_[i] == 0) return platform_->device(i);
     }
 
-    double min_time = times_avg_[0];
+    double min_time = ta_kernel_[0];
     int min_dev = 0;
     for (int i = 0; i < ndevs_; i++) {
-        if (times_avg_[i] < min_time) {
-            min_time = times_avg_[i];
+        if (ta_kernel_[i] < min_time) {
+            min_time = ta_kernel_[i];
             min_dev = i;
         }
     }
     return platform_->device(min_dev);
 }
 
-double History::time() {
-    double time = 0.0;
-    for (int i = 0; i < ndevs_; i++) {
-        time += times_[i];
-    }
-    return time;
+double History::t_kernel() {
+    return total(t_kernel_);
 }
 
-size_t History::cnt() {
-    size_t cnt = 0;
-    for (int i = 0; i < ndevs_; i++) {
-        cnt += cnts_[i];
-    }
-    return cnt;
+double History::t_h2d() {
+    return total(t_h2d_);
+}
+
+double History::t_d2h() {
+    return total(t_d2h_);
+}
+
+
+size_t History::c_kernel() {
+    return total(c_kernel_);
+}
+
+size_t History::c_h2d() {
+    return total(c_h2d_);
+}
+
+size_t History::c_d2h() {
+    return total(c_d2h_);
+}
+
+double History::total(double* d) {
+    double t = 0.0;
+    for (int i = 0; i < ndevs_; i++) t += d[i];
+    return t;
+}
+
+size_t History::total(size_t* s) {
+    size_t t = 0.0;
+    for (int i = 0; i < ndevs_; i++) t += s[i];
+    return t;
 }
 
 } /* namespace rt */

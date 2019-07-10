@@ -3,7 +3,8 @@
 namespace brisbane {
 namespace rt {
 
-Command::Command(int type) {
+Command::Command(Task* task, int type) {
+    task_ = task;
     type_ = type;
     kernel_args_ = NULL;
 }
@@ -15,12 +16,12 @@ Command::~Command() {
     }
 }
 
-Command* Command::Create(int type) {
-    return new Command(type);
+Command* Command::Create(Task* task, int type) {
+    return new Command(task, type);
 }
 
-Command* Command::CreateKernel(Kernel* kernel, int dim, size_t* off, size_t* ndr) {
-    Command* cmd = Create(BRISBANE_CMD_KERNEL);
+Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr) {
+    Command* cmd = Create(task, BRISBANE_CMD_KERNEL);
     cmd->kernel_ = kernel;
     cmd->kernel_args_ = kernel->ExportArgs();
     cmd->dim_ = dim;
@@ -35,8 +36,8 @@ Command* Command::CreateKernel(Kernel* kernel, int dim, size_t* off, size_t* ndr
     return cmd;
 }
 
-Command* Command::CreateH2D(Mem* mem, size_t off, size_t size, void* host) {
-    Command* cmd = Create(BRISBANE_CMD_H2D);
+Command* Command::CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host) {
+    Command* cmd = Create(task, BRISBANE_CMD_H2D);
     cmd->mem_ = mem;
     cmd->off_[0] = off;
     cmd->size_ = size;
@@ -44,8 +45,8 @@ Command* Command::CreateH2D(Mem* mem, size_t off, size_t size, void* host) {
     return cmd;
 }
 
-Command* Command::CreateD2H(Mem* mem, size_t off, size_t size, void* host) {
-    Command* cmd = Create(BRISBANE_CMD_D2H);
+Command* Command::CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host) {
+    Command* cmd = Create(task, BRISBANE_CMD_D2H);
     cmd->mem_ = mem;
     cmd->off_[0] = off;
     cmd->size_ = size;
@@ -53,8 +54,8 @@ Command* Command::CreateD2H(Mem* mem, size_t off, size_t size, void* host) {
     return cmd;
 }
 
-Command* Command::CreatePresent(Mem* mem, size_t off, size_t size, void* host) {
-    Command* cmd = Create(BRISBANE_CMD_PRESENT);
+Command* Command::CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host) {
+    Command* cmd = Create(task, BRISBANE_CMD_PRESENT);
     cmd->mem_ = mem;
     cmd->off_[0] = off;
     cmd->size_ = size;
@@ -62,8 +63,8 @@ Command* Command::CreatePresent(Mem* mem, size_t off, size_t size, void* host) {
     return cmd;
 }
 
-Command* Command::CreateReleaseMem(Mem* mem) {
-    Command* cmd = Create(BRISBANE_CMD_RELEASE_MEM);
+Command* Command::CreateReleaseMem(Task* task, Mem* mem) {
+    Command* cmd = Create(task, BRISBANE_CMD_RELEASE_MEM);
     cmd->mem_ = mem;
     return cmd;
 }

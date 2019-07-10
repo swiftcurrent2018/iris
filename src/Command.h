@@ -15,10 +15,11 @@ namespace brisbane {
 namespace rt {
 
 class Mem;
+class Task;
 
 class Command {
 public:
-    Command(int type);
+    Command(Task* task, int type);
     ~Command();
 
     int type() { return type_; }
@@ -32,6 +33,7 @@ public:
     Kernel* kernel() { return kernel_; }
     std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
     Mem* mem() { return mem_; }
+    Task* task() { return task_; }
 
 private:
     int type_;
@@ -42,15 +44,16 @@ private:
     size_t ndr_[3];
     Kernel* kernel_;
     Mem* mem_;
+    Task* task_;
     std::map<int, KernelArg*>* kernel_args_;
 
 public:
-    static Command* Create(int type);
-    static Command* CreateKernel(Kernel* kernel, int dim, size_t* off, size_t* ndr);
-    static Command* CreateH2D(Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreateD2H(Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreatePresent(Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreateReleaseMem(Mem* mem);
+    static Command* Create(Task* task, int type);
+    static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
+    static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
+    static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);
+    static Command* CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host);
+    static Command* CreateReleaseMem(Task* task, Mem* mem);
     static void Release(Command* cmd);
 };
 
