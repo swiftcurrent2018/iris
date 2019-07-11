@@ -6,4 +6,3 @@ unsigned long brisbane_create_new_uid() {
     } while (!__sync_bool_compare_and_swap(&uid, uid, new_uid));
     return new_uid;
 }
-

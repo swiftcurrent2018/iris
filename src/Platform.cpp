@@ -56,6 +56,7 @@ int Platform::Init(int* argc, char*** argv) {
 int Platform::GetCLPlatforms() {
     cl_uint num_platforms = BRISBANE_MAX_NDEVS;
     cl_uint num_devices;
+    bool enabled = true;
 
     clerr_ = clGetPlatformIDs(num_platforms, cl_platforms_, &num_platforms);
     _trace("num_platforms[%u]", num_platforms);
@@ -70,9 +71,11 @@ int Platform::GetCLPlatforms() {
         _clerror(clerr_);
         for (cl_uint j = 0; j < num_devices; j++) {
             devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
+            enabled &= devices_[ndevs_]->enabled();
             ndevs_++;
         }
     }
+    if (!enabled) exit(-1);
     return BRISBANE_OK;
 }
 

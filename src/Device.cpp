@@ -40,14 +40,14 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
     clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
     _clerror(clerr_);
 
-    BuildProgram();
+    enabled_ = BuildProgram();
 }
 
 Device::~Device() {
     delete timer_;
 }
 
-void Device::BuildProgram() {
+bool Device::BuildProgram() {
     cl_int status;
     char path[256];
     memset(path, 0, 256);
@@ -59,7 +59,7 @@ void Device::BuildProgram() {
     char* src = NULL;
     size_t srclen = 0;
     Utils::ReadFile(path, &src, &srclen);
-    if (srclen == 0) return;
+    if (srclen == 0) return true;
     if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
     else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
     _clerror(clerr_);
@@ -74,8 +74,11 @@ void Device::BuildProgram() {
         _clerror(clerr_);
         _error("status[%d] log:%s", s, log);
         _error("srclen[%lu] src\n%s", srclen, src);
+        free(src);
+        return false;
     }
     free(src);
+    return true;
 }
 
 void Device::Execute(Task* task) {

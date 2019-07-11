@@ -15,7 +15,7 @@ public:
     Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no);
     ~Device();
 
-    void BuildProgram();
+    bool BuildProgram();
 
     void Execute(Task* task);
     void ExecuteKernel(Command* cmd);
@@ -31,6 +31,7 @@ public:
     char* name() { return name_; }
     bool busy() { return busy_; }
     bool idle() { return !busy_; }
+    bool enabled() { return enabled_; }
 
     void set_manager(WorkloadManager* manager) { manager_ = manager; }
     WorkloadManager* manager() { return manager_; }
@@ -54,6 +55,7 @@ private:
     cl_bool compiler_available_;
 
     bool busy_;
+    bool enabled_;
 
     WorkloadManager* manager_;
     Timer* timer_;
