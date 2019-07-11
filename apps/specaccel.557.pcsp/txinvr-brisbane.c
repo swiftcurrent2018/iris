@@ -57,7 +57,6 @@ void txinvr()
 
   brisbane_task task0;
   brisbane_task_create(&task0);
-  brisbane_task_h2d_full(task0, mem_rhs, rhs);
   brisbane_task_kernel(task0, kernel_txinvr_0, 3, kernel_txinvr_0_off, kernel_txinvr_0_idx);
   brisbane_task_submit(task0, brisbane_gpu, NULL, true);
 #if 0

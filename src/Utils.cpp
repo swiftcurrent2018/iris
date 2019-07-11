@@ -15,7 +15,7 @@ void Utils::Logo(bool color) {
         srand(time(NULL));
         char str[12];
         sprintf(str, "\033[22;3%dm", rand() % 9 + 1);
-        printf(str);
+        printf("%s", str);
     }
     printf("██████╗ ██████╗ ██╗███████╗██████╗  █████╗ ███╗   ██╗███████╗\n");
     printf("██╔══██╗██╔══██╗██║██╔════╝██╔══██╗██╔══██╗████╗  ██║██╔════╝\n");
@@ -37,9 +37,8 @@ void Utils::ReadFile(char* path, char** string, size_t* len) {
         return;
     }
     off_t s = lseek(fd, 0, SEEK_END);
-    *string = (char*) malloc(s + 1);
-    *len = s + 1;
-    (*string)[s] = 0;
+    *string = (char*) malloc(s);
+    *len = s;
     lseek(fd, 0, SEEK_SET);
     ssize_t r = read(fd, *string, s);
     if (r != s) _error("read[%lu] vs [%lu]", r, s);

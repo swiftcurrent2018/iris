@@ -1,4 +1,4 @@
-#include "common.h"
+#define Index3D(_nx,_ny,_i,_j,_k) ((_i)+_nx*((_j)+_ny*(_k)))
 
 __kernel void stencil_3D(float c0, float c1, __global float* restrict A0, __global float* restrict Anext, int nx, int ny, int nz) {
     int i = get_global_id(0) + 1;

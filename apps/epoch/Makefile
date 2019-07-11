@@ -6,7 +6,7 @@ epoch: epoch.cpp
 	g++ -g -o $@ $^
 
 epoch-brisbane: epoch-brisbane.cpp
-	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
+	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
 
 clean:
 	rm -f epoch epoch-brisbane

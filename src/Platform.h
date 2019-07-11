@@ -60,6 +60,7 @@ public:
     Device* device(int dev_no) { return devices_[dev_no]; }
     Scheduler* scheduler() { return scheduler_; }
     Timer* timer() { return timer_; }
+    Kernel* null_kernel() { return null_kernel_; }
 
 private:
     int ShowKernelHistory();
@@ -84,6 +85,8 @@ private:
 
     Scheduler* scheduler_;
     Timer* timer_;
+
+    Kernel* null_kernel_;
 
 private:
     static Platform* singleton_;

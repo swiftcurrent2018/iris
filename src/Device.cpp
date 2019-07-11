@@ -121,7 +121,7 @@ void Device::ExecuteKernel(Command* cmd) {
                 lws[0] = 100;
                 size_t expansion = (gws[0] + lws[0] - 1) / lws[0];
                 gws[0] = lws[0] * expansion;
-                _debug("expansion[%d] mem->type_size[%lu]", expansion, mem->type_size());
+                _debug("expansion[%lu] mem->type_size[%d]", expansion, mem->type_size());
                 mem->Expand(expansion);
                 clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
                 _clerror(clerr_);
@@ -171,7 +171,9 @@ void Device::ExecuteH2D(Command* cmd) {
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
     double time = timer_->Stop(12);
-    cmd->task()->cmd_kernel()->kernel()->history()->AddH2D(cmd, this, time);
+    Command* cmd_kernel = cmd->task()->cmd_kernel();
+    if (cmd_kernel) cmd_kernel->kernel()->history()->AddH2D(cmd, this, time);
+    else Platform::GetPlatform()->null_kernel()->history()->AddH2D(cmd, this, time);
 }
 
 void Device::ExecuteD2H(Command* cmd) {
@@ -190,7 +192,10 @@ void Device::ExecuteD2H(Command* cmd) {
     } else clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
     _clerror(clerr_);
     double time = timer_->Stop(13);
-    cmd->task()->cmd_kernel()->kernel()->history()->AddD2H(cmd, this, time);
+    Command* cmd_kernel = cmd->task()->cmd_kernel();
+    if (cmd_kernel) cmd_kernel->kernel()->history()->AddD2H(cmd, this, time);
+    else Platform::GetPlatform()->null_kernel()->history()->AddD2H(cmd, this, time);
+
 }
 
 void Device::ExecutePresent(Command* cmd) {

@@ -67,14 +67,6 @@ void compute_rhs()
 
   brisbane_task task0;
   brisbane_task_create(&task0);
-  brisbane_task_h2d_full(task0, mem_u, u);
-  brisbane_task_h2d_full(task0, mem_rho_i, rho_i);
-  brisbane_task_h2d_full(task0, mem_us, us);
-  brisbane_task_h2d_full(task0, mem_vs, vs);
-  brisbane_task_h2d_full(task0, mem_ws, ws);
-  brisbane_task_h2d_full(task0, mem_square, square);
-  brisbane_task_h2d_full(task0, mem_qs, qs);
-  brisbane_task_h2d_full(task0, mem_speed, speed);
   brisbane_task_kernel(task0, kernel_compute_rhs_0, 3, kernel_compute_rhs_0_off, kernel_compute_rhs_0_idx);
   brisbane_task_submit(task0, brisbane_gpu, NULL, true);
 #if 0
@@ -125,8 +117,6 @@ void compute_rhs()
 
   brisbane_task task1;
   brisbane_task_create(&task1);
-  brisbane_task_h2d_full(task1, mem_forcing, forcing);
-  brisbane_task_h2d_full(task1, mem_rhs, rhs);
   brisbane_task_kernel(task1, kernel_compute_rhs_1, 2, kernel_compute_rhs_1_off, kernel_compute_rhs_1_idx);
   brisbane_task_submit(task1, brisbane_gpu, NULL, true);
 #if 0
@@ -857,7 +847,6 @@ void compute_rhs()
   brisbane_task task20;
   brisbane_task_create(&task20);
   brisbane_task_kernel(task20, kernel_compute_rhs_20, 3, kernel_compute_rhs_20_off, kernel_compute_rhs_20_idx);
-  brisbane_task_d2h_full(task20, mem_rhs, rhs);
   brisbane_task_submit(task20, brisbane_gpu, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(3)

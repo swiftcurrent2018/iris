@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
   const rlim_t stack_size = 1024 * 1024 * 1024;
   struct rlimit rl;
   int result = getrlimit(RLIMIT_STACK, &rl);
-  printf("[%s:%d] current stack[%d] target_stack[%d]", __FILE__, __LINE__, rl.rlim_cur, stack_size);
+  printf("[%s:%d] current stack[%lu] target_stack[%lu]", __FILE__, __LINE__, rl.rlim_cur, stack_size);
   if (rl.rlim_cur < stack_size) {
       rl.rlim_cur = stack_size;
       result = setrlimit(RLIMIT_STACK, &rl);

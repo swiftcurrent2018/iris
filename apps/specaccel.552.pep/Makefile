@@ -8,7 +8,7 @@ ep: c_timers.c ep.c print_results.c randdp.c wtime.c
 	g++ $(CFLAGS) -o $@ $^
 
 ep-brisbane: c_timers.c ep-brisbane.c print_results.c randdp.c wtime.c
-	g++ $(CFLAGS) -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
+	g++ $(CFLAGS) -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
 
 run: ep
 	./$^ -o 64x64x64.out 64 64 64 10

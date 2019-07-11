@@ -26,6 +26,7 @@ Platform::~Platform() {
     
     if (scheduler_) delete scheduler_;
     if (timer_) delete timer_;
+    if (null_kernel_) delete null_kernel_;
 }
 
 int Platform::Init(int* argc, char*** argv) {
@@ -34,9 +35,15 @@ int Platform::Init(int* argc, char*** argv) {
     Utils::Logo(true);
 
     timer_ = new Timer();
-    timer_->Start(1);
+    timer_->Start(BRISBANE_TIMER_APP);
 
+    timer_->Start(BRISBANE_TIMER_INIT);
     GetCLPlatforms();
+    timer_->Stop(BRISBANE_TIMER_INIT);
+
+    brisbane_kernel null_brs_kernel;
+    KernelCreate("brisbane_null", &null_brs_kernel);
+    null_kernel_ = null_brs_kernel->class_obj;
 
     scheduler_ = new Scheduler(this);
     scheduler_->Start();
@@ -78,12 +85,12 @@ int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
     for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
         Kernel* kernel = *it;
         if (strcmp(kernel->name(), name) == 0) {
-            *brs_kernel = kernel->struct_obj();
+            if (brs_kernel) *brs_kernel = kernel->struct_obj();
             return BRISBANE_OK;
         }
     }
     Kernel* kernel = new Kernel(name, this);
-    *brs_kernel = kernel->struct_obj();
+    if (brs_kernel) *brs_kernel = kernel->struct_obj();
     kernels_.insert(kernel);
     return BRISBANE_OK;
 }
@@ -210,11 +217,18 @@ int Platform::TimerNow(double* time) {
 }
 
 int Platform::ShowKernelHistory() {
+    double t_ker = 0.0;
+    double t_h2d = 0.0;
+    double t_d2h = 0.0;
     for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
         Kernel* kernel = *it;
         History* history = kernel->history();
         _info("kernel[%s] k[%lf][%lu] h2d[%lf][%lu] d2h[%lf][%lu]", kernel->name(), history->t_kernel(), history->c_kernel(), history->t_h2d(), history->c_h2d(), history->t_d2h(), history->c_d2h());
+        t_ker += history->t_kernel();
+        t_h2d += history->t_h2d();
+        t_d2h += history->t_d2h();
     }
+    _info("total kernel[%lf] h2d[%lf] d2h[%lf]", t_ker, t_h2d, t_d2h);
     return BRISBANE_OK;
 }
 
@@ -227,11 +241,12 @@ Platform* Platform::GetPlatform() {
 
 int Platform::Finalize() {
     singleton_->ShowKernelHistory();
-    double total = singleton_->timer()->Stop(1);
+    double time_app = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
+    double time_init = singleton_->timer()->Total(BRISBANE_TIMER_INIT);
     if (singleton_ == NULL) return BRISBANE_ERR;
     if (singleton_) delete singleton_;
     singleton_ = NULL;
-    _info("total execution time [%lf] sec", total);
+    _info("total execution time:[%lf] sec. initialize:[%lf] sec. e-i:[%lf] sec", time_app, time_init, time_app - time_init);
     return BRISBANE_OK;
 }
 

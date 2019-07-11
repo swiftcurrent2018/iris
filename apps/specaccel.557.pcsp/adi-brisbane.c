@@ -172,7 +172,6 @@ void tzetar()
   brisbane_task task0;
   brisbane_task_create(&task0);
   brisbane_task_kernel(task0, kernel_tzetar_0, 3, kernel_tzetar_0_off, kernel_tzetar_0_idx);
-  brisbane_task_d2h_full(task0, mem_rhs, rhs);
   brisbane_task_submit(task0, brisbane_gpu, NULL, true);
 
 #if 0
@@ -252,7 +251,7 @@ void x_solve()
   #pragma omp target data map(alloc:lhsX[:][:][:][:],lhspX[:][:][:][:], lhsmX[:][:][:][:],rhonX[:][:][:],rhsX[:][:][:][:]) //present(rho_i,us,speed,rhs)
   {
     size_t kernel_x_solve_0_off[3] = { 0, 0, 0 };
-    size_t kernel_x_solve_0_idx[3] = { IMAXP + 1, JMAXP + 1, nz2 + 1};
+    size_t kernel_x_solve_0_idx[3] = { IMAXP + 1, JMAXP + 1, nz2 + 1 };
     brisbane_kernel kernel_x_solve_0;
     brisbane_kernel_create("x_solve_0", &kernel_x_solve_0);
     brisbane_kernel_setmem(kernel_x_solve_0, 0, mem_rhsX, brisbane_wr);
@@ -1620,7 +1619,7 @@ void z_solve()
 
     brisbane_task task3;
     brisbane_task_create(&task3);
-    brisbane_task_kernel(task3, kernel_z_solve_3, 3, kernel_z_solve_3_off, kernel_z_solve_3_idx);
+    brisbane_task_kernel(task3, kernel_z_solve_3, 2, kernel_z_solve_3_off, kernel_z_solve_3_idx);
     brisbane_task_submit(task3, brisbane_gpu, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD

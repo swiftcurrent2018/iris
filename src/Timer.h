@@ -2,6 +2,8 @@
 #define BRISBANE_RT_SRC_TIMER_H
 
 #define BRISBANE_TIMER_MAX      128
+#define BRISBANE_TIMER_APP      1
+#define BRISBANE_TIMER_INIT     2
 
 #include <stddef.h>
 

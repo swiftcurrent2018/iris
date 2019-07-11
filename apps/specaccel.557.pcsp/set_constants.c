@@ -155,11 +155,11 @@ void set_constants()
   dz4 = 1.0;
   dz5 = 1.0;
 
-  dxmax = max(dx3, dx4);
-  dymax = max(dy2, dy4);
-  dzmax = max(dz2, dz3);
+  dxmax = fmax(dx3, dx4);
+  dymax = fmax(dy2, dy4);
+  dzmax = fmax(dz2, dz3);
 
-  dssp = 0.25 * max(dx1, max(dy1, dz1));
+  dssp = 0.25 * fmax(dx1, fmax(dy1, dz1));
 
   c4dssp = 4.0 * dssp;
   c5dssp = 5.0 * dssp;
