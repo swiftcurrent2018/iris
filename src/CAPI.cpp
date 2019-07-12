@@ -12,8 +12,20 @@ int brisbane_finalize() {
     return Platform::Finalize();
 }
 
+int brisbane_info_nplatforms(int* nplatforms) {
+    return Platform::GetPlatform()->InfoNumPlatforms(nplatforms);
+}
+
 int brisbane_info_ndevs(int* ndevs) {
     return Platform::GetPlatform()->InfoNumDevices(ndevs);
+}
+
+int brisbane_device_set_default(int device) {
+    return Platform::GetPlatform()->DeviceSetDefault(device);
+}
+
+int brisbane_device_get_default(int* device) {
+    return Platform::GetPlatform()->DeviceGetDefault(device);
 }
 
 int brisbane_kernel_create(const char* name, brisbane_kernel* kernel) {

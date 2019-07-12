@@ -18,6 +18,7 @@ char brisbane_log_prefix_[256];
 
 Platform::Platform() {
     init_ = false;
+    nplatforms_ = BRISBANE_MAX_NDEVS;
     ndevs_ = 0;
 }
 
@@ -54,15 +55,14 @@ int Platform::Init(int* argc, char*** argv) {
 }
 
 int Platform::GetCLPlatforms() {
-    cl_uint num_platforms = BRISBANE_MAX_NDEVS;
-    cl_uint num_devices;
     bool enabled = true;
 
-    clerr_ = clGetPlatformIDs(num_platforms, cl_platforms_, &num_platforms);
-    _trace("num_platforms[%u]", num_platforms);
+    clerr_ = clGetPlatformIDs((cl_uint) nplatforms_, cl_platforms_, (cl_uint*) &nplatforms_);
+    _trace("nplatforms[%u]", nplatforms_);
+    cl_uint num_devices;
     char platform_vendor[64];
     char platform_name[64];
-    for (cl_uint i = 0; i < num_platforms; i++) {
+    for (int i = 0; i < nplatforms_; i++) {
         clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(platform_vendor), platform_vendor, NULL);
         clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
         clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
@@ -75,12 +75,28 @@ int Platform::GetCLPlatforms() {
             ndevs_++;
         }
     }
+    if (ndevs_) device_default_ = devices_[0]->type();
     if (!enabled) exit(-1);
+    return BRISBANE_OK;
+}
+
+int Platform::InfoNumPlatforms(int* nplatforms) {
+    *nplatforms = nplatforms_;
     return BRISBANE_OK;
 }
 
 int Platform::InfoNumDevices(int* ndevs) {
     *ndevs = ndevs_;
+    return BRISBANE_OK;
+}
+
+int Platform::DeviceSetDefault(int device) {
+    device_default_ = device;
+    return BRISBANE_OK;
+}
+
+int Platform::DeviceGetDefault(int* device) {
+    *device = device_default_;
     return BRISBANE_OK;
 }
 

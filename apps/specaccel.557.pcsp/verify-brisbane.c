@@ -60,7 +60,7 @@ void verify(int no_time_steps, char *Class, int *verified)
   brisbane_task task0;
   brisbane_task_create(&task0);
   brisbane_task_d2h_full(task0, mem_rhs, rhs);
-  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_default, NULL, true);
 
   rhs_norm(xcr);
 

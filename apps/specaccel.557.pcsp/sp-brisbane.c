@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
   brisbane_task task0;
   brisbane_task_create(&task0);
   brisbane_task_d2h_full(task0, mem_u, u);
-  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_default, NULL, true);
 
   verify(niter, &Class, &verified);
   mflops = 0.0;

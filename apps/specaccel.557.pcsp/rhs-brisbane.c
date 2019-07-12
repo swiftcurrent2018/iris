@@ -68,7 +68,7 @@ void compute_rhs()
   brisbane_task task0;
   brisbane_task_create(&task0);
   brisbane_task_kernel(task0, kernel_compute_rhs_0, 3, kernel_compute_rhs_0_off, kernel_compute_rhs_0_idx);
-  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
   #pragma omp target teams distribute parallel for private(rho_inv,aux,i,j,k) collapse(2) 
@@ -118,7 +118,7 @@ void compute_rhs()
   brisbane_task task1;
   brisbane_task_create(&task1);
   brisbane_task_kernel(task1, kernel_compute_rhs_1, 2, kernel_compute_rhs_1_off, kernel_compute_rhs_1_idx);
-  brisbane_task_submit(task1, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task1, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(2)
     for (k = 0; k <= gp2-1; k++) {
@@ -164,7 +164,7 @@ void compute_rhs()
   brisbane_task task2;
   brisbane_task_create(&task2);
   brisbane_task_kernel(task2, kernel_compute_rhs_2, 3, kernel_compute_rhs_2_off, kernel_compute_rhs_2_idx);
-  brisbane_task_submit(task2, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task2, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
   #pragma omp target teams distribute parallel for private(i,j,k,uijk,up1,um1) collapse(2)
@@ -234,7 +234,7 @@ void compute_rhs()
   brisbane_task task3;
   brisbane_task_create(&task3);
   brisbane_task_kernel(task3, kernel_compute_rhs_3, 3, kernel_compute_rhs_3_off, kernel_compute_rhs_3_idx);
-  brisbane_task_submit(task3, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task3, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(j,k,m) collapse(3)
     for (k = 1; k <= nz2; k++){
@@ -261,7 +261,7 @@ void compute_rhs()
   brisbane_task task4;
   brisbane_task_create(&task4);
   brisbane_task_kernel(task4, kernel_compute_rhs_4, 3, kernel_compute_rhs_4_off, kernel_compute_rhs_4_idx);
-  brisbane_task_submit(task4, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task4, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
   #pragma omp target teams distribute parallel for private(j,k,m) collapse(2)
@@ -293,7 +293,7 @@ void compute_rhs()
   brisbane_task task5;
   brisbane_task_create(&task5);
   brisbane_task_kernel(task5, kernel_compute_rhs_5, 3, kernel_compute_rhs_5_off, kernel_compute_rhs_5_idx);
-  brisbane_task_submit(task5, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task5, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD    
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(2)
@@ -331,7 +331,7 @@ void compute_rhs()
   brisbane_task task6;
   brisbane_task_create(&task6);
   brisbane_task_kernel(task6, kernel_compute_rhs_6, 1, kernel_compute_rhs_6_off, kernel_compute_rhs_6_idx);
-  brisbane_task_submit(task6, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task6, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(j,k,m)
     for (k = 1; k <= nz2; k++){
@@ -359,7 +359,7 @@ void compute_rhs()
   brisbane_task task7;
   brisbane_task_create(&task7);
   brisbane_task_kernel(task7, kernel_compute_rhs_7, 1, kernel_compute_rhs_7_off, kernel_compute_rhs_7_idx);
-  brisbane_task_submit(task7, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task7, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(j,k,m)
     for (k = 1; k <= nz2; k++){
@@ -405,7 +405,7 @@ void compute_rhs()
   brisbane_task task8;
   brisbane_task_create(&task8);
   brisbane_task_kernel(task8, kernel_compute_rhs_8, 3, kernel_compute_rhs_8_off, kernel_compute_rhs_8_idx);
-  brisbane_task_submit(task8, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task8, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
   #pragma omp target teams distribute parallel for private(vijk,vp1,vm1,i,j,k) collapse(2)
@@ -474,7 +474,7 @@ void compute_rhs()
   brisbane_task task9;
   brisbane_task_create(&task9);
   brisbane_task_kernel(task9, kernel_compute_rhs_9, 3, kernel_compute_rhs_9_off, kernel_compute_rhs_9_idx);
-  brisbane_task_submit(task9, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task9, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,k,m) collapse(3)
     for (k = 1; k <= nz2; k++) {
@@ -501,7 +501,7 @@ void compute_rhs()
   brisbane_task task10;
   brisbane_task_create(&task10);
   brisbane_task_kernel(task10, kernel_compute_rhs_10, 3, kernel_compute_rhs_10_off, kernel_compute_rhs_10_idx);
-  brisbane_task_submit(task10, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task10, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,k,m) collapse(3)
     for (k = 1; k <= nz2; k++) {
@@ -526,7 +526,7 @@ void compute_rhs()
   brisbane_task task11;
   brisbane_task_create(&task11);
   brisbane_task_kernel(task11, kernel_compute_rhs_11, 3, kernel_compute_rhs_11_off, kernel_compute_rhs_11_idx);
-  brisbane_task_submit(task11, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task11, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(2)
@@ -564,7 +564,7 @@ void compute_rhs()
   brisbane_task task12;
   brisbane_task_create(&task12);
   brisbane_task_kernel(task12, kernel_compute_rhs_12, 3, kernel_compute_rhs_12_off, kernel_compute_rhs_12_idx);
-  brisbane_task_submit(task12, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task12, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,k,m) collapse(3) 
     for (k = 1; k <= nz2; k++) {
@@ -592,7 +592,7 @@ void compute_rhs()
   brisbane_task task13;
   brisbane_task_create(&task13);
   brisbane_task_kernel(task13, kernel_compute_rhs_13, 3, kernel_compute_rhs_13_off, kernel_compute_rhs_13_idx);
-  brisbane_task_submit(task13, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task13, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,k,m) collapse(3) 
     for (k = 1; k <= nz2; k++) {
@@ -637,7 +637,7 @@ void compute_rhs()
   brisbane_task task14;
   brisbane_task_create(&task14);
   brisbane_task_kernel(task14, kernel_compute_rhs_14, 3, kernel_compute_rhs_14_off, kernel_compute_rhs_14_idx);
-  brisbane_task_submit(task14, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task14, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
   #pragma omp target teams distribute parallel for private(i,j,k,wijk,wp1,wm1) collapse(2)
@@ -706,7 +706,7 @@ void compute_rhs()
   brisbane_task task15;
   brisbane_task_create(&task15);
   brisbane_task_kernel(task15, kernel_compute_rhs_15, 3, kernel_compute_rhs_15_off, kernel_compute_rhs_15_idx);
-  brisbane_task_submit(task15, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task15, brisbane_default, NULL, true);
 #if 0
   #pragma omp target teams distribute parallel for private(i,j,m) collapse(3) 
     for (j = 1; j <= ny2; j++) {
@@ -733,7 +733,7 @@ void compute_rhs()
   brisbane_task task16;
   brisbane_task_create(&task16);
   brisbane_task_kernel(task16, kernel_compute_rhs_16, 3, kernel_compute_rhs_16_off, kernel_compute_rhs_16_idx);
-  brisbane_task_submit(task16, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task16, brisbane_default, NULL, true);
 #if 0
   #pragma omp target teams distribute parallel for private(i,j,m) collapse(3)
     for (j = 1; j <= ny2; j++) {
@@ -758,7 +758,7 @@ void compute_rhs()
   brisbane_task task17;
   brisbane_task_create(&task17);
   brisbane_task_kernel(task17, kernel_compute_rhs_17, 3, kernel_compute_rhs_17_off, kernel_compute_rhs_17_idx);
-  brisbane_task_submit(task17, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task17, brisbane_default, NULL, true);
 #if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(2)
@@ -796,7 +796,7 @@ void compute_rhs()
   brisbane_task task18;
   brisbane_task_create(&task18);
   brisbane_task_kernel(task18, kernel_compute_rhs_18, 3, kernel_compute_rhs_18_off, kernel_compute_rhs_18_idx);
-  brisbane_task_submit(task18, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task18, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,j,m) collapse(3) 
     for (j = 1; j <= ny2; j++) {
@@ -824,7 +824,7 @@ void compute_rhs()
   brisbane_task task19;
   brisbane_task_create(&task19);
   brisbane_task_kernel(task19, kernel_compute_rhs_19, 3, kernel_compute_rhs_19_off, kernel_compute_rhs_19_idx);
-  brisbane_task_submit(task19, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task19, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,j,m) collapse(3)
     for (j = 1; j <= ny2; j++) {
@@ -847,7 +847,7 @@ void compute_rhs()
   brisbane_task task20;
   brisbane_task_create(&task20);
   brisbane_task_kernel(task20, kernel_compute_rhs_20, 3, kernel_compute_rhs_20_off, kernel_compute_rhs_20_idx);
-  brisbane_task_submit(task20, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task20, brisbane_default, NULL, true);
 #if 0
     #pragma omp target teams distribute parallel for private(i,j,k,m) collapse(3)
     for (k = 1; k <= nz2; k++) {

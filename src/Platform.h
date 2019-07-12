@@ -29,7 +29,11 @@ public:
     int Init(int* argc, char*** argv);
     int GetCLPlatforms();
 
+    int InfoNumPlatforms(int* nplatforms);
     int InfoNumDevices(int* ndevs);
+
+    int DeviceSetDefault(int device);
+    int DeviceGetDefault(int* device);
 
     int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
     int KernelSetArg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
@@ -56,6 +60,7 @@ public:
     int TimerNow(double* time);
 
     int ndevs() { return ndevs_; }
+    int device_default() { return device_default_; }
     Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
     Scheduler* scheduler() { return scheduler_; }
@@ -73,7 +78,9 @@ private:
     bool init_;
 
     Device* devices_[BRISBANE_MAX_NDEVS];
+    int nplatforms_;
     int ndevs_;
+    int device_default_;
 
     cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
     cl_context cl_contexts_[BRISBANE_MAX_NDEVS];

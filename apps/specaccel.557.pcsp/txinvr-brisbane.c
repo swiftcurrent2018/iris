@@ -58,7 +58,7 @@ void txinvr()
   brisbane_task task0;
   brisbane_task_create(&task0);
   brisbane_task_kernel(task0, kernel_txinvr_0, 3, kernel_txinvr_0_off, kernel_txinvr_0_idx);
-  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_default, NULL, true);
 #if 0
 //  if (timeron) timer_start(t_txinvr);
 #pragma omp target //present(rho_i,us,vs,ws,rhs,speed,qs)

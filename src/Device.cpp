@@ -158,7 +158,7 @@ void Device::ExecuteKernel(Command* cmd) {
     clerr_ = clFinish(clcmdq_);
     _clerror(clerr_);
     double time = timer_->Stop(11);
-    _info("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
+    _trace("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
     kernel->history()->AddKernel(cmd, this, time);
 }
 

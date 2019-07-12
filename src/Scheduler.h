@@ -21,6 +21,7 @@ public:
 
     void Enqueue(Task* task);
 
+    Platform* platform() { return platform_; }
     Device** devices() { return devices_; }
     int ndevs() { return ndevs_; }
 

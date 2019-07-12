@@ -56,7 +56,11 @@ typedef struct _brisbane_kernel*    brisbane_kernel;
 extern int brisbane_init(int* argc, char*** argv);
 extern int brisbane_finalize();
 
+extern int brisbane_info_nplatforms(int* nplatforms);
 extern int brisbane_info_ndevs(int* ndevs);
+
+extern int brisbane_device_set_default(int device);
+extern int brisbane_device_get_default(int* device);
 
 extern int brisbane_kernel_create(const char* name, brisbane_kernel* kernel);
 extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);

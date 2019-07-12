@@ -29,7 +29,7 @@ Task::~Task() {
 }
 
 void Task::set_brs_device(int brs_device) {
-    brs_device_ = brs_device;
+    brs_device_ = brs_device == brisbane_default ? platform_->device_default() : brs_device;
     if (!HasSubtasks()) return;
     for (std::vector<Task*>::iterator it = subtasks_.begin(); it != subtasks_.end(); ++it)
         (*it)->set_brs_device(brs_device);
