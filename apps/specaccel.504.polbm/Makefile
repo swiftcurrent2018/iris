@@ -1,18 +1,19 @@
 BRISBANE=../../install
+LDFLAGS=-L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
 
-all: polbm polbm-brisbane
+all: lbm lbm-brisbane
 
-polbm: lbm.c main.c
+lbm: lbm.c main.c
 	g++ -I . -DSPEC -o $@ $^
 
-polbm-brisbane: lbm.c main-brisbane.c 
-	g++ -I. -I$(BRISBANE)/include -DSPEC -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
+lbm-brisbane: lbm-brisbane.c main-brisbane.c
+	g++ -I. -I$(BRISBANE)/include -DSPEC -o $@ $^ $(LDFLAGS)
 
-run: polbm
+run: lbm
 	./$^ 20 reference.dat 0 1 100_100_130_cf_a.of
 
-run-brisbane: polbm-brisbane
+run-brisbane: lbm-brisbane
 	./$^ 20 reference.dat 0 1 100_100_130_cf_a.of
 
 clean:
-	rm -f polbm polbm-brisbane
+	rm -f lbm lbm-brisbane

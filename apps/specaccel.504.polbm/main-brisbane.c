@@ -3,7 +3,7 @@
 /*############################################################################*/
 
 #include "main.h"
-#include "lbm.h"
+#include "lbm-brisbane.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,6 +27,7 @@ double * dst;
 /*############################################################################*/
 
 int main( int nArgs, char* arg[] ) {
+    brisbane_init(&nArgs, &arg);
 	MAIN_Param param;
 	int t;
 
@@ -51,6 +52,7 @@ int main( int nArgs, char* arg[] ) {
 	} 
 	MAIN_finalize( &param );
 
+    brisbane_finalize();
 	return 0;
 }
 
@@ -158,7 +160,7 @@ void MAIN_finalize( const MAIN_Param* param ) {
 	if( param->action == COMPARE )
 		LBM_compareVelocityField( *srcGrid, param->resultFilename, TRUE );
 	if( param->action == STORE )
-	LBM_storeVelocityField( *srcGrid, param->resultFilename, FALSE );
+	LBM_storeVelocityField( *srcGrid, param->resultFilename, TRUE );
 
 	LBM_freeGrid( (double**) &srcGrid );
 	LBM_freeGrid( (double**) &dstGrid );
