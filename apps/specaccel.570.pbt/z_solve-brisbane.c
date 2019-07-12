@@ -63,12 +63,40 @@ void z_solve()
 
   ksize = grid_points[2]-1;
 
+  brisbane_mem mem_fjacZ;
+  brisbane_mem mem_njacZ;
+  brisbane_mem mem_lhsZ;
+  brisbane_mem_create(sizeof(double) * 5 * 5 * (PROBLEM_SIZE + 1) * (IMAXP - 1) * (JMAXP - 1), &mem_fjacZ);
+  brisbane_mem_create(sizeof(double) * 5 * 5 * (PROBLEM_SIZE + 1) * (IMAXP - 1) * (JMAXP - 1), &mem_njacZ);
+  brisbane_mem_create(sizeof(double) * 5 * 5 * 3 * (PROBLEM_SIZE) * (IMAXP - 1) * (JMAXP - 1), &mem_lhsZ);
+
   //---------------------------------------------------------------------
   // Compute the indices for storing the block-diagonal matrix;
   // determine c (labeled f) and s jacobians
   //---------------------------------------------------------------------
   #pragma omp target data map(alloc:lhsZ[:][:][:][:][:][:],fjacZ[:][:][:][:][:],njacZ[:][:][:][:][:]) //present(rho_i,u,qs,rhs,square)
   {
+    size_t kernel_z_solve_0_off[2] = { 1, 0 };
+    size_t kernel_z_solve_0_idx[2] = { gp02, ksize + 1 };
+    brisbane_kernel kernel_z_solve_0;
+    brisbane_kernel_create("z_solve_0", &kernel_z_solve_0);
+    brisbane_kernel_setmem(kernel_z_solve_0, 0, mem_u, brisbane_r);
+    brisbane_kernel_setmem(kernel_z_solve_0, 1, mem_fjacZ, brisbane_w);
+    brisbane_kernel_setmem(kernel_z_solve_0, 2, mem_njacZ, brisbane_w);
+    brisbane_kernel_setmem(kernel_z_solve_0, 3, mem_qs, brisbane_r);
+    brisbane_kernel_setmem(kernel_z_solve_0, 4, mem_square, brisbane_r);
+    brisbane_kernel_setarg(kernel_z_solve_0, 5, sizeof(double), &c1);
+    brisbane_kernel_setarg(kernel_z_solve_0, 6, sizeof(double), &c2);
+    brisbane_kernel_setarg(kernel_z_solve_0, 7, sizeof(double), &c3c4);
+    brisbane_kernel_setarg(kernel_z_solve_0, 8, sizeof(double), &c1345);
+    brisbane_kernel_setarg(kernel_z_solve_0, 9, sizeof(double), &con43);
+    brisbane_kernel_setarg(kernel_z_solve_0, 10, sizeof(int), &gp12);
+
+    brisbane_task task0;
+    brisbane_task_create(&task0);
+    brisbane_task_kernel(task0, kernel_z_solve_0, 2, kernel_z_solve_0_off, kernel_z_solve_0_idx);
+    brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+#if 0
     #pragma omp target teams distribute parallel for collapse(2) private(i,j,k,temp1,temp2,temp3) 
     for (k = 0; k <= ksize; k++) {
       for (i = 1; i <= gp02; i++) {
@@ -148,11 +176,26 @@ void z_solve()
         }
       }
     }
+#endif
+
     //---------------------------------------------------------------------
     // now jacobians set, so form left hand side in z direction
     //---------------------------------------------------------------------
     //lhsZ[j][i]init(lhsZ[j][i], ksize);
     // zero the whole left hand side for starters
+    size_t kernel_z_solve_1_off[3] = { 1, 0, 0 };
+    size_t kernel_z_solve_1_idx[3] = { gp02, 5, 5 };
+    brisbane_kernel kernel_z_solve_1;
+    brisbane_kernel_create("z_solve_1", &kernel_z_solve_1);
+    brisbane_kernel_setmem(kernel_z_solve_1, 0, mem_lhsZ, brisbane_w);
+    brisbane_kernel_setarg(kernel_z_solve_1, 1, sizeof(int), &ksize);
+    brisbane_kernel_setarg(kernel_z_solve_1, 2, sizeof(int), &gp12);
+
+    brisbane_task task1;
+    brisbane_task_create(&task1);
+    brisbane_task_kernel(task1, kernel_z_solve_1, 3, kernel_z_solve_1_off, kernel_z_solve_1_idx);
+    brisbane_task_submit(task1, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j) collapse(3)
 #else
@@ -175,8 +218,21 @@ void z_solve()
         }
       }
     }
+#endif
 
     // next, set all diagonal values to 1. This is overkill, but convenient
+    size_t kernel_z_solve_2_off[3] = { 1, 1, 0 };
+    size_t kernel_z_solve_2_idx[3] = { gp12, gp02, 5 };
+    brisbane_kernel kernel_z_solve_2;
+    brisbane_kernel_create("z_solve_2", &kernel_z_solve_2);
+    brisbane_kernel_setmem(kernel_z_solve_2, 0, mem_lhsZ, brisbane_w);
+    brisbane_kernel_setarg(kernel_z_solve_2, 1, sizeof(int), &ksize);
+
+    brisbane_task task2;
+    brisbane_task_create(&task2);
+    brisbane_task_kernel(task2, kernel_z_solve_2, 3, kernel_z_solve_2_off, kernel_z_solve_2_idx);
+    brisbane_task_submit(task2, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j) collapse(2)
 #else
@@ -193,7 +249,28 @@ void z_solve()
         }
       }
     }
+#endif
 
+    size_t kernel_z_solve_3_off[3] = { 1, 1, 1 };
+    size_t kernel_z_solve_3_idx[3] = { gp12, gp02, ksize - 1 };
+    brisbane_kernel kernel_z_solve_3;
+    brisbane_kernel_create("z_solve_3", &kernel_z_solve_3);
+    brisbane_kernel_setmem(kernel_z_solve_3, 0, mem_lhsZ, brisbane_w);
+    brisbane_kernel_setmem(kernel_z_solve_3, 1, mem_fjacZ, brisbane_r);
+    brisbane_kernel_setmem(kernel_z_solve_3, 2, mem_njacZ, brisbane_r);
+    brisbane_kernel_setarg(kernel_z_solve_3, 3, sizeof(double), &dttz1);
+    brisbane_kernel_setarg(kernel_z_solve_3, 4, sizeof(double), &dttz2);
+    brisbane_kernel_setarg(kernel_z_solve_3, 5, sizeof(double), &dz1);
+    brisbane_kernel_setarg(kernel_z_solve_3, 6, sizeof(double), &dz2);
+    brisbane_kernel_setarg(kernel_z_solve_3, 7, sizeof(double), &dz3);
+    brisbane_kernel_setarg(kernel_z_solve_3, 8, sizeof(double), &dz4);
+    brisbane_kernel_setarg(kernel_z_solve_3, 9, sizeof(double), &dz5);
+
+    brisbane_task task3;
+    brisbane_task_create(&task3);
+    brisbane_task_kernel(task3, kernel_z_solve_3, 3, kernel_z_solve_3_off, kernel_z_solve_3_idx);
+    brisbane_task_submit(task3, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for collapse(2) private(i,j,k)
 #else
@@ -367,6 +444,7 @@ void z_solve()
         }
       }
     }
+#endif
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
 
@@ -389,6 +467,18 @@ void z_solve()
     // multiply rhs(0) by b_inverse(0) and copy to rhs
     //---------------------------------------------------------------------
     //binvcrhs( lhsZ[0][i][BB], lhsZ[j][0][i][j][CC], rhs[0][j][i] );
+    size_t kernel_z_solve_4_off[2] = { 1, 1 };
+    size_t kernel_z_solve_4_idx[2] = { gp12, gp02 };
+    brisbane_kernel kernel_z_solve_4;
+    brisbane_kernel_create("z_solve_4", &kernel_z_solve_4);
+    brisbane_kernel_setmem(kernel_z_solve_4, 0, mem_lhsZ, brisbane_rw);
+    brisbane_kernel_setmem(kernel_z_solve_4, 1, mem_rhs, brisbane_rw);
+
+    brisbane_task task4;
+    brisbane_task_create(&task4);
+    brisbane_task_kernel(task4, kernel_z_solve_4, 2, kernel_z_solve_4_off, kernel_z_solve_4_idx);
+    brisbane_task_submit(task4, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j,pivot, coeff) 
 #else
@@ -684,10 +774,26 @@ void z_solve()
 
       }
     }
+#endif
+
     //---------------------------------------------------------------------
     // begin inner most do loop
     // do all the elements of the cell unless last
     //---------------------------------------------------------------------
+    size_t kernel_z_solve_5_off[1] = { 1 };
+    size_t kernel_z_solve_5_idx[1] = { gp02 };
+    brisbane_kernel kernel_z_solve_5;
+    brisbane_kernel_create("z_solve_5", &kernel_z_solve_5);
+    brisbane_kernel_setmem(kernel_z_solve_5, 0, mem_lhsZ, brisbane_rw);
+    brisbane_kernel_setmem(kernel_z_solve_5, 1, mem_rhs, brisbane_rw);
+    brisbane_kernel_setarg(kernel_z_solve_5, 2, sizeof(int), &ksize);
+    brisbane_kernel_setarg(kernel_z_solve_5, 3, sizeof(int), &gp12);
+
+    brisbane_task task5;
+    brisbane_task_create(&task5);
+    brisbane_task_kernel(task5, kernel_z_solve_5, 1, kernel_z_solve_5_off, kernel_z_solve_5_idx);
+    brisbane_task_submit(task5, brisbane_cpu, NULL, true);
+#if 0
     #pragma omp target teams distribute parallel for private(k,j) 
     for (i = 1; i <= gp02; i++) {
       for (k = 1; k <= ksize-1; k++) {
@@ -1171,6 +1277,8 @@ void z_solve()
         }/*end loop k*/
       }/*end loop i*/
     }/*end loop j*/
+#endif
+
     //---------------------------------------------------------------------
     // Now finish up special cases for last cell
     //---------------------------------------------------------------------
@@ -1179,6 +1287,19 @@ void z_solve()
     // rhs(ksize) = rhs(ksize) - A*rhs(ksize-1)
     //---------------------------------------------------------------------
     //matvec_sub(lhsZ[i][j][AA], rhs[ksize-1][ksize][i][j], rhs[ksize][j][i]);
+    size_t kernel_z_solve_6_off[2] = { 1, 1 };
+    size_t kernel_z_solve_6_idx[2] = { gp12, gp02 };
+    brisbane_kernel kernel_z_solve_6;
+    brisbane_kernel_create("z_solve_6", &kernel_z_solve_6);
+    brisbane_kernel_setmem(kernel_z_solve_6, 0, mem_lhsZ, brisbane_rw);
+    brisbane_kernel_setmem(kernel_z_solve_6, 1, mem_rhs, brisbane_rw);
+    brisbane_kernel_setarg(kernel_z_solve_6, 2, sizeof(int), &ksize);
+
+    brisbane_task task6;
+    brisbane_task_create(&task6);
+    brisbane_task_kernel(task6, kernel_z_solve_6, 2, kernel_z_solve_6_off, kernel_z_solve_6_idx);
+    brisbane_task_submit(task6, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j)
 #else
@@ -1225,11 +1346,25 @@ void z_solve()
           - lhsZ[4][4][AA][ksize][i][j]*rhs[ksize-1][j][i][4];
       }
     }
+#endif
+
     //---------------------------------------------------------------------
     // B(ksize) = B(ksize) - C(ksize-1)*A(ksize)
     // matmul_sub(AA,i,j,ksize,c,
     // $              CC,i,j,ksize-1,c,BB,i,j,ksize)
     //---------------------------------------------------------------------
+    size_t kernel_z_solve_7_off[2] = { 1, 1 };
+    size_t kernel_z_solve_7_idx[2] = { gp12, gp02 };
+    brisbane_kernel kernel_z_solve_7;
+    brisbane_kernel_create("z_solve_7", &kernel_z_solve_7);
+    brisbane_kernel_setmem(kernel_z_solve_7, 0, mem_lhsZ, brisbane_rw);
+    brisbane_kernel_setarg(kernel_z_solve_7, 1, sizeof(int), &ksize);
+
+    brisbane_task task7;
+    brisbane_task_create(&task7);
+    brisbane_task_kernel(task7, kernel_z_solve_7, 2, kernel_z_solve_7_off, kernel_z_solve_7_idx);
+    brisbane_task_submit(task7, brisbane_cpu, NULL, true);
+#if 0
     //matmul_sub(lhsZ[ksize-1][i][AA], lhsZ[j][ksize][i][j][CC], lhsZ[j][i][ksize][BB]);
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j)
@@ -1380,10 +1515,25 @@ void z_solve()
 
       }
     }
+#endif
+
     //---------------------------------------------------------------------
     // multiply rhs(ksize) by b_inverse(ksize) and copy to rhs
     //---------------------------------------------------------------------
     //binvrhs( lhsZ[i][j][BB], rhs[ksize][ksize][i][j] );
+    size_t kernel_z_solve_8_off[2] = { 1, 1 };
+    size_t kernel_z_solve_8_idx[2] = { gp12, gp02 };
+    brisbane_kernel kernel_z_solve_8;
+    brisbane_kernel_create("z_solve_8", &kernel_z_solve_8);
+    brisbane_kernel_setmem(kernel_z_solve_8, 0, mem_lhsZ, brisbane_rw);
+    brisbane_kernel_setmem(kernel_z_solve_8, 1, mem_rhs, brisbane_rw);
+    brisbane_kernel_setarg(kernel_z_solve_8, 2, sizeof(int), &ksize);
+
+    brisbane_task task8;
+    brisbane_task_create(&task8);
+    brisbane_task_kernel(task8, kernel_z_solve_8, 2, kernel_z_solve_8_off, kernel_z_solve_8_idx);
+    brisbane_task_submit(task8, brisbane_cpu, NULL, true);
+#if 0
 #ifdef SPEC_USE_INNER_SIMD
     #pragma omp target teams distribute parallel for private(i,j,pivot,coeff) 
 #else
@@ -1544,6 +1694,7 @@ void z_solve()
         rhs[ksize][j][i][3]   = rhs[ksize][j][i][3]   - coeff*rhs[ksize][j][i][4];
       }
     }
+#endif
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
 
@@ -1554,10 +1705,28 @@ void z_solve()
     // after u(kstart) will be sent to next cell
     //---------------------------------------------------------------------
 
-    for (k = ksize-1; k >= 0; k--) {
+    size_t kernel_z_solve_9_off[2] = { 1, 1 };
+    size_t kernel_z_solve_9_idx[2] = { gp02, gp12 };
+    brisbane_kernel kernel_z_solve_9;
+    brisbane_kernel_create("z_solve_9", &kernel_z_solve_9);
+    brisbane_kernel_setmem(kernel_z_solve_9, 0, mem_lhsZ, brisbane_r);
+    brisbane_kernel_setmem(kernel_z_solve_9, 1, mem_rhs, brisbane_rw);
+    brisbane_kernel_setarg(kernel_z_solve_9, 2, sizeof(int), &ksize);
+
+    brisbane_task task9;
+    brisbane_task_create(&task9);
+    brisbane_task_kernel(task9, kernel_z_solve_9, 2, kernel_z_solve_9_off, kernel_z_solve_9_idx);
+    //brisbane_task_submit(task9, brisbane_cpu, NULL, true);
+#if 1
+    brisbane_task task10;
+    brisbane_task_create(&task10);
+    brisbane_task_d2h_full(task10, mem_rhs, rhs);
+    brisbane_task_d2h_full(task10, mem_lhsZ, lhsZ);
+    brisbane_task_submit(task10, brisbane_cpu, NULL, true);
       #pragma omp target teams distribute parallel for collapse(2) private(i,j,m,n)
       for (j = 1; j <= gp12; j++) {
         for (i = 1; i <= gp02; i++) {
+        for (k = ksize-1; k >= 0; k--) {
           for (m = 0; m < BLOCK_SIZE; m++) {
             for (n = 0; n < BLOCK_SIZE; n++) {
               rhs[k][j][i][m] = rhs[k][j][i][m]
@@ -1567,5 +1736,14 @@ void z_solve()
         }
       }
     }
+    brisbane_task task11;
+    brisbane_task_create(&task11);
+    brisbane_task_h2d_full(task11, mem_rhs, rhs);
+    brisbane_task_submit(task11, brisbane_cpu, NULL, true);
+#endif
   }/*end omp target data */
+
+  brisbane_mem_release(mem_fjacZ);
+  brisbane_mem_release(mem_njacZ);
+  brisbane_mem_release(mem_lhsZ);
 }

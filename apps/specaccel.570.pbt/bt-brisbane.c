@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
   #pragma omp target update from(u)
   brisbane_task task0;
   brisbane_task_create(&task0);
-  //brisbane_task_d2h_full(task0, mem_u, u);
+  brisbane_task_d2h_full(task0, mem_u, u);
   brisbane_task_submit(task0, brisbane_cpu, NULL, true);
 
   verify(niter, &Class, &verified);

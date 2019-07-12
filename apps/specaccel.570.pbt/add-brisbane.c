@@ -55,10 +55,7 @@ void add()
 
   brisbane_task task0;
   brisbane_task_create(&task0);
-  brisbane_task_h2d_full(task0, mem_u, u);
-  brisbane_task_h2d_full(task0, mem_rhs, rhs);
   brisbane_task_kernel(task0, kernel_add_0, 3, kernel_add_0_off, kernel_add_0_idx);
-  brisbane_task_d2h_full(task0, mem_u, u);
   brisbane_task_submit(task0, brisbane_cpu, NULL, true);
 #if 0
 #pragma omp target //present(rhs,u)

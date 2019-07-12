@@ -249,7 +249,7 @@ int Platform::Finalize() {
     if (singleton_ == NULL) return BRISBANE_ERR;
     if (singleton_) delete singleton_;
     singleton_ = NULL;
-    _info("total execution time:[%lf] sec. initialize:[%lf] sec. e-i:[%lf] sec", time_app, time_init, time_app - time_init);
+    _info("total execution time:[%lf] sec. initialize:[%lf] sec. t-i:[%lf] sec", time_app, time_init, time_app - time_init);
     return BRISBANE_OK;
 }
 
