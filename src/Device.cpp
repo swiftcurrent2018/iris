@@ -103,6 +103,7 @@ void Device::ExecuteKernel(Command* cmd) {
     int dim = cmd->dim();
     size_t* off = cmd->off();
     size_t* gws = cmd->ndr();
+    size_t gws0 = gws[0];
     size_t* lws = NULL;
     bool reduction = false;
     int max_idx = 0;
@@ -120,11 +121,9 @@ void Device::ExecuteKernel(Command* cmd) {
                 lws[1] = 1;
                 lws[2] = 1;
                 while (max_compute_units_ * lws[0] < gws[0]) lws[0] <<= 1;
-                while (max_work_item_sizes_[0] < lws[0]) lws[0] >>= 1;
-                lws[0] = 100;
+                while (max_work_item_sizes_[0] / 4 < lws[0]) lws[0] >>= 1;
                 size_t expansion = (gws[0] + lws[0] - 1) / lws[0];
                 gws[0] = lws[0] * expansion;
-                _debug("expansion[%lu] mem->type_size[%d]", expansion, mem->type_size());
                 mem->Expand(expansion);
                 clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
                 _clerror(clerr_);
@@ -140,8 +139,8 @@ void Device::ExecuteKernel(Command* cmd) {
         }
     }
     if (reduction) {
-        _debug("max_idx+1[%d] gws[%lu]", max_idx + 1, gws[0]);
-        clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), gws);
+        _trace("max_idx+1[%d] gws[%lu]", max_idx + 1, gws0);
+        clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
         _clerror(clerr_);
     }
     _trace("kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);

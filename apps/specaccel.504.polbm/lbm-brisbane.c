@@ -35,6 +35,7 @@ void LBM_allocateGrid( double** ptr, double ** org_ptr ) {
 	*ptr += margin;
         marginSize = margin;
 	gridSize= size/sizeof(double);
+    printf("[%s:%d] margin[%lu] size[%lu] marginSize[%lu] N_CELL_ENTRIES[%d]\n", __FILE__, __LINE__, margin, size, marginSize, N_CELL_ENTRIES);
 }
 
 /*############################################################################*/
@@ -163,6 +164,7 @@ void LBM_performStreamCollide( LBM_Grid srcGrid, LBM_Grid dstGrid ) {
 
 	/*voption indep*/
 
+    printf("[%s:%d]\n", __FILE__, __LINE__);
 #if defined(SPEC_NEED_EXPLICIT_SIZE)
 #pragma omp target map(alloc:srcGrid[0:GRID_SIZE]), map(alloc:dstGrid[0:GRID_SIZE])
 #else
@@ -271,7 +273,7 @@ void LBM_handleInOutFlow( LBM_Grid srcGrid ) {
 	/* inflow */
 	/*voption indep*/
 
-#ifdef DBG
+#if 1
 	  printf("srcGrid = %x, %d\n",srcGrid, GRID_SIZE); 
 #endif
 
@@ -285,6 +287,7 @@ void LBM_handleInOutFlow( LBM_Grid srcGrid ) {
 #pragma omp teams distribute parallel for simd private( ux, uy, uz, rho, ux1, uy1, uz1, rho1, \
                                   ux2, uy2, uz2, rho2, u2, px, py ) 
 	SWEEP_START( 0, 0, 0, 0, 0, 1 )
+        printf("[%s:%d] i[%d]\n", __FILE__, __LINE__, i);
 		rho1 = + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, C  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, N  )
 		       + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, S  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, E  )
 		       + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, W  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, T  )

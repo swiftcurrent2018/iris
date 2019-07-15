@@ -43,6 +43,7 @@ void Reduction::SumLong(Mem* mem, long* host, size_t size) {
 void Reduction::SumDouble(Mem* mem, double* host, size_t size) {
     double* src = (double*) mem->host_inter();
     double sum = 0.0;
+    _debug("mem->expansion[%d]", mem->expansion());
     for (int i = 0; i < mem->expansion(); i++) sum += src[i]; 
     if (size != sizeof(sum)) _error("size[%lu] sizeof(sum[%lu])", size, sizeof(sum));
     pthread_mutex_lock(&mutex_);

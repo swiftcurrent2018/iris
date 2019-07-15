@@ -35,6 +35,7 @@ int main( int nArgs, char* arg[] ) {
 	MAIN_printInfo( &param );
 	MAIN_initialize( &param );
 
+    printf("[%s:%d] gridSize[%lu] nTimeStep[%d]\n", __FILE__, __LINE__, gridSize, param.nTimeSteps);
   #pragma omp target data map(tofrom:src[0:gridSize]), map(to:dst[0:gridSize])
 	{
 	  for( t = 1; t <= param.nTimeSteps; t++ ) {
