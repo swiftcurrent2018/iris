@@ -2,6 +2,7 @@
 
 /*############################################################################*/
 
+#include <brisbane/brisbane.h>
 #include "lbm.h"
 #include <math.h>
 #include <stdlib.h>
@@ -16,6 +17,14 @@
 
 extern size_t gridSize;        
 extern size_t marginSize;
+
+extern double * src;
+extern double * dst;
+
+extern brisbane_mem mem_src;
+extern brisbane_mem mem_dst;
+extern brisbane_mem mem_srcGrid;
+extern brisbane_mem mem_dstGrid;;
 
 #define GRID_SIZE (SIZE_Z*SIZE_Y*SIZE_X*N_CELL_ENTRIES)
 
@@ -84,6 +93,10 @@ void LBM_swapGrids( LBM_GridPtr* grid1, LBM_GridPtr* grid2 ) {
 	LBM_GridPtr aux = *grid1;
 	*grid1 = *grid2;
 	*grid2 = aux;
+
+    brisbane_mem mem_aux = mem_srcGrid;
+    mem_srcGrid = mem_dstGrid;
+    mem_dstGrid = mem_aux;
 }
 
 /*############################################################################*/
@@ -158,21 +171,34 @@ void LBM_initializeSpecialCellsForChannel( LBM_Grid grid ) {
 /*############################################################################*/
 
 void LBM_performStreamCollide( LBM_Grid srcGrid, LBM_Grid dstGrid ) {
+{
+    size_t kernel_pSC_off[1] = { CALC_INDEX(0, 0, 0, 0) / N_CELL_ENTRIES };
+    size_t kernel_pSC_idx[1] = { CALC_INDEX(0, 0, SIZE_Z, 0) / N_CELL_ENTRIES };
+    brisbane_kernel kernel_pSC;
+    brisbane_kernel_create("pSC", &kernel_pSC);
+    brisbane_kernel_setmem(kernel_pSC, 0, mem_dstGrid, brisbane_w);
+    brisbane_kernel_setmem(kernel_pSC, 1, mem_srcGrid, brisbane_r);
+
+    brisbane_task task0;
+    brisbane_task_create(&task0);
+    brisbane_task_h2d_full(task0, mem_srcGrid, (void*) (srcGrid - marginSize));
+    brisbane_task_kernel(task0, kernel_pSC, 1, kernel_pSC_off, kernel_pSC_idx);
+    brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+#if 0
 	SWEEP_VAR
 
 	double ux, uy, uz, u2, rho;
 
 	/*voption indep*/
 
-    printf("[%s:%d]\n", __FILE__, __LINE__);
 #if defined(SPEC_NEED_EXPLICIT_SIZE)
 #pragma omp target map(alloc:srcGrid[0:GRID_SIZE]), map(alloc:dstGrid[0:GRID_SIZE])
 #else
 #pragma omp target map(alloc:srcGrid[:]), map(alloc:dstGrid[:])
 #endif
-{
 #pragma omp teams distribute parallel for simd private( ux, uy, uz, u2, rho ) 
 	SWEEP_START( 0, 0, 0, 0, 0, SIZE_Z )
+        printf("[%s:%d] i[%d]\n", __FILE__, __LINE__, i);
 		if( TEST_FLAG_SWEEP( srcGrid, OBSTACLE )) {
 			DST_C ( dstGrid ) = SRC_C ( srcGrid );
 			DST_S ( dstGrid ) = SRC_N ( srcGrid );
@@ -256,6 +282,7 @@ void LBM_performStreamCollide( LBM_Grid srcGrid, LBM_Grid dstGrid ) {
 		DST_WT( dstGrid ) = (1.0-OMEGA)*SRC_WT( srcGrid ) + DFL3*OMEGA*rho*(1.0 + (-ux+uz)*(4.5*(-ux+uz) + 3.0) - u2);
 		DST_WB( dstGrid ) = (1.0-OMEGA)*SRC_WB( srcGrid ) + DFL3*OMEGA*rho*(1.0 + (-ux-uz)*(4.5*(-ux-uz) + 3.0) - u2);
 	SWEEP_END
+#endif
 
 	} // end target region
 
@@ -273,21 +300,28 @@ void LBM_handleInOutFlow( LBM_Grid srcGrid ) {
 	/* inflow */
 	/*voption indep*/
 
-#if 1
-	  printf("srcGrid = %x, %d\n",srcGrid, GRID_SIZE); 
-#endif
-
 #if defined(SPEC_NEED_EXPLICIT_SIZE)
 #pragma omp target data map(alloc:srcGrid[0:GRID_SIZE])
 #else
 #pragma omp target data map(alloc:srcGrid[:])
 #endif
 {
+    size_t kernel_hIOF_0_off[1] = { CALC_INDEX(0, 0, 0, 0) / N_CELL_ENTRIES };
+    size_t kernel_hIOF_0_idx[1] = { CALC_INDEX(0, 0, 1, 0) / N_CELL_ENTRIES };
+    brisbane_kernel kernel_hIOF_0;
+    brisbane_kernel_create("hIOF_0", &kernel_hIOF_0);
+    brisbane_kernel_setmem(kernel_hIOF_0, 0, mem_srcGrid, brisbane_rw);
+
+    brisbane_task task0;
+    brisbane_task_create(&task0);
+    brisbane_task_kernel(task0, kernel_hIOF_0, 1, kernel_hIOF_0_off, kernel_hIOF_0_idx);
+    brisbane_task_d2h_full(task0, mem_srcGrid, (void*) (srcGrid - marginSize));
+    brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+#if 0
 #pragma omp target map(srcGrid[:0])
 #pragma omp teams distribute parallel for simd private( ux, uy, uz, rho, ux1, uy1, uz1, rho1, \
                                   ux2, uy2, uz2, rho2, u2, px, py ) 
 	SWEEP_START( 0, 0, 0, 0, 0, 1 )
-        printf("[%s:%d] i[%d]\n", __FILE__, __LINE__, i);
 		rho1 = + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, C  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, N  )
 		       + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, S  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, E  )
 		       + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, W  ) + GRID_ENTRY_SWEEP( srcGrid, 0, 0, 1, T  )
@@ -341,8 +375,21 @@ void LBM_handleInOutFlow( LBM_Grid srcGrid ) {
 		LOCAL( srcGrid, WT) = DFL3*rho*(1.0 + (-ux+uz)*(4.5*(-ux+uz) + 3.0) - u2);
 		LOCAL( srcGrid, WB) = DFL3*rho*(1.0 + (-ux-uz)*(4.5*(-ux-uz) + 3.0) - u2);
 	SWEEP_END
+#endif
 
+    size_t kernel_hIOF_1_off[1] = { CALC_INDEX(0, 0, SIZE_Z - 1, 0) / N_CELL_ENTRIES };
+    size_t kernel_hIOF_1_idx[1] = { CALC_INDEX(0, 0, SIZE_Z, 0) / N_CELL_ENTRIES};
+    brisbane_kernel kernel_hIOF_1;
+    brisbane_kernel_create("hIOF_1", &kernel_hIOF_1);
+    brisbane_kernel_setmem(kernel_hIOF_1, 0, mem_srcGrid, brisbane_rw);
 
+    brisbane_task task1;
+    brisbane_task_create(&task1);
+    brisbane_task_h2d_full(task1, mem_srcGrid, (void*) (srcGrid - marginSize));
+    brisbane_task_kernel(task1, kernel_hIOF_1, 1, kernel_hIOF_1_off, kernel_hIOF_1_idx);
+    brisbane_task_d2h_full(task1, mem_srcGrid, (void*) (srcGrid - marginSize));
+    brisbane_task_submit(task1, brisbane_cpu, NULL, true);
+#if 0
 #pragma omp target map(srcGrid[:0])
 #pragma omp teams distribute parallel for simd private( ux, uy, uz, rho, ux1, uy1, uz1, rho1, \
                                   ux2, uy2, uz2, rho2, u2, px, py )  
@@ -437,6 +484,7 @@ void LBM_handleInOutFlow( LBM_Grid srcGrid ) {
 		LOCAL( srcGrid, WT) = DFL3*rho*(1.0 + (-ux+uz)*(4.5*(-ux+uz) + 3.0) - u2);
 		LOCAL( srcGrid, WB) = DFL3*rho*(1.0 + (-ux-uz)*(4.5*(-ux-uz) + 3.0) - u2);
 	SWEEP_END
+#endif
 	}// end target data region
 }
 

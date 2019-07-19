@@ -24,6 +24,11 @@ size_t marginSize;
 double * src;
 double * dst;
 
+brisbane_mem mem_src;
+brisbane_mem mem_dst;
+brisbane_mem mem_srcGrid;
+brisbane_mem mem_dstGrid;
+
 /*############################################################################*/
 
 int main( int nArgs, char* arg[] ) {
@@ -36,7 +41,19 @@ int main( int nArgs, char* arg[] ) {
 	MAIN_initialize( &param );
 
     printf("[%s:%d] gridSize[%lu] nTimeStep[%d]\n", __FILE__, __LINE__, gridSize, param.nTimeSteps);
+
+    brisbane_mem_create(sizeof(double) * gridSize, &mem_src);
+    brisbane_mem_create(sizeof(double) * gridSize, &mem_dst);
+    mem_srcGrid = mem_src;
+    mem_dstGrid = mem_dst;
+
   #pragma omp target data map(tofrom:src[0:gridSize]), map(to:dst[0:gridSize])
+    brisbane_task task0;
+    brisbane_task_create(&task0);
+    brisbane_task_h2d_full(task0, mem_src, (void*) src);
+    brisbane_task_h2d_full(task0, mem_dst, (void*) dst);
+    brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+
 	{
 	  for( t = 1; t <= param.nTimeSteps; t++ ) {
 		  if( param.simType == CHANNEL ) {
@@ -46,11 +63,20 @@ int main( int nArgs, char* arg[] ) {
 		  LBM_swapGrids( &srcGrid, &dstGrid );
 		  if( (t & 63) == 0 ) {
 		    #pragma omp target update from(src[0:gridSize])
+              brisbane_task task0;
+              brisbane_task_create(&task0);
+              brisbane_task_d2h_full(task0, mem_srcGrid, (void*) (srcGrid - marginSize));
+              brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+
 			  printf( "timestep: %i\n", t );
 			  LBM_showGridStatistics( *srcGrid );
 		  }
 	  }
 	} 
+
+    brisbane_mem_release(mem_src);
+    brisbane_mem_release(mem_dst);
+
 	MAIN_finalize( &param );
 
     brisbane_finalize();
