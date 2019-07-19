@@ -1,5 +1,11 @@
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+option(USE_HIP  "Use AMD HIP API" OFF)
+
+configure_file (Config.h.in Config.h)
+
+include_directories(${PROJECT_BINARY_DIR}/src)
+
 set(libsrc
     CAPI.cpp
     Command.cpp

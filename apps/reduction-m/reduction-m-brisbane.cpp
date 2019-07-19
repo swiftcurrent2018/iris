@@ -70,11 +70,11 @@ int main(int argc, char** argv) {
     }
     */
 
-    printf("sumA[%lu]\n", sumA);
+    size_t sum = 0;
+    for (size_t i = 0; i < SIZE; i++) sum += i;
+    if (sumA != sum) ERROR++;
 
-    if (sumA != (SIZE - 1) * (SIZE / 2)) ERROR++;
-
-    printf("ERROR[%d]\n", ERROR);
+    printf("ERROR[%d] sum[%lu] sumA[%lu]\n", ERROR, sum, sumA);
 
     free(A);
 

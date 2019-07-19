@@ -1,9 +1,9 @@
 #ifndef BRISBANE_RT_SRC_SCHEDULER_H
 #define BRISBANE_RT_SRC_SCHEDULER_H
 
+#include "Config.h"
 #include "Thread.h"
 #include "Queue.h"
-#include "Define.h"
 
 namespace brisbane {
 namespace rt {

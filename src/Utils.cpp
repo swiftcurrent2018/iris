@@ -1,5 +1,6 @@
 #include <brisbane/brisbane.h>
 #include "Utils.h"
+#include "Config.h"
 #include "Debug.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -22,7 +23,8 @@ void Utils::Logo(bool color) {
     printf("██████╔╝██████╔╝██║███████╗██████╔╝███████║██╔██╗ ██║█████╗  \n");
     printf("██╔══██╗██╔══██╗██║╚════██║██╔══██╗██╔══██║██║╚██╗██║██╔══╝  \n");
     printf("██████╔╝██║  ██║██║███████║██████╔╝██║  ██║██║ ╚████║███████╗\n");
-    printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝\n");
+    printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝");
+    printf(" %d.%d.%d\n", BRISBANE_VERSION_MAJOR, BRISBANE_VERSION_MINOR, BRISBANE_VERSION_PATCH);
     if (color) {
         printf(RESET);
         fprintf(stderr, RESET);

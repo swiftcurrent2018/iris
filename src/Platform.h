@@ -7,7 +7,7 @@
 #include <CL/cl.h>
 #include <stddef.h>
 #include <set>
-#include "Define.h"
+#include "Config.h"
 #include "Debug.h"
 
 namespace brisbane {

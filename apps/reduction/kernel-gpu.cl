@@ -9,13 +9,11 @@ __kernel void reduce_sum(__global int* restrict A, __global unsigned long* restr
     int lid = get_local_id(0);
     int lsize = get_local_size(0); 
 
-    if (gid > gws0) return;
-
-    local_sumA[lid] = A[gid];
+    local_sumA[lid] = gid < gws0 ? A[gid] : 0;
 
     for (int s = lsize / 2; s > 0; s >>= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (lid < s) local_sumA[lid] += gid + s > gws0 ? 0 : local_sumA[lid + s];
+        if (lid < s) local_sumA[lid] += local_sumA[lid + s];
     }
 
     if (lid == 0) sumA[get_group_id(0)] = local_sumA[0];

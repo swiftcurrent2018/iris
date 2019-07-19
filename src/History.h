@@ -1,7 +1,7 @@
 #ifndef BRISBANE_RT_SRC_HISTORY_H
 #define BRISBANE_RT_SRC_HISTORY_H
 
-#include "Define.h"
+#include "Config.h"
 #include <map>
 #include <string>
 
