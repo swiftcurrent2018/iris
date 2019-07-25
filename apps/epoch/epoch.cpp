@@ -22,9 +22,9 @@ int main(int argc, char** argv) {
         C[i] = 0;
     }
 
-#pragma brisbane data h2d(A[0:SIZE], B[0:SIZE], C[0:SIZE]) d2h(C[0:SIZE])
+#pragma omp target data map(to:A[:0], B[:0]) map(from:C[:0])
     for (int e = 0; e < EPOCH; e++) {
-#pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(history)
+#pragma omp target teams distribute parallel for device(brisbane_history)
     for (int i = 0; i < SIZE; i++) {
         C[i] += A[i] + B[i];
     }

@@ -48,7 +48,6 @@ extern "C" {
 #define brisbane_max                ((1 << 13) | brisbane_reduction)
 #define brisbane_min                ((1 << 14) | brisbane_reduction)
 
-
 typedef struct _brisbane_task*      brisbane_task;
 typedef struct _brisbane_mem*       brisbane_mem;
 typedef struct _brisbane_kernel*    brisbane_kernel;

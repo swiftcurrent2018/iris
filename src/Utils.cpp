@@ -23,8 +23,7 @@ void Utils::Logo(bool color) {
     printf("██████╔╝██████╔╝██║███████╗██████╔╝███████║██╔██╗ ██║█████╗  \n");
     printf("██╔══██╗██╔══██╗██║╚════██║██╔══██╗██╔══██║██║╚██╗██║██╔══╝  \n");
     printf("██████╔╝██║  ██║██║███████║██████╔╝██║  ██║██║ ╚████║███████╗\n");
-    printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝");
-    printf(" %d.%d.%d\n", BRISBANE_VERSION_MAJOR, BRISBANE_VERSION_MINOR, BRISBANE_VERSION_PATCH);
+    printf("╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝\n");
     if (color) {
         printf(RESET);
         fprintf(stderr, RESET);

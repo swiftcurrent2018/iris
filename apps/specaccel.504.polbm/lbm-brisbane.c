@@ -181,7 +181,7 @@ void LBM_performStreamCollide( LBM_Grid srcGrid, LBM_Grid dstGrid ) {
 
     brisbane_task task0;
     brisbane_task_create(&task0);
-    brisbane_task_h2d_full(task0, mem_srcGrid, (void*) (srcGrid - marginSize));
+    //brisbane_task_h2d_full(task0, mem_srcGrid, (void*) (srcGrid - marginSize));
     brisbane_task_kernel(task0, kernel_pSC, 1, kernel_pSC_off, kernel_pSC_idx);
     brisbane_task_submit(task0, brisbane_cpu, NULL, true);
 #if 0

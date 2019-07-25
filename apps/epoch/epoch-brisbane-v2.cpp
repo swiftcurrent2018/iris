@@ -33,6 +33,10 @@ int main(int argc, char** argv) {
         C[i] = 0;
     }
 
+    int current_dev;
+    brisbane_device_get_default(&current_dev);
+    printf("[%s:%d] current_dev[0x%x]\n", __FILE__, __LINE__,  current_dev);
+
     brisbane_mem mem_A;
     brisbane_mem mem_B;
     brisbane_mem mem_C;
@@ -56,18 +60,13 @@ int main(int argc, char** argv) {
 #pragma brisbane data h2d(A[0:SIZE], B[0:SIZE], C[0:SIZE]) d2h(C[0:SIZE])
     for (int e = 0; e < EPOCH; e++) {
 
-    int current_dev;
-    brisbane_device_set_default(brisbane_random);
-    brisbane_device_get_default(&current_dev);
-    printf("[%s:%d] [%d] current_dev[0x%x]\n", __FILE__, __LINE__, e, current_dev);
-
     size_t kernel_loop0_off[1] = { 0 };
     size_t kernel_loop0_idx[1] = { SIZE };
 
     brisbane_task task1;
     brisbane_task_create(&task1);
     brisbane_task_kernel(task1, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);
-    brisbane_task_submit(task1, brisbane_default, NULL, true);
+    brisbane_task_submit(task1, brisbane_history, NULL, true);
     brisbane_task_release(task1);
     /*
 #pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -80,7 +79,7 @@ int main(int argc, char** argv) {
     brisbane_task task2;
     brisbane_task_create(&task2);
     brisbane_task_d2h_full(task2, mem_C, C);
-    brisbane_task_submit(task2, brisbane_default, NULL, true);
+    brisbane_task_submit(task2, brisbane_data, NULL, true);
 
     for (int i = 0; i < SIZE; i++) {
         printf("[%8d] %8d = (%8d + %8d) * %d\n", i, C[i], A[i], B[i], EPOCH);
