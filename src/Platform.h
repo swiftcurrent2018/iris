@@ -16,6 +16,7 @@ namespace rt {
 class Device;
 class Kernel;
 class Mem;
+class Polyhedral;
 class Scheduler;
 class Task;
 class Timer;
@@ -63,6 +64,7 @@ public:
     int device_default() { return device_default_; }
     Device** devices() { return devices_; }
     Device* device(int dev_no) { return devices_[dev_no]; }
+    Polyhedral* polyhedral() { return polyhedral_; }
     Scheduler* scheduler() { return scheduler_; }
     Timer* timer() { return timer_; }
     Kernel* null_kernel() { return null_kernel_; }
@@ -90,6 +92,7 @@ private:
     std::set<Kernel*> kernels_;
     std::set<Mem*> mems_;
 
+    Polyhedral* polyhedral_;
     Scheduler* scheduler_;
     Timer* timer_;
 

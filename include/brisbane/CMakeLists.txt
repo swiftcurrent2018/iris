@@ -1,1 +1,1 @@
-install(FILES brisbane.h DESTINATION include/brisbane)
+install(FILES brisbane.h brisbane_internal.h DESTINATION include/brisbane)

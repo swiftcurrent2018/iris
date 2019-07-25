@@ -5,6 +5,7 @@
 #include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
+#include "Polyhedral.h"
 #include "Scheduler.h"
 #include "Task.h"
 #include "Timer.h"
@@ -26,6 +27,7 @@ Platform::~Platform() {
     if (!init_) return;
     
     if (scheduler_) delete scheduler_;
+    if (polyhedral_) delete polyhedral_;
     if (timer_) delete timer_;
     if (null_kernel_) delete null_kernel_;
 }
@@ -40,6 +42,8 @@ int Platform::Init(int* argc, char*** argv) {
 
     timer_->Start(BRISBANE_TIMER_INIT);
     GetCLPlatforms();
+    polyhedral_ = new Polyhedral(this);
+    polyhedral_->Load();
     timer_->Stop(BRISBANE_TIMER_INIT);
 
     brisbane_kernel null_brs_kernel;

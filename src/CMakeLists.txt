@@ -23,6 +23,7 @@ set(libsrc
     PolicyHistory.cpp
     PolicyRandom.cpp
     PolicySpecific.cpp
+    Polyhedral.cpp
     Reduction.cpp
     Scheduler.cpp
     Task.cpp
