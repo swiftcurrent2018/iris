@@ -94,6 +94,7 @@ void Device::Execute(Task* task) {
             default: _error("cmd type[0x%x]", cmd->type());
         }
     }
+    _info("task[%lu] complete", task->uid());
     busy_ = false;
 }
 

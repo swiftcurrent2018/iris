@@ -27,6 +27,7 @@ set(libsrc
     Reduction.cpp
     Scheduler.cpp
     Task.cpp
+    TaskQueue.cpp
     Thread.cpp
     Timer.cpp
     Utils.cpp

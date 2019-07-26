@@ -12,6 +12,10 @@ int brisbane_finalize() {
     return Platform::Finalize();
 }
 
+int brisbane_synchronize() {
+    return Platform::GetPlatform()->Synchronize();
+}
+
 int brisbane_info_nplatforms(int* nplatforms) {
     return Platform::GetPlatform()->InfoNumPlatforms(nplatforms);
 }
@@ -46,6 +50,10 @@ int brisbane_kernel_release(brisbane_kernel kernel) {
 
 int brisbane_task_create(brisbane_task* task) {
     return Platform::GetPlatform()->TaskCreate(task);
+}
+
+int brisbane_task_depend(brisbane_task task, int ntasks, brisbane_task* tasks) {
+    return Platform::GetPlatform()->TaskDepend(task, ntasks, tasks);
 }
 
 int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {

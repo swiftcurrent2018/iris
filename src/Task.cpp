@@ -4,17 +4,21 @@
 #include "Device.h"
 #include "Kernel.h"
 #include "Mem.h"
+#include "Scheduler.h"
 
 namespace brisbane {
 namespace rt {
 
-Task::Task(Platform* platform) {
+Task::Task(Platform* platform, int type) {
+    type_ = type;
     ncmds_ = 0;
     cmd_kernel_ = NULL;
     platform_ = platform;
+    scheduler_ = platform->scheduler();
     dev_ = NULL;
     parent_ = NULL;
     subtasks_complete_ = 0;
+    ndepends_ = 0;
     status_ = BRISBANE_NONE;
 
     pthread_mutex_init(&executable_mutex_, NULL);
@@ -43,6 +47,13 @@ void Task::AddCommand(Command* cmd) {
     }
 }
 
+bool Task::Submittable() {
+    for (int i = 0; i < ndepends_; i++) {
+        if (depends_[i]->status() != BRISBANE_COMPLETE) return false;
+    }
+    return true;
+}
+
 bool Task::Executable() {
     pthread_mutex_lock(&executable_mutex_);
     if (status_ == BRISBANE_NONE) {
@@ -60,6 +71,7 @@ void Task::Complete() {
     pthread_cond_broadcast(&complete_cond_);
     pthread_mutex_unlock(&complete_mutex_);
     if (parent_) parent_->CompleteSub();
+    else scheduler_->Invoke();
 }
 
 void Task::CompleteSub() {
@@ -80,6 +92,11 @@ void Task::AddSubtask(Task* subtask) {
 
 bool Task::HasSubtasks() {
     return !subtasks_.empty();
+}
+
+void Task::AddDepend(Task* task) {
+    if (ndepends_ == 63) _error("ndepends[%d]", ndepends_);
+    depends_[ndepends_++] = task;
 }
 
 } /* namespace rt */

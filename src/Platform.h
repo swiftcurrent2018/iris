@@ -28,6 +28,8 @@ private:
 
 public:
     int Init(int* argc, char*** argv);
+    int Synchronize();
+
     int GetCLPlatforms();
 
     int InfoNumPlatforms(int* nplatforms);
@@ -42,6 +44,7 @@ public:
     int KernelRelease(brisbane_kernel kernel);
 
     int TaskCreate(brisbane_task* brs_task);
+    int TaskDepend(brisbane_task task, int ntasks, brisbane_task* tasks);
     int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr);
     int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
     int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);

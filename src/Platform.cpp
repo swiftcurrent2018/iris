@@ -58,6 +58,13 @@ int Platform::Init(int* argc, char*** argv) {
     return BRISBANE_OK;
 }
 
+int Platform::Synchronize() {
+    Task* task = new Task(this, BRISBANE_MARKER);
+    scheduler_->Enqueue(task);
+    task->Wait();
+    return BRISBANE_OK;
+}
+
 int Platform::GetCLPlatforms() {
     bool enabled = true;
 
@@ -138,6 +145,12 @@ int Platform::KernelRelease(brisbane_kernel brs_kernel) {
 int Platform::TaskCreate(brisbane_task* brs_task) {
     Task* task = new Task(this);
     *brs_task = task->struct_obj();
+    return BRISBANE_OK;
+}
+
+int Platform::TaskDepend(brisbane_task brs_task, int ntasks, brisbane_task* brs_tasks) {
+    Task* task = brs_task->class_obj;
+    for (int i = 0; i < ntasks; i++) task->AddDepend(brs_tasks[i]->class_obj);
     return BRISBANE_OK;
 }
 
@@ -263,6 +276,7 @@ Platform* Platform::GetPlatform() {
 }
 
 int Platform::Finalize() {
+    singleton_->Synchronize();
     singleton_->ShowKernelHistory();
     double time_app = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
     double time_init = singleton_->timer()->Total(BRISBANE_TIMER_INIT);

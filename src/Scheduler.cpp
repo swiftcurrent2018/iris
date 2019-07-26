@@ -5,6 +5,7 @@
 #include "Policies.h"
 #include "Policy.h"
 #include "Task.h"
+#include "TaskQueue.h"
 #include "WorkloadManager.h"
 
 namespace brisbane {
@@ -15,7 +16,8 @@ Scheduler::Scheduler(Platform* platform) {
     devices_ = platform_->devices();
     ndevs_ = platform_->ndevs();
     policies_ = new Policies(this);
-    queue_ = new LockFreeQueue<Task*>(1024);
+//    queue_ = new LockFreeQueue<Task*>(1024);
+    queue_ = new TaskQueue();
     InitWorkloadManagers();
 }
 
@@ -56,6 +58,10 @@ void Scheduler::Run() {
 }
 
 void Scheduler::Execute(Task* task) {
+    if (task->marker()) {
+        task->Complete();
+        return;
+    }
     int brs_device = task->brs_device();
     int ndevs = 0;
     Device* devs[BRISBANE_MAX_NDEVS];

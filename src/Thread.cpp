@@ -1,4 +1,5 @@
 #include "Thread.h"
+#include "Debug.h"
 
 namespace brisbane {
 namespace rt {

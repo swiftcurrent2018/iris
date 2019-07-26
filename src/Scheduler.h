@@ -3,13 +3,14 @@
 
 #include "Config.h"
 #include "Thread.h"
-#include "Queue.h"
+//#include "Queue.h"
 
 namespace brisbane {
 namespace rt {
 
 class Device;
 class Task;
+class TaskQueue;
 class Platform;
 class Policies;
 class WorkloadManager;
@@ -33,7 +34,8 @@ private:
     void DestroyWorkloadManagers();
 
 private:
-    LockFreeQueue<Task*>* queue_;
+//    LockFreeQueue<Task*>* queue_;
+    TaskQueue* queue_;
     Platform* platform_;
 
     Policies* policies_;

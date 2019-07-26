@@ -54,6 +54,7 @@ typedef struct _brisbane_kernel*    brisbane_kernel;
 
 extern int brisbane_init(int* argc, char*** argv);
 extern int brisbane_finalize();
+extern int brisbane_synchronize();
 
 extern int brisbane_info_nplatforms(int* nplatforms);
 extern int brisbane_info_ndevs(int* ndevs);
@@ -67,6 +68,7 @@ extern int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem 
 extern int brisbane_kernel_release(brisbane_kernel kernel);
 
 extern int brisbane_task_create(brisbane_task* task);
+extern int brisbane_task_depend(brisbane_task task, int ntasks, brisbane_task* tasks);
 extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
 extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
