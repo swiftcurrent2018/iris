@@ -14,6 +14,7 @@ namespace brisbane {
 namespace rt {
 
 class Device;
+class Filter;
 class Kernel;
 class Mem;
 class Polyhedral;
@@ -73,6 +74,7 @@ public:
     Kernel* null_kernel() { return null_kernel_; }
 
 private:
+    int FilterSubmitExecute(Task* task);
     int ShowKernelHistory();
 
 public:
@@ -98,6 +100,7 @@ private:
     Polyhedral* polyhedral_;
     Scheduler* scheduler_;
     Timer* timer_;
+    Filter* filter_task_split_;
 
     Kernel* null_kernel_;
 

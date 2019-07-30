@@ -18,7 +18,8 @@ extern "C" {
 #define brisbane_data               (1 << 5)
 #define brisbane_history            (1 << 6)
 #define brisbane_random             (1 << 7)
-#define brisbane_any                (brisbane_cpu | brisbane_gpu | brisbane_phi | brisbane_fpga)
+#define brisbane_any                (1 << 8)
+#define brisbane_all                (1 << 9)
 
 #define brisbane_device_default     (1 << 0)
 #define brisbane_device_cpu         (1 << 1)
@@ -28,7 +29,8 @@ extern "C" {
 #define brisbane_device_data        (1 << 5)
 #define brisbane_device_history     (1 << 6)
 #define brisbane_device_random      (1 << 7)
-#define brisbane_device_any         (brisbane_device_cpu | brisbane_device_gpu | brisbane_device_phi | brisbane_device_fpga)
+#define brisbane_device_any         (1 << 8)
+#define brisbane_device_all         (1 << 9)
 
 #define brisbane_rd                 (1 << 0)
 #define brisbane_wr                 (1 << 1)

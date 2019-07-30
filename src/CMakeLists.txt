@@ -11,6 +11,7 @@ set(libsrc
     Command.cpp
     Dependency.cpp
     Device.cpp
+    FilterTaskSplit.cpp
     History.cpp
     Kernel.cpp
     Mem.cpp

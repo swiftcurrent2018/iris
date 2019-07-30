@@ -14,6 +14,10 @@ public:
     Polyhedral(Platform* platform);
     ~Polyhedral();
     int Load();
+    int Kernel(const char* name);
+    int SetArg(int idx, size_t size, void* value);
+    int Launch(int dim, size_t* off, size_t* ndr);
+    int GetMem(int idx, brisbane_poly_mem* plmem);
 
 private:
     Platform* platform_;

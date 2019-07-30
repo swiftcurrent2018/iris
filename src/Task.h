@@ -27,6 +27,7 @@ public:
     virtual ~Task();
 
     void AddCommand(Command* cmd);
+    void ClearCommands();
 
     void AddSubtask(Task* subtask);
     bool HasSubtasks();

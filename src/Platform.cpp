@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include "Command.h"
 #include "Device.h"
+#include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
@@ -28,6 +29,7 @@ Platform::~Platform() {
     
     if (scheduler_) delete scheduler_;
     if (polyhedral_) delete polyhedral_;
+    if (filter_task_split_) delete filter_task_split_;
     if (timer_) delete timer_;
     if (null_kernel_) delete null_kernel_;
 }
@@ -44,6 +46,7 @@ int Platform::Init(int* argc, char*** argv) {
     GetCLPlatforms();
     polyhedral_ = new Polyhedral(this);
     polyhedral_->Load();
+    filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
     timer_->Stop(BRISBANE_TIMER_INIT);
 
     brisbane_kernel null_brs_kernel;
@@ -197,6 +200,7 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
 int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait) {
     Task* task = brs_task->class_obj;
     task->set_brs_device(brs_device);
+    FilterSubmitExecute(task);
     scheduler_->Enqueue(task);
     if (wait) task->Wait();
     return BRISBANE_OK;
@@ -245,6 +249,15 @@ int Platform::MemRelease(brisbane_mem brs_mem) {
     Mem* mem = brs_mem->class_obj;
     delete mem;
     return BRISBANE_OK;
+}
+
+int Platform::FilterSubmitExecute(Task* task) {
+    int err = BRISBANE_OK;
+    if (task->brs_device() & brisbane_all) {
+        err = filter_task_split_->Execute(task);
+        if (err != BRISBANE_OK) _error("err[%d]", err);
+    }
+    return err;
 }
 
 int Platform::TimerNow(double* time) {

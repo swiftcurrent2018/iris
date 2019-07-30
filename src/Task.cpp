@@ -47,6 +47,11 @@ void Task::AddCommand(Command* cmd) {
     }
 }
 
+void Task::ClearCommands() {
+    for (int i = 0; i < ncmds_; i++) delete cmds_[i];
+    ncmds_ = 0;
+}
+
 bool Task::Submittable() {
     for (int i = 0; i < ndepends_; i++) {
         if (depends_[i]->status() != BRISBANE_COMPLETE) return false;

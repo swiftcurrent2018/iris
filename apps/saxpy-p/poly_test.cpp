@@ -46,9 +46,9 @@ int main() {
     err = brisbane_poly_getmem(3, &Y);
     if (err != BRISBANE_OK) printf("[%s:%d] error[%d]\n", __FILE__, __LINE__, err);
 
-    printf("[%s:%d] Z typesz[%lu] offset[%lu] length[%lu] rwmode[%x]\n", __FILE__, __LINE__, Z.typesz, Z.offset, Z.length, Z.rwmode);
-    printf("[%s:%d] X typesz[%lu] offset[%lu] length[%lu] rwmode[%x]\n", __FILE__, __LINE__, X.typesz, X.offset, X.length, X.rwmode);
-    printf("[%s:%d] Y typesz[%lu] offset[%lu] length[%lu] rwmode[%x]\n", __FILE__, __LINE__, Y.typesz, Y.offset, Y.length, Y.rwmode);
+    printf("[%s:%d] Z typesz[%lu] poly[%d.%d] offset[%lu,%lu] length[%lu,%lu]\n", __FILE__, __LINE__, Z.typesz, Z.poly_r, Z.poly_w, Z.off_r, Z.off_w, Z.len_r, Z.len_w);
+    printf("[%s:%d] X typesz[%lu] poly[%d.%d] offset[%lu,%lu] length[%lu,%lu]\n", __FILE__, __LINE__, X.typesz, X.poly_r, X.poly_w, X.off_r, X.off_w, X.len_r, X.len_w);
+    printf("[%s:%d] Y typesz[%lu] poly[%d.%d] offset[%lu,%lu] length[%lu,%lu]\n", __FILE__, __LINE__, Y.typesz, Y.poly_r, Y.poly_w, Y.off_r, Y.off_w, Y.len_r, Y.len_w);
 
     err = dlclose(handle);
     if (err != 0) printf("[%s:%d] error[%s]\n", __FILE__, __LINE__, dlerror());

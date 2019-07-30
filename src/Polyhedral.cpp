@@ -49,6 +49,26 @@ int Polyhedral::Load() {
     return BRISBANE_OK;
 }
 
+int Polyhedral::Kernel(const char* name) {
+    if (!kernel_) return BRISBANE_ERR;
+    return kernel_(name);
+}
+
+int Polyhedral::SetArg(int idx, size_t size, void* value) {
+    if (!setarg_) return BRISBANE_ERR;
+    return setarg_(idx, size, value);
+}
+
+int Polyhedral::Launch(int dim, size_t* off, size_t* ndr) {
+    if (!launch_) return BRISBANE_ERR;
+    return launch_(dim, off, ndr);
+}
+
+int Polyhedral::GetMem(int idx, brisbane_poly_mem* plmem) {
+    if (!getmem_) return BRISBANE_ERR;
+    return getmem_(idx, plmem);
+}
+
 } /* namespace rt */
 } /* namespace brisbane */
 

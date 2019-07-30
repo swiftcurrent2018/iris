@@ -23,6 +23,9 @@ public:
     ~Command();
 
     int type() { return type_; }
+    bool type_h2d() { return type_ == BRISBANE_CMD_H2D; }
+    bool type_d2h() { return type_ == BRISBANE_CMD_D2H; }
+    bool type_kernel() { return type_ == BRISBANE_CMD_KERNEL; }
     size_t size() { return size_; }
     void* host() { return host_; }
     int dim() { return dim_; }
@@ -54,6 +57,7 @@ public:
     static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);
     static Command* CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host);
     static Command* CreateReleaseMem(Task* task, Mem* mem);
+    static Command* Duplicate(Command* cmd);
     static void Release(Command* cmd);
 };
 

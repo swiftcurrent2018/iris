@@ -69,6 +69,15 @@ Command* Command::CreateReleaseMem(Task* task, Mem* mem) {
     return cmd;
 }
 
+Command* Command::Duplicate(Command* cmd) {
+    switch (cmd->type()) {
+        case BRISBANE_CMD_KERNEL:   return CreateKernel(cmd->task(), cmd->kernel(), cmd->dim(), cmd->off(), cmd->ndr());
+        case BRISBANE_CMD_H2D:      return CreateH2D(cmd->task(), cmd->mem(), cmd->off(0), cmd->size(), cmd->host());
+        case BRISBANE_CMD_D2H:      return CreateD2H(cmd->task(), cmd->mem(), cmd->off(0), cmd->size(), cmd->host());
+    }
+    return NULL;
+}
+
 void Command::Release(Command* cmd) {
     delete cmd;
 }
