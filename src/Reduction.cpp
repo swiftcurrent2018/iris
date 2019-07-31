@@ -35,9 +35,13 @@ void Reduction::SumLong(Mem* mem, long* host, size_t size) {
     long sum = 0;
     for (int i = 0; i < mem->expansion(); i++) sum += src[i]; 
     if (size != sizeof(sum)) _error("size[%lu] sizeof(sum[%lu])", size, sizeof(sum));
+#if 1
+    __sync_fetch_and_add(host, sum);
+#else
     pthread_mutex_lock(&mutex_);
     *host += sum;
     pthread_mutex_unlock(&mutex_);
+#endif
 }
 
 void Reduction::SumDouble(Mem* mem, double* host, size_t size) {
@@ -46,9 +50,13 @@ void Reduction::SumDouble(Mem* mem, double* host, size_t size) {
     _debug("mem->expansion[%d]", mem->expansion());
     for (int i = 0; i < mem->expansion(); i++) sum += src[i]; 
     if (size != sizeof(sum)) _error("size[%lu] sizeof(sum[%lu])", size, sizeof(sum));
+#if 0
+    __sync_fetch_and_add(host, sum);
+#else
     pthread_mutex_lock(&mutex_);
     *host += sum;
     pthread_mutex_unlock(&mutex_);
+#endif
 }
 
 Reduction* Reduction::singleton_ = NULL;

@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
         brisbane_task_release_mem(subtask, mem_sumA);
         brisbane_task_add_subtask(task0, subtask);
     }
-    brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+    brisbane_task_submit(task0, brisbane_cpu | brisbane_gpu, NULL, true);
 
     /*
 #pragma omp target teams distribute parallel for reduction(sum:sumA) num_teams(nteams)

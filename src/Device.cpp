@@ -70,9 +70,10 @@ bool Device::BuildProgram() {
         clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_STATUS, sizeof(s), &s, NULL);
         _clerror(clerr_);
         char log[1024];
-        clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_LOG, 1024, log, NULL);
+        size_t log_size;
+        clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_LOG, 1024, log, &log_size);
         _clerror(clerr_);
-        _error("status[%d] log:%s", s, log);
+        _error("status[%d] log_size[%lu] log:%s", s, log_size, log);
         _error("srclen[%lu] src\n%s", srclen, src);
         free(src);
         return false;
