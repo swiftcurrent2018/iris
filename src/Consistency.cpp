@@ -1,4 +1,4 @@
-#include "Dependency.h"
+#include "Consistency.h"
 #include "Debug.h"
 #include "Device.h"
 #include "Command.h"
@@ -9,13 +9,13 @@
 namespace brisbane {
 namespace rt {
 
-Dependency::Dependency() {
+Consistency::Consistency() {
 }
 
-Dependency::~Dependency() {
+Consistency::~Consistency() {
 }
 
-void Dependency::Resolve(Task* task) {
+void Consistency::Resolve(Task* task) {
     for (int i = 0; i < task->ncmds(); i++) {
         Command* cmd = task->cmd(i);
         if (cmd->type() != BRISBANE_CMD_KERNEL) continue;
@@ -23,7 +23,7 @@ void Dependency::Resolve(Task* task) {
     }
 }
 
-void Dependency::Resolve(Task* task, Command* cmd) {
+void Consistency::Resolve(Task* task, Command* cmd) {
     if (task->parent()) return;
     Device* dev = task->dev();
     Kernel* kernel = cmd->kernel();

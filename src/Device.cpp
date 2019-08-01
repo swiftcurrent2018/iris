@@ -199,7 +199,6 @@ void Device::ExecuteD2H(Command* cmd) {
     Command* cmd_kernel = cmd->task()->cmd_kernel();
     if (cmd_kernel) cmd_kernel->kernel()->history()->AddD2H(cmd, this, time);
     else Platform::GetPlatform()->null_kernel()->history()->AddD2H(cmd, this, time);
-
 }
 
 void Device::ExecutePresent(Command* cmd) {

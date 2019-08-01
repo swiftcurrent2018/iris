@@ -6,7 +6,7 @@
 #include "Policy.h"
 #include "Task.h"
 #include "TaskQueue.h"
-#include "WorkloadManager.h"
+#include "Worker.h"
 
 namespace brisbane {
 namespace rt {
@@ -18,24 +18,24 @@ Scheduler::Scheduler(Platform* platform) {
     policies_ = new Policies(this);
 //    queue_ = new LockFreeQueue<Task*>(1024);
     queue_ = new TaskQueue();
-    InitWorkloadManagers();
+    InitWorkers();
 }
 
 Scheduler::~Scheduler() {
-    DestroyWorkloadManagers();
+    DestroyWorkers();
     delete queue_;
     delete policies_;
 }
 
-void Scheduler::InitWorkloadManagers() {
+void Scheduler::InitWorkers() {
     for (int i = 0; i < ndevs_; i++) {
-        managers_[i] = new WorkloadManager(devices_[i]);
-        managers_[i]->Start();
+        workers_[i] = new Worker(devices_[i]);
+        workers_[i]->Start();
     }
 }
 
-void Scheduler::DestroyWorkloadManagers() {
-    for (int i = 0; i < ndevs_; i++) delete managers_[i];
+void Scheduler::DestroyWorkers() {
+    for (int i = 0; i < ndevs_; i++) delete workers_[i];
 }
 
 void Scheduler::Enqueue(Task* task) {
@@ -53,11 +53,14 @@ void Scheduler::Run() {
         Sleep();
         if (!running_) break;
         Task* task = NULL;
-        while (queue_->Dequeue(&task)) Execute(task);
+        while (queue_->Peek(&task)) {
+            Submit(task);
+            queue_->Dequeue(&task);
+        }
     }
 }
 
-void Scheduler::Execute(Task* task) {
+void Scheduler::Submit(Task* task) {
     if (task->marker()) {
         task->Complete();
         return;
@@ -67,7 +70,7 @@ void Scheduler::Execute(Task* task) {
     Device* devs[BRISBANE_MAX_NDEVS];
     policies_->GetPolicy(brs_device)->GetDevices(task, devs, &ndevs);
     for (int i = 0; i < ndevs; i++) {
-        devs[i]->manager()->Enqueue(task);
+        devs[i]->worker()->Enqueue(task);
     }
 }
 

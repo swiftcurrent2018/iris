@@ -13,7 +13,7 @@ class Task;
 class TaskQueue;
 class Platform;
 class Policies;
-class WorkloadManager;
+class Worker;
 
 class Scheduler : public Thread {
 public:
@@ -27,11 +27,11 @@ public:
     int ndevs() { return ndevs_; }
 
 private:
-    void Execute(Task* task);
+    void Submit(Task* task);
     virtual void Run();
 
-    void InitWorkloadManagers();
-    void DestroyWorkloadManagers();
+    void InitWorkers();
+    void DestroyWorkers();
 
 private:
 //    LockFreeQueue<Task*>* queue_;
@@ -40,7 +40,7 @@ private:
 
     Policies* policies_;
     Device** devices_;
-    WorkloadManager* managers_[BRISBANE_MAX_NDEVS];
+    Worker* workers_[BRISBANE_MAX_NDEVS];
     int ndevs_;
 };
 

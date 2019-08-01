@@ -9,7 +9,7 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 set(libsrc
     CAPI.cpp
     Command.cpp
-    Dependency.cpp
+    Consistency.cpp
     Device.cpp
     FilterTaskSplit.cpp
     History.cpp
@@ -32,7 +32,7 @@ set(libsrc
     Thread.cpp
     Timer.cpp
     Utils.cpp
-    WorkloadManager.cpp
+    Worker.cpp
     )
 
 add_library(brisbane STATIC ${libsrc})

@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_DEPENDENCY_H
-#define BRISBANE_RT_SRC_DEPENDENCY_H
+#ifndef BRISBANE_RT_SRC_CONSISTENCY_H
+#define BRISBANE_RT_SRC_CONSISTENCY_H
 
 namespace brisbane {
 namespace rt {
@@ -7,10 +7,10 @@ namespace rt {
 class Command;
 class Task;
 
-class Dependency {
+class Consistency {
 public:
-    Dependency();
-    ~Dependency();
+    Consistency();
+    ~Consistency();
 
     void Resolve(Task* task);
 
@@ -22,4 +22,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_DEPENDENCY_H */
+#endif /* BRISBANE_RT_SRC_CONSISTENCY_H */

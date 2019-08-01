@@ -17,9 +17,16 @@ bool TaskQueue::Peek(Task** task) {
         pthread_mutex_unlock(&mutex_tasks_);
         return false;
     }
-    *task = tasks_.front(); 
+    for (std::list<Task*>::iterator it = tasks_.begin(); it != tasks_.end(); ++it) {
+        Task* t = *it;
+        if (!t->Submittable()) continue;
+        if (t->marker() && it != tasks_.begin()) continue;
+        *task = t;
+        pthread_mutex_unlock(&mutex_tasks_);
+        return true;
+    }
     pthread_mutex_unlock(&mutex_tasks_);
-    return true;
+    return false;
 }
 
 bool TaskQueue::Enqueue(Task* task) {
@@ -31,21 +38,9 @@ bool TaskQueue::Enqueue(Task* task) {
 
 bool TaskQueue::Dequeue(Task** task) {
     pthread_mutex_lock(&mutex_tasks_);
-    if (tasks_.empty()) {
-        pthread_mutex_unlock(&mutex_tasks_);
-        return false;
-    }
-    for (std::list<Task*>::iterator it = tasks_.begin(); it != tasks_.end(); ++it) {
-        Task* t = *it;
-        if (!t->Submittable()) continue;
-        if (t->marker() && it != tasks_.begin()) continue;
-        *task = t;
-        tasks_.remove(*task);
-        pthread_mutex_unlock(&mutex_tasks_);
-        return true;
-    }
+    tasks_.remove(*task);
     pthread_mutex_unlock(&mutex_tasks_);
-    return false;
+    return true;
 }
 
 bool TaskQueue::Empty() {

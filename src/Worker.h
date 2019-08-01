@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_WORKLOAD_MANAGER_H
-#define BRISBANE_RT_SRC_WORKLOAD_MANAGER_H
+#ifndef BRISBANE_RT_SRC_WORKER_H
+#define BRISBANE_RT_SRC_WORKER_H
 
 #include "Thread.h"
 #include "Queue.h"
@@ -7,14 +7,14 @@
 namespace brisbane {
 namespace rt {
 
-class Dependency;
+class Consistency;
 class Device;
 class Task;
 
-class WorkloadManager : public Thread {
+class Worker : public Thread {
 public:
-    WorkloadManager(Device* device);
-    virtual ~WorkloadManager();
+    Worker(Device* device);
+    virtual ~Worker();
 
     void Enqueue(Task* task);
 
@@ -24,12 +24,12 @@ private:
 
 private:
     LockFreeQueue<Task*>* queue_;
-    Dependency* dependency_;
+    Consistency* consistency_;
     Device* device_;
 };
 
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_WORKLOAD_MANAGER_H */
+#endif /* BRISBANE_RT_SRC_WORKER_H */
 

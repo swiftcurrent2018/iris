@@ -11,13 +11,11 @@ namespace brisbane {
 namespace rt {
 
 FilterTaskSplit::FilterTaskSplit(Polyhedral* polyhedral, Platform* platform) {
-    _check();
     polyhedral_ = polyhedral;
     platform_ = platform;
 }
 
 FilterTaskSplit::~FilterTaskSplit() {
-    _check();
 }
 
 int FilterTaskSplit::Execute(Task* task) {
