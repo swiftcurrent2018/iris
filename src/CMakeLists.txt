@@ -13,7 +13,9 @@ set(libsrc
     Device.cpp
     FilterTaskSplit.cpp
     History.cpp
+    HubClient.cpp
     Kernel.cpp
+    Message.cpp
     Mem.cpp
     Object.cpp
     Platform.cpp
@@ -21,7 +23,8 @@ set(libsrc
     Policy.cpp
     PolicyData.cpp
     PolicyDefault.cpp
-    PolicyHistory.cpp
+    PolicyEager.cpp
+    PolicyProfile.cpp
     PolicyRandom.cpp
     PolicySpecific.cpp
     Polyhedral.cpp
@@ -37,6 +40,14 @@ set(libsrc
 
 add_library(brisbane STATIC ${libsrc})
 
+set(exesrc
+    Hub.cpp
+    Message.cpp
+    )
+
+add_executable(brisbane_hub ${exesrc})
+
 #target_compile_options(brisbane PRIVATE -Wall)
 
 install(TARGETS brisbane DESTINATION lib)
+install(TARGETS brisbane_hub DESTINATION bin)

@@ -2,16 +2,19 @@
 #include "Debug.h"
 #include "Consistency.h"
 #include "Device.h"
+#include "Scheduler.h"
 #include "Task.h"
 
 namespace brisbane {
 namespace rt {
 
-Worker::Worker(Device* device) {
+Worker::Worker(Device* device, Scheduler* scheduler) {
     device_ = device;
+    scheduler_ = scheduler;
     device_->set_worker(this);
     consistency_ = new Consistency();
     queue_ = new LockFreeQueue<Task*>(1024);
+    busy_ = false;
 }
 
 Worker::~Worker() {
@@ -27,9 +30,12 @@ void Worker::Enqueue(Task* task) {
 
 void Worker::Execute(Task* task) {
     if (!task->Executable()) return;
+    busy_ = true;
     consistency_->Resolve(task);
     device_->Execute(task);
     task->Complete();
+    scheduler_->CompleteTask(task, this);
+    busy_ = false;
 }
 
 void Worker::Run() {
@@ -39,6 +45,10 @@ void Worker::Run() {
         Task* task = NULL;
         while (queue_->Dequeue(&task)) Execute(task);
     }
+}
+
+unsigned long Worker::ntasks() {
+    return queue_->Size() + busy_ ? 1 : 0;
 }
 
 } /* namespace rt */

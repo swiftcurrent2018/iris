@@ -19,7 +19,8 @@ private:
 
     Policy* policy_data_;
     Policy* policy_default_;
-    Policy* policy_history_;
+    Policy* policy_eager_;
+    Policy* policy_profile_;
     Policy* policy_random_;
     Policy* policy_specific_;
 };

@@ -9,6 +9,7 @@ namespace brisbane {
 namespace rt {
 
 class Device;
+class HubClient;
 class Task;
 class TaskQueue;
 class Platform;
@@ -24,7 +25,12 @@ public:
 
     Platform* platform() { return platform_; }
     Device** devices() { return devices_; }
+    Worker** workers() { return workers_; }
     int ndevs() { return ndevs_; }
+    int nworkers() { return ndevs_; }
+    void CompleteTask(Task* task, Worker* worker);
+    int RefreshNTasksOnDevs();
+    size_t NTasksOnDev(int i);
 
 private:
     void Submit(Task* task);
@@ -32,6 +38,8 @@ private:
 
     void InitWorkers();
     void DestroyWorkers();
+
+    void InitHubClient();
 
 private:
 //    LockFreeQueue<Task*>* queue_;
@@ -41,7 +49,10 @@ private:
     Policies* policies_;
     Device** devices_;
     Worker* workers_[BRISBANE_MAX_NDEVS];
+    size_t ntasks_on_devs_[BRISBANE_MAX_NDEVS];
     int ndevs_;
+    HubClient* hub_client_;
+    bool hub_available_;
 };
 
 } /* namespace rt */

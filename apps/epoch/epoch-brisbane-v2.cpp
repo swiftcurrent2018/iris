@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     brisbane_task task1;
     brisbane_task_create(&task1);
     brisbane_task_kernel(task1, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);
-    brisbane_task_submit(task1, brisbane_history, NULL, true);
+    brisbane_task_submit(task1, brisbane_profile, NULL, true);
     brisbane_task_release(task1);
     /*
 #pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(gpu)

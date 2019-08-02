@@ -1,4 +1,4 @@
-#include "PolicyHistory.h"
+#include "PolicyProfile.h"
 #include "Debug.h"
 #include "Command.h"
 #include "History.h"
@@ -9,15 +9,15 @@
 namespace brisbane {
 namespace rt {
 
-PolicyHistory::PolicyHistory(Scheduler* scheduler, Policies* policies) {
+PolicyProfile::PolicyProfile(Scheduler* scheduler, Policies* policies) {
     SetScheduler(scheduler);
     policies_ = policies;
 }
 
-PolicyHistory::~PolicyHistory() {
+PolicyProfile::~PolicyProfile() {
 }
 
-void PolicyHistory::GetDevices(Task* task, Device** devs, int* ndevs) {
+void PolicyProfile::GetDevices(Task* task, Device** devs, int* ndevs) {
     Command* cmd = task->cmd_kernel();
     if (!cmd) return policies_->GetPolicy(brisbane_device_default)->GetDevices(task, devs, ndevs);
     History* history = cmd->kernel()->history();
