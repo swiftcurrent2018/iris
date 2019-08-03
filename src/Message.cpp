@@ -18,6 +18,10 @@ void Message::WriteHeader(int32_t v) {
     WriteInt(v);
 }
 
+void Message::WritePID(pid_t v) {
+    WriteInt(v);
+}
+
 void Message::WriteBool(bool v) {
     Write(&v, sizeof(v));
 }
@@ -61,6 +65,10 @@ void Message::Write(const void* v, size_t size) {
 }
 
 int32_t Message::ReadHeader() {
+    return ReadInt();
+}
+
+pid_t Message::ReadPID() {
     return ReadInt();
 }
 

@@ -15,21 +15,24 @@ public:
 
     int Init();
 
-    int IncTask(int dev, int i);
-    int DecTask(int dev, int i);
-    int GetNTasks(size_t* ntasks, int ndevs);
+    int TaskInc(int dev, int i);
+    int TaskDec(int dev, int i);
+    int TaskAll(size_t* ntasks, int ndevs);
 
 private:
     int OpenMQ();
     int CloseMQ();
     int SendMQ(Message& msg);
-    int OpenPipe();
-    int ClosePipe();
+
+    int OpenFIFO();
+    int CloseFIFO();
+    int RecvFIFO(Message& msg);
 
 private:
     pid_t pid_;
     key_t key_;
-    int mqid_;
+    int mq_;
+    int fifo_;
 };
 
 } /* namespace rt */

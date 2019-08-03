@@ -49,7 +49,7 @@ void Scheduler::InitHubClient() {
 
 void Scheduler::CompleteTask(Task* task, Worker* worker) {
     int dev_no = worker->device()->dev_no();
-    if (hub_available_) hub_client_->DecTask(dev_no, 1);
+    if (hub_available_) hub_client_->TaskDec(dev_no, 1);
 }
 
 int Scheduler::RefreshNTasksOnDevs() {
@@ -57,7 +57,7 @@ int Scheduler::RefreshNTasksOnDevs() {
         for (int i = 0; i < ndevs_; i++) ntasks_on_devs_[i] = workers_[i]->ntasks();
         return BRISBANE_OK;
     }
-    hub_client_->GetNTasks(ntasks_on_devs_, ndevs_);
+    hub_client_->TaskAll(ntasks_on_devs_, ndevs_);
     return BRISBANE_OK;
 }
 
@@ -98,7 +98,7 @@ void Scheduler::Submit(Task* task) {
     policies_->GetPolicy(brs_device)->GetDevices(task, devs, &ndevs);
     for (int i = 0; i < ndevs; i++) {
         devs[i]->worker()->Enqueue(task);
-        if (hub_available_) hub_client_->IncTask(i, 1);
+        if (hub_available_) hub_client_->TaskInc(devs[i]->dev_no(), 1);
     }
 }
 

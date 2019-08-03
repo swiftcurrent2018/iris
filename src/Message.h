@@ -15,6 +15,7 @@ public:
     ~Message();
 
     void WriteHeader(int32_t v);
+    void WritePID(pid_t v);
     void WriteBool(bool v);
     void WriteInt(int32_t v);
     void WriteUInt(uint32_t v);
@@ -27,6 +28,7 @@ public:
     void Write(const void* v, size_t size);
 
     int32_t ReadHeader();
+    pid_t ReadPID();
     bool ReadBool();
     int32_t ReadInt();
     uint32_t ReadUInt();

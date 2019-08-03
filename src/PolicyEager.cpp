@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 
 namespace brisbane {
 namespace rt {
@@ -16,7 +17,7 @@ PolicyEager::~PolicyEager() {
 }
 
 void PolicyEager::GetDevices(Task* task, Device** devs, int* ndevs) {
-    unsigned long min = 0;
+    unsigned long min = ULONG_MAX;
     int min_dev = 0;
     scheduler_->RefreshNTasksOnDevs();
     for (int i = 0; i < ndevs_; i++) {
