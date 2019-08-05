@@ -67,7 +67,7 @@ int HubClient::Status() {
 
 int HubClient::OpenMQ() {
   if ((key_ = ftok(BRISBANE_HUB_MQ_PATH, BRISBANE_HUB_MQ_PID)) == -1) return BRISBANE_ERR;
-  if ((mq_ = msgget(key_, 0644 | IPC_CREAT)) == -1) return BRISBANE_ERR;
+  if ((mq_ = msgget(key_, BRISBANE_HUB_PERM | IPC_CREAT)) == -1) return BRISBANE_ERR;
   return BRISBANE_OK;
 }
 
@@ -92,7 +92,7 @@ int HubClient::SendMQ(Message& msg) {
 int HubClient::OpenFIFO() {
   char path[64];
   sprintf(path, "%s.%d", BRISBANE_HUB_FIFO_PATH, pid_);
-  int iret = mknod(path, S_IFIFO | 0640, 0);
+  int iret = mknod(path, S_IFIFO | BRISBANE_HUB_PERM, 0);
   if (iret == -1) {
     _error("iret[%d]", iret);
     perror("mknod");

@@ -4,6 +4,7 @@
 #define BRISBANE_HUB_MQ_PATH         "/tmp/brisbane_hub.mq"
 #define BRISBANE_HUB_MQ_PID         52
 #define BRISBANE_HUB_FIFO_PATH      "/tmp/brisbane_hub.fifo"
+#define BRISBANE_HUB_PERM           0644
 
 #define BRISBANE_HUB_MQ_MSG_SIZE    256
 #define BRISBANE_HUB_MQ_STOP        0x1000

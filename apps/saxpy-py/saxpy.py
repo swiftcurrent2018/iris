@@ -5,33 +5,35 @@ import brisbane
 
 brisbane.init()
 
-x = np.arange(10, dtype=np.float32)
-y = np.arange(10, dtype=np.float32)
-z = np.arange(10, dtype=np.float32)
+SIZE = 10
+A = 5
 
-print x
-print y
+x = np.arange(SIZE, dtype=np.float32)
+y = np.arange(SIZE, dtype=np.float32)
+z = np.arange(SIZE, dtype=np.float32)
 
-mem_x = brisbane.mem_create(40)
-mem_y = brisbane.mem_create(40)
-mem_z = brisbane.mem_create(40)
+print 'X', x
+print 'Y', y
+
+mem_x = brisbane.mem_create(SIZE * 4)
+mem_y = brisbane.mem_create(SIZE * 4)
+mem_z = brisbane.mem_create(SIZE * 4)
 
 kernel = brisbane.kernel_create("saxpy")
-
 brisbane.kernel_setmem(kernel, 0, mem_z, brisbane.brisbane_w)
-brisbane.kernel_setarg(kernel, 1, 4, 5)
+brisbane.kernel_setarg(kernel, 1, 4, A)
 brisbane.kernel_setmem(kernel, 2, mem_x, brisbane.brisbane_r)
 brisbane.kernel_setmem(kernel, 3, mem_y, brisbane.brisbane_r)
 
 off = [ 0 ]
-ndr = [ 10 ]
+ndr = [ SIZE ]
 task = brisbane.task_create()
 brisbane.task_h2d_full(task, mem_x, x)
 brisbane.task_h2d_full(task, mem_y, y)
 brisbane.task_kernel(task, kernel, 1, off, ndr)
 brisbane.task_d2h_full(task, mem_z, z)
-brisbane.task_submit(task, brisbane.brisbane_gpu, True)
+brisbane.task_submit(task, brisbane.brisbane_eager, True)
 
-print z
+print 'Z =', A, '* X + Y', z
 
 brisbane.finalize()

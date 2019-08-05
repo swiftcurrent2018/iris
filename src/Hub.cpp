@@ -31,7 +31,7 @@ int Hub::OpenMQ() {
     perror("ftok");
     return BRISBANE_ERR;
   }
-  if ((mq_ = msgget(key_, 0644 | IPC_CREAT)) == -1) {
+  if ((mq_ = msgget(key_, BRISBANE_HUB_PERM | IPC_CREAT)) == -1) {
     perror("msgget");
     return BRISBANE_ERR;
   }
