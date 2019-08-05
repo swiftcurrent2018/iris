@@ -11,38 +11,38 @@ namespace rt {
 class History;
 
 typedef struct _KernelArg {
-    size_t size;
-    char value[256];
-    Mem* mem;
-    int mode;
+  size_t size;
+  char value[256];
+  Mem* mem;
+  int mode;
 } KernelArg;
 
 class Kernel: public Object<struct _brisbane_kernel, Kernel> {
 public:
-    Kernel(const char* name, Platform* platform);
-    virtual ~Kernel();
+  Kernel(const char* name, Platform* platform);
+  virtual ~Kernel();
 
-    int SetArg(int idx, size_t size, void* value);
-    int SetMem(int idx, Mem* mem, int mode);
-    std::map<int, KernelArg*>* ExportArgs();
+  int SetArg(int idx, size_t size, void* value);
+  int SetMem(int idx, Mem* mem, int mode);
+  std::map<int, KernelArg*>* ExportArgs();
 
-    cl_kernel clkernel(int i, cl_program clprog);
+  cl_kernel clkernel(int i, cl_program clprog);
 
-    std::map<int, KernelArg*>* args() { return &args_; }
-    char* name() { return name_; }
+  std::map<int, KernelArg*>* args() { return &args_; }
+  char* name() { return name_; }
 
-    Platform* platform() { return platform_; }
-    History* history() { return history_; }
+  Platform* platform() { return platform_; }
+  History* history() { return history_; }
 
 private:
-    char name_[256];
-    std::map<int, KernelArg*> args_;
-    cl_kernel clkernels_[BRISBANE_MAX_NDEVS];
+  char name_[256];
+  std::map<int, KernelArg*> args_;
+  cl_kernel clkernels_[BRISBANE_MAX_NDEVS];
 
-    Platform* platform_;
-    History* history_;
+  Platform* platform_;
+  History* history_;
 
-    cl_int clerr_;
+  cl_int clerr_;
 };
 
 } /* namespace rt */

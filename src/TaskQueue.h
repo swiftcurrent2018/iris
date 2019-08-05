@@ -11,17 +11,17 @@ namespace rt {
 
 class TaskQueue {
 public:
-    TaskQueue();
-    ~TaskQueue();
+  TaskQueue();
+  ~TaskQueue();
 
-    bool Peek(Task** task);
-    bool Enqueue(Task* task);
-    bool Dequeue(Task** task);
-    bool Empty();
+  bool Peek(Task** task);
+  bool Enqueue(Task* task);
+  bool Dequeue(Task** task);
+  bool Empty();
 
 private:
-    std::list<Task*> tasks_;
-    pthread_mutex_t mutex_tasks_;
+  std::list<Task*> tasks_;
+  pthread_mutex_t mutex_tasks_;
 };
 
 } /* namespace rt */

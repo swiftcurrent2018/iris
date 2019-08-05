@@ -19,46 +19,46 @@ class Task;
 
 class Command {
 public:
-    Command(Task* task, int type);
-    ~Command();
+  Command(Task* task, int type);
+  ~Command();
 
-    int type() { return type_; }
-    bool type_h2d() { return type_ == BRISBANE_CMD_H2D; }
-    bool type_d2h() { return type_ == BRISBANE_CMD_D2H; }
-    bool type_kernel() { return type_ == BRISBANE_CMD_KERNEL; }
-    size_t size() { return size_; }
-    void* host() { return host_; }
-    int dim() { return dim_; }
-    size_t* off() { return off_; }
-    size_t off(int i) { return off_[i]; }
-    size_t* ndr() { return ndr_; }
-    size_t ndr(int i) { return ndr_[i]; }
-    Kernel* kernel() { return kernel_; }
-    std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
-    Mem* mem() { return mem_; }
-    Task* task() { return task_; }
+  int type() { return type_; }
+  bool type_h2d() { return type_ == BRISBANE_CMD_H2D; }
+  bool type_d2h() { return type_ == BRISBANE_CMD_D2H; }
+  bool type_kernel() { return type_ == BRISBANE_CMD_KERNEL; }
+  size_t size() { return size_; }
+  void* host() { return host_; }
+  int dim() { return dim_; }
+  size_t* off() { return off_; }
+  size_t off(int i) { return off_[i]; }
+  size_t* ndr() { return ndr_; }
+  size_t ndr(int i) { return ndr_[i]; }
+  Kernel* kernel() { return kernel_; }
+  std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
+  Mem* mem() { return mem_; }
+  Task* task() { return task_; }
 
 private:
-    int type_;
-    size_t size_;
-    void* host_;
-    int dim_;
-    size_t off_[3];
-    size_t ndr_[3];
-    Kernel* kernel_;
-    Mem* mem_;
-    Task* task_;
-    std::map<int, KernelArg*>* kernel_args_;
+  int type_;
+  size_t size_;
+  void* host_;
+  int dim_;
+  size_t off_[3];
+  size_t ndr_[3];
+  Kernel* kernel_;
+  Mem* mem_;
+  Task* task_;
+  std::map<int, KernelArg*>* kernel_args_;
 
 public:
-    static Command* Create(Task* task, int type);
-    static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
-    static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host);
-    static Command* CreateReleaseMem(Task* task, Mem* mem);
-    static Command* Duplicate(Command* cmd);
-    static void Release(Command* cmd);
+  static Command* Create(Task* task, int type);
+  static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
+  static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
+  static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);
+  static Command* CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host);
+  static Command* CreateReleaseMem(Task* task, Mem* mem);
+  static Command* Duplicate(Command* cmd);
+  static void Release(Command* cmd);
 };
 
 } /* namespace rt */

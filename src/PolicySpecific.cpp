@@ -7,22 +7,22 @@ namespace brisbane {
 namespace rt {
 
 PolicySpecific::PolicySpecific(Scheduler* scheduler) {
-    SetScheduler(scheduler);
+  SetScheduler(scheduler);
 }
 
 PolicySpecific::~PolicySpecific() {
 }
 
 void PolicySpecific::GetDevices(Task* task, Device** devs, int* ndevs) {
-    int brs_device = task->brs_device();
-    int n = 0;
-    for (int i = 0; i < ndevs_; i++) {
-        Device* dev = devices_[i];
-        if ((dev->type() & brs_device) == dev->type()) {
-            devs[n++] = dev;
-        }
+  int brs_device = task->brs_device();
+  int n = 0;
+  for (int i = 0; i < ndevs_; i++) {
+    Device* dev = devices_[i];
+    if ((dev->type() & brs_device) == dev->type()) {
+      devs[n++] = dev;
     }
-    *ndevs = n;
+  }
+  *ndevs = n;
 }
 
 } /* namespace rt */

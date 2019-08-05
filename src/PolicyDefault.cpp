@@ -6,16 +6,16 @@ namespace brisbane {
 namespace rt {
 
 PolicyDefault::PolicyDefault(Scheduler* scheduler) {
-    SetScheduler(scheduler);
+  SetScheduler(scheduler);
 }
 
 PolicyDefault::~PolicyDefault() {
 }
 
 void PolicyDefault::GetDevices(Task* task, Device** devs, int* ndevs) {
-    _error("cannot be here [%p]", ndevs);
-    devs[0] = devices_[0];
-    *ndevs = 1;
+  _error("cannot be here [%p]", ndevs);
+  devs[0] = devices_[0];
+  *ndevs = 1;
 }
 
 } /* namespace rt */

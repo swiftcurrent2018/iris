@@ -8,10 +8,10 @@ namespace rt {
 
 class PolicyEager : public Policy {
 public:
-    PolicyEager(Scheduler* scheduler);
-    virtual ~PolicyEager();
+  PolicyEager(Scheduler* scheduler);
+  virtual ~PolicyEager();
 
-    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
+  virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 };
 
 } /* namespace rt */

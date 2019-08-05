@@ -12,9 +12,9 @@ Policy::~Policy() {
 }
 
 void Policy::SetScheduler(Scheduler* scheduler) {
-    scheduler_ = scheduler;
-    devices_ = scheduler_->devices();
-    ndevs_ = scheduler_->ndevs();
+  scheduler_ = scheduler;
+  devices_ = scheduler_->devices();
+  ndevs_ = scheduler_->ndevs();
 }
 
 } /* namespace rt */

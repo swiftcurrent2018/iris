@@ -8,10 +8,10 @@ namespace rt {
 
 class PolicyRandom : public Policy {
 public:
-    PolicyRandom(Scheduler* scheduler);
-    virtual ~PolicyRandom();
+  PolicyRandom(Scheduler* scheduler);
+  virtual ~PolicyRandom();
 
-    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
+  virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 };
 

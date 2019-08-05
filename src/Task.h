@@ -23,60 +23,60 @@ class Scheduler;
 
 class Task: public Object<struct _brisbane_task, Task> {
 public:
-    Task(Platform* platform, int type = BRISBANE_TASK);
-    virtual ~Task();
+  Task(Platform* platform, int type = BRISBANE_TASK);
+  virtual ~Task();
 
-    void AddCommand(Command* cmd);
-    void ClearCommands();
+  void AddCommand(Command* cmd);
+  void ClearCommands();
 
-    void AddSubtask(Task* subtask);
-    bool HasSubtasks();
+  void AddSubtask(Task* subtask);
+  bool HasSubtasks();
 
-    void AddDepend(Task* task);
+  void AddDepend(Task* task);
 
-    bool Submittable();
-    bool Executable();
-    void Complete();
-    void Wait();
+  bool Submittable();
+  bool Executable();
+  void Complete();
+  void Wait();
 
-    int type() { return type_; }
-    bool marker() { return type_ == BRISBANE_MARKER; }
-    int status() { return status_; }
-    Task* parent() { return parent_; }
-    Command* cmd(int i) { return cmds_[i]; }
-    Command* cmd_kernel() { return cmd_kernel_; }
-    void set_dev(Device* dev) { dev_ = dev; }
-    Device* dev() { return dev_; }
-    int ncmds() { return ncmds_; }
-    void set_parent(Task* task) { parent_ = task; }
-    void set_brs_device(int brs_device);
-    int brs_device() { return brs_device_; }
-    std::vector<Task*>* subtasks() { return &subtasks_; }
-
-private:
-    void CompleteSub();
+  int type() { return type_; }
+  bool marker() { return type_ == BRISBANE_MARKER; }
+  int status() { return status_; }
+  Task* parent() { return parent_; }
+  Command* cmd(int i) { return cmds_[i]; }
+  Command* cmd_kernel() { return cmd_kernel_; }
+  void set_dev(Device* dev) { dev_ = dev; }
+  Device* dev() { return dev_; }
+  int ncmds() { return ncmds_; }
+  void set_parent(Task* task) { parent_ = task; }
+  void set_brs_device(int brs_device);
+  int brs_device() { return brs_device_; }
+  std::vector<Task*>* subtasks() { return &subtasks_; }
 
 private:
-    Task* parent_;
-    int ncmds_;
-    Command* cmds_[64];
-    Command* cmd_kernel_;
-    Device* dev_;
-    Platform* platform_;
-    Scheduler* scheduler_;
-    std::vector<Task*> subtasks_;
-    size_t subtasks_complete_;
+  void CompleteSub();
 
-    Task* depends_[64];
-    int ndepends_;
+private:
+  Task* parent_;
+  int ncmds_;
+  Command* cmds_[64];
+  Command* cmd_kernel_;
+  Device* dev_;
+  Platform* platform_;
+  Scheduler* scheduler_;
+  std::vector<Task*> subtasks_;
+  size_t subtasks_complete_;
 
-    int brs_device_;
+  Task* depends_[64];
+  int ndepends_;
 
-    int type_;
-    int status_;
-    pthread_mutex_t executable_mutex_;
-    pthread_mutex_t complete_mutex_;
-    pthread_cond_t complete_cond_;
+  int brs_device_;
+
+  int type_;
+  int status_;
+  pthread_mutex_t executable_mutex_;
+  pthread_mutex_t complete_mutex_;
+  pthread_cond_t complete_cond_;
 };
 
 } /* namespace rt */

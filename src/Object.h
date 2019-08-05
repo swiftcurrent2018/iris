@@ -13,18 +13,18 @@ namespace rt {
 template <typename struct_type, class class_type>
 class Object {
 public:
-    Object() {
-        uid_ = brisbane_create_new_uid();
-        struct_obj_.class_obj = (class_type*) this;
-    }
-    virtual ~Object() {}
+  Object() {
+    uid_ = brisbane_create_new_uid();
+    struct_obj_.class_obj = (class_type*) this;
+  }
+  virtual ~Object() {}
 
-    unsigned long uid() { return uid_; }
-    struct_type* struct_obj() { return &struct_obj_; }
+  unsigned long uid() { return uid_; }
+  struct_type* struct_obj() { return &struct_obj_; }
 
 private:
-    unsigned long uid_;
-    struct_type struct_obj_;
+  unsigned long uid_;
+  struct_type struct_obj_;
 };
 
 } /* namespace rt */

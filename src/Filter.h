@@ -8,10 +8,10 @@ class Task;
 
 class Filter {
 public:
-    Filter() {}
-    virtual ~Filter() {}
+  Filter() {}
+  virtual ~Filter() {}
 
-    virtual int Execute(Task* task) = 0;
+  virtual int Execute(Task* task) = 0;
 };
 
 } /* namespace rt */

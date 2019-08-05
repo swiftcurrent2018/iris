@@ -9,24 +9,24 @@ namespace rt {
 
 class Thread {
 public:
-    Thread();
-    virtual ~Thread();
+  Thread();
+  virtual ~Thread();
 
-    void Start();
-    virtual void Stop();
-    virtual void Sleep();
-    virtual void Invoke();
-
-protected:
-    virtual void Run() = 0;
+  void Start();
+  virtual void Stop();
+  virtual void Sleep();
+  virtual void Invoke();
 
 protected:
-    static void* ThreadFunc(void* argp);
+  virtual void Run() = 0;
 
 protected:
-    pthread_t thread_;
-    volatile bool running_;
-    sem_t sem_;
+  static void* ThreadFunc(void* argp);
+
+protected:
+  pthread_t thread_;
+  volatile bool running_;
+  sem_t sem_;
 };
 
 } /* namespace rt */

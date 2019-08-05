@@ -9,46 +9,46 @@ namespace brisbane {
 namespace rt {
 
 Worker::Worker(Device* device, Scheduler* scheduler) {
-    device_ = device;
-    scheduler_ = scheduler;
-    device_->set_worker(this);
-    consistency_ = new Consistency();
-    queue_ = new LockFreeQueue<Task*>(1024);
-    busy_ = false;
+  device_ = device;
+  scheduler_ = scheduler;
+  device_->set_worker(this);
+  consistency_ = new Consistency();
+  queue_ = new LockFreeQueue<Task*>(1024);
+  busy_ = false;
 }
 
 Worker::~Worker() {
-    delete consistency_;
-    delete queue_;
+  delete consistency_;
+  delete queue_;
 }
 
 void Worker::Enqueue(Task* task) {
-    task->set_dev(device_);
-    while (!queue_->Enqueue(task)) {}
-    Invoke();
+  task->set_dev(device_);
+  while (!queue_->Enqueue(task)) {}
+  Invoke();
 }
 
 void Worker::Execute(Task* task) {
-    if (!task->Executable()) return;
-    busy_ = true;
-    consistency_->Resolve(task);
-    device_->Execute(task);
-    task->Complete();
-    scheduler_->CompleteTask(task, this);
-    busy_ = false;
+  if (!task->Executable()) return;
+  busy_ = true;
+  consistency_->Resolve(task);
+  device_->Execute(task);
+  task->Complete();
+  scheduler_->CompleteTask(task, this);
+  busy_ = false;
 }
 
 void Worker::Run() {
-    while (true) {
-        Sleep();
-        if (!running_) break;
-        Task* task = NULL;
-        while (queue_->Dequeue(&task)) Execute(task);
-    }
+  while (true) {
+    Sleep();
+    if (!running_) break;
+    Task* task = NULL;
+    while (queue_->Dequeue(&task)) Execute(task);
+  }
 }
 
 unsigned long Worker::ntasks() {
-    return queue_->Size() + busy_ ? 1 : 0;
+  return queue_->Size() + busy_ ? 1 : 0;
 }
 
 } /* namespace rt */

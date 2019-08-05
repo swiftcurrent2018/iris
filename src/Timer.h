@@ -12,23 +12,23 @@ namespace rt {
 
 class Timer {
 public:
-    Timer();
-    ~Timer();
+  Timer();
+  ~Timer();
 
-    double Now();
-    double Start(int i);
-    double Stop(int i);
-    double Total(int i);
+  double Now();
+  double Start(int i);
+  double Stop(int i);
+  double Total(int i);
 
-    size_t Inc(int i);
-    size_t Inc(int i, size_t s);
+  size_t Inc(int i);
+  size_t Inc(int i, size_t s);
 
 private:
-    double start_[BRISBANE_TIMER_MAX];
-    double total_[BRISBANE_TIMER_MAX];
-    size_t total_ul_[BRISBANE_TIMER_MAX];
+  double start_[BRISBANE_TIMER_MAX];
+  double total_[BRISBANE_TIMER_MAX];
+  size_t total_ul_[BRISBANE_TIMER_MAX];
 
-    double base_sec_;
+  double base_sec_;
 };
 
 } /* namespace rt */

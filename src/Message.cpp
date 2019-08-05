@@ -7,119 +7,119 @@ namespace brisbane {
 namespace rt {
 
 Message::Message(long header) {
-    offset_ = 0;
-    if (header >= 0) WriteHeader(header);
+  offset_ = 0;
+  if (header >= 0) WriteHeader(header);
 }
 
 Message::~Message() {
 }
 
 void Message::WriteHeader(int32_t v) {
-    WriteInt(v);
+  WriteInt(v);
 }
 
 void Message::WritePID(pid_t v) {
-    WriteInt(v);
+  WriteInt(v);
 }
 
 void Message::WriteBool(bool v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteInt(int32_t v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteUInt(uint32_t v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteLong(int64_t v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteULong(uint64_t v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteFloat(float v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteDouble(double v) {
-    Write(&v, sizeof(v));
+  Write(&v, sizeof(v));
 }
 
 void Message::WriteString(const char* v) {
-    Write(v, strlen(v) + 1);
+  Write(v, strlen(v) + 1);
 }
 
 void Message::WritePtr(void *ptr) {
-    Write(reinterpret_cast<void *>(&ptr), sizeof(void *));
+  Write(reinterpret_cast<void *>(&ptr), sizeof(void *));
 }
 
 void Message::Write(const void* v, size_t size) {
-    memcpy(buf_ + offset_, v, size);
-    offset_ += size;
-    if (offset_ >= BRISBANE_MSG_SIZE) _error("message size is over %d (%lu)", BRISBANE_MSG_SIZE, offset_);
+  memcpy(buf_ + offset_, v, size);
+  offset_ += size;
+  if (offset_ >= BRISBANE_MSG_SIZE) _error("message size is over %d (%lu)", BRISBANE_MSG_SIZE, offset_);
 }
 
 int32_t Message::ReadHeader() {
-    return ReadInt();
+  return ReadInt();
 }
 
 pid_t Message::ReadPID() {
-    return ReadInt();
+  return ReadInt();
 }
 
 bool Message::ReadBool() {
-    return *(bool*) Read(sizeof(bool));
+  return *(bool*) Read(sizeof(bool));
 }
 
 int32_t Message::ReadInt() {
-    return *(int32_t*) Read(sizeof(int32_t));
+  return *(int32_t*) Read(sizeof(int32_t));
 }
 
 uint32_t Message::ReadUInt() {
-    return *(uint32_t*) Read(sizeof(uint32_t));
+  return *(uint32_t*) Read(sizeof(uint32_t));
 }
 
 int64_t Message::ReadLong() {
-    return *(int64_t*) Read(sizeof(int64_t));
+  return *(int64_t*) Read(sizeof(int64_t));
 }
 
 uint64_t Message::ReadULong() {
-    return *(uint64_t*) Read(sizeof(uint64_t));
+  return *(uint64_t*) Read(sizeof(uint64_t));
 }
 
 float Message::ReadFloat() {
-    return *(float*) Read(sizeof(float));
+  return *(float*) Read(sizeof(float));
 }
 
 double Message::ReadDouble() {
-    return *(double*) Read(sizeof(double));
+  return *(double*) Read(sizeof(double));
 }
 
 char* Message::ReadString() {
-    return (char*) Read(strlen(buf_ + offset_) + 1);
+  return (char*) Read(strlen(buf_ + offset_) + 1);
 }
 
 char* Message::ReadString(size_t len) {
-    return (char*) Read(len);
+  return (char*) Read(len);
 }
 
 void* Message::ReadPtr() {
-    return *((void **) Read(sizeof(void *)));
+  return *((void **) Read(sizeof(void *)));
 }
 
 void* Message::Read(size_t size) {
-    void* p = buf_ + offset_;
-    offset_ += size;
-    return p;
+  void* p = buf_ + offset_;
+  offset_ += size;
+  return p;
 }
 
 void Message::Clear() {
-    offset_ = 0;
+  offset_ = 0;
 }
 
 } /* namespace rt */

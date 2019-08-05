@@ -14,24 +14,24 @@ class Task;
 
 class Worker : public Thread {
 public:
-    Worker(Device* device, Scheduler* scheduler);
-    virtual ~Worker();
+  Worker(Device* device, Scheduler* scheduler);
+  virtual ~Worker();
 
-    void Enqueue(Task* task);
-    bool busy() { return busy_; }
-    unsigned long ntasks();
-    Device* device() { return device_; }
-
-private:
-    void Execute(Task* task);
-    virtual void Run();
+  void Enqueue(Task* task);
+  bool busy() { return busy_; }
+  unsigned long ntasks();
+  Device* device() { return device_; }
 
 private:
-    LockFreeQueue<Task*>* queue_;
-    Consistency* consistency_;
-    Device* device_;
-    Scheduler* scheduler_;
-    bool busy_;
+  void Execute(Task* task);
+  virtual void Run();
+
+private:
+  LockFreeQueue<Task*>* queue_;
+  Consistency* consistency_;
+  Device* device_;
+  Scheduler* scheduler_;
+  bool busy_;
 };
 
 } /* namespace rt */

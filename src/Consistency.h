@@ -9,13 +9,13 @@ class Task;
 
 class Consistency {
 public:
-    Consistency();
-    ~Consistency();
+  Consistency();
+  ~Consistency();
 
-    void Resolve(Task* task);
+  void Resolve(Task* task);
 
 private:
-    void Resolve(Task* task, Command* cmd);
+  void Resolve(Task* task, Command* cmd);
 
 };
 

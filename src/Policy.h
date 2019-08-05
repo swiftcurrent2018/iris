@@ -10,18 +10,18 @@ class Task;
 
 class Policy {
 public:
-    Policy();
-    virtual ~Policy();
+  Policy();
+  virtual ~Policy();
 
-    virtual void GetDevices(Task* task, Device** devs, int* ndevs) = 0;
-
-protected:
-    void SetScheduler(Scheduler* scheduler);
+  virtual void GetDevices(Task* task, Device** devs, int* ndevs) = 0;
 
 protected:
-    Scheduler* scheduler_;
-    Device** devices_;
-    int ndevs_;
+  void SetScheduler(Scheduler* scheduler);
+
+protected:
+  Scheduler* scheduler_;
+  Device** devices_;
+  int ndevs_;
 };
 
 } /* namespace rt */

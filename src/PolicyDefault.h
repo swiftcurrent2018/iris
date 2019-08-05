@@ -8,10 +8,10 @@ namespace rt {
 
 class PolicyDefault : public Policy {
 public:
-    PolicyDefault(Scheduler* scheduler);
-    virtual ~PolicyDefault();
+  PolicyDefault(Scheduler* scheduler);
+  virtual ~PolicyDefault();
 
-    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
+  virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 };
 

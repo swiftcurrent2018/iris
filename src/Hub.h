@@ -33,32 +33,32 @@ class Message;
 
 class Hub {
 public:
-    Hub();
-    ~Hub();
+  Hub();
+  ~Hub();
 
-    int Run();
-    bool Running();
-    int CloseMQ();
-
-private:
-    int OpenMQ();
-
-    int SendFIFO(Message& msg, int pid);
-
-    int ExecuteStop(Message& msg, int pid);
-    int ExecuteStatus(Message& msg, int pid);
-    int ExecuteRegister(Message& msg, int pid);
-    int ExecuteDeregister(Message& msg, int pid);
-    int ExecuteTaskInc(Message& msg, int pid);
-    int ExecuteTaskAll(Message& msg, int pid);
+  int Run();
+  bool Running();
+  int CloseMQ();
 
 private:
-    key_t key_;
-    int mq_;
-    bool running_;
-    std::map<int, int> fifos_;
-    size_t ntasks_[BRISBANE_MAX_NDEVS];
-    int ndevs_;
+  int OpenMQ();
+
+  int SendFIFO(Message& msg, int pid);
+
+  int ExecuteStop(Message& msg, int pid);
+  int ExecuteStatus(Message& msg, int pid);
+  int ExecuteRegister(Message& msg, int pid);
+  int ExecuteDeregister(Message& msg, int pid);
+  int ExecuteTaskInc(Message& msg, int pid);
+  int ExecuteTaskAll(Message& msg, int pid);
+
+private:
+  key_t key_;
+  int mq_;
+  bool running_;
+  std::map<int, int> fifos_;
+  size_t ntasks_[BRISBANE_MAX_NDEVS];
+  int ndevs_;
 };
 
 } /* namespace rt */

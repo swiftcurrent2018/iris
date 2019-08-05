@@ -10,13 +10,13 @@ class Policies;
 
 class PolicyProfile : public Policy {
 public:
-    PolicyProfile(Scheduler* scheduler, Policies* policies);
-    virtual ~PolicyProfile();
+  PolicyProfile(Scheduler* scheduler, Policies* policies);
+  virtual ~PolicyProfile();
 
-    virtual void GetDevices(Task* task, Device** devs, int* ndevs);
+  virtual void GetDevices(Task* task, Device** devs, int* ndevs);
 
 private:
-    Policies* policies_;
+  Policies* policies_;
 
 };
 

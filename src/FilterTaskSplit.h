@@ -11,14 +11,14 @@ class Platform;
 
 class FilterTaskSplit : public Filter {
 public:
-    FilterTaskSplit(Polyhedral* polyhedral, Platform* platform);
-    virtual ~FilterTaskSplit();
+  FilterTaskSplit(Polyhedral* polyhedral, Platform* platform);
+  virtual ~FilterTaskSplit();
 
-    virtual int Execute(Task* task);
+  virtual int Execute(Task* task);
 
 private:
-    Polyhedral* polyhedral_;
-    Platform* platform_;
+  Polyhedral* polyhedral_;
+  Platform* platform_;
 };
 
 } /* namespace rt */
