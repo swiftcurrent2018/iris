@@ -145,7 +145,7 @@ void Device::ExecuteKernel(Command* cmd) {
         clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
         _clerror(clerr_);
     }
-    _trace("devno[%d] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", dev_no_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
+    _trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", dev_no_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
     if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
     timer_->Start(11);
     if (type_ == brisbane_device_fpga) {
@@ -159,7 +159,7 @@ void Device::ExecuteKernel(Command* cmd) {
     clerr_ = clFinish(clcmdq_);
     _clerror(clerr_);
     double time = timer_->Stop(11);
-    _trace("kernel[%s] on dev[%d] %s time[%lf]", kernel->name(), dev_no_, name_, time);
+    _trace("devno[%d][%s] kernel[%s] time[%lf]", dev_no_, name_, kernel->name(), time);
     kernel->history()->AddKernel(cmd, this, time);
 }
 
@@ -169,7 +169,7 @@ void Device::ExecuteH2D(Command* cmd) {
     size_t off = cmd->off(0);
     size_t size = cmd->size();
     void* host = cmd->host();
-    _trace("devno[%d] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), clmem, off, size, host);
+    _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", dev_no_, name_, mem->uid(), clmem, off, size, host);
     mem->AddOwner(off, size, this);
     timer_->Start(12);
     clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
@@ -188,7 +188,7 @@ void Device::ExecuteD2H(Command* cmd) {
     size_t size = cmd->size();
     int expansion = mem->expansion();
     void* host = cmd->host();
-    _trace("devno[%d] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", dev_no_, mem->uid(), off, size, expansion, host);
+    _trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", dev_no_, name_, mem->uid(), off, size, expansion, host);
     timer_->Start(13);
     if (mode & brisbane_reduction) {
         clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, mem->size() * expansion, mem->host_inter(), 0, NULL, NULL);

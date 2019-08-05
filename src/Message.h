@@ -7,7 +7,7 @@
 namespace brisbane {
 namespace rt {
 
-#define BRISBANE_MSG_SIZE           0x100
+#define BRISBANE_MSG_SIZE           512
 
 class Message {
 public:

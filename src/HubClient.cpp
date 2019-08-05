@@ -3,25 +3,66 @@
 #include "Hub.h"
 #include "Debug.h"
 #include "Message.h"
+#include "Scheduler.h"
 #include <stdlib.h>
 #include <unistd.h>
 
 namespace brisbane {
 namespace rt {
 
-HubClient::HubClient() {
+HubClient::HubClient(Scheduler* scheduler) {
+    ndevs_ = -1;
+    if (scheduler) {
+        scheduler_  = scheduler;
+        ndevs_ = scheduler->ndevs();
+    }
     pid_ = getpid();
     fifo_ = -1;
+    available_ = false;
+    stop_hub_ = false;
 }
 
 HubClient::~HubClient() {
-    CloseMQ();
+    if (!stop_hub_) CloseMQ();
 }
 
 int HubClient::Init() {
     int ret = OpenMQ();
     if (ret == BRISBANE_OK) ret = OpenFIFO();
+    if (ret == BRISBANE_OK) Register();
+    available_ = ret == BRISBANE_OK;
     return ret;
+}
+
+int HubClient::StopHub() {
+    if (!available_) return BRISBANE_ERR;
+    Message msg(BRISBANE_HUB_MQ_STOP);
+    msg.WritePID(pid_);
+    SendMQ(msg);
+
+    msg.Clear();
+    RecvFIFO(msg);
+
+    stop_hub_ = true;
+
+    return BRISBANE_OK;
+}
+
+int HubClient::Status() {
+    if (!available_) return BRISBANE_ERR;
+    Message msg(BRISBANE_HUB_MQ_STATUS);
+    msg.WritePID(pid_);
+    SendMQ(msg);
+
+    msg.Clear();
+    RecvFIFO(msg);
+
+    int header = msg.ReadHeader();
+    int ndevs = msg.ReadInt();
+    for (int i = 0; i < ndevs; i++) {
+        _info("Device[%d] ntasks[%lu]", i, msg.ReadULong());
+    }
+    return BRISBANE_OK;
 }
 
 int HubClient::OpenMQ() {
@@ -31,7 +72,10 @@ int HubClient::OpenMQ() {
 }
 
 int HubClient::CloseMQ() {
-    if (fifo_ != -1) CloseFIFO();
+    if (fifo_ != -1) {
+        CloseFIFO();
+        Deregister();
+    }
     return BRISBANE_OK;
 }
 
@@ -61,16 +105,15 @@ int HubClient::OpenFIFO() {
         return BRISBANE_ERR;
     }
     _debug("open fifo[%s]", path);
-    Message msg(BRISBANE_HUB_MQ_REGISTER);
-    msg.WritePID(pid_);
-    SendMQ(msg);
     return BRISBANE_OK;
 }
 
 int HubClient::CloseFIFO() {
-    Message msg(BRISBANE_HUB_MQ_DEREGISTER);
-    msg.WritePID(pid_);
-    SendMQ(msg);
+    int iret = close(fifo_);
+    if (iret == -1) {
+        _error("iret[%d]", iret);
+        perror("close");
+    }
     return BRISBANE_OK;
 }
 
@@ -84,7 +127,23 @@ int HubClient::RecvFIFO(Message& msg) {
     return BRISBANE_OK;
 }
 
+int HubClient::Register() {
+    Message msg(BRISBANE_HUB_MQ_REGISTER);
+    msg.WritePID(pid_);
+    msg.WriteInt(ndevs_);
+    SendMQ(msg);
+    return BRISBANE_OK;
+}
+
+int HubClient::Deregister() {
+    Message msg(BRISBANE_HUB_MQ_DEREGISTER);
+    msg.WritePID(pid_);
+    SendMQ(msg);
+    return BRISBANE_OK;
+}
+
 int HubClient::TaskInc(int dev, int i) {
+    if (!available_) return BRISBANE_OK;
     _debug("dev[%d] i[%d]", dev, i);
     Message msg(BRISBANE_HUB_MQ_TASK_INC);
     msg.WritePID(pid_);

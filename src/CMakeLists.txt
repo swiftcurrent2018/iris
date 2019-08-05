@@ -1,6 +1,9 @@
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-option(USE_HIP  "Use AMD HIP API" OFF)
+option(USE_FORTRAN "Enable support for Fortran 90" OFF)
+if (USE_FORTRAN)
+    enable_language(Fortran)
+endif()
 
 configure_file (Config.h.in Config.h)
 
@@ -38,16 +41,25 @@ set(libsrc
     Worker.cpp
     )
 
-add_library(brisbane STATIC ${libsrc})
+if(USE_FORTRAN)
+    set(libsrc ${libsrc} FortranAPI.f90)
+endif()
 
-set(exesrc
+add_library(brisbane STATIC SHARED ${libsrc})
+
+set(hubsrc
     Hub.cpp
+    HubClient.cpp
     Message.cpp
     )
 
-add_executable(brisbane_hub ${exesrc})
+add_executable(brisbane-hub ${hubsrc})
 
 #target_compile_options(brisbane PRIVATE -Wall)
 
 install(TARGETS brisbane DESTINATION lib)
-install(TARGETS brisbane_hub DESTINATION bin)
+install(TARGETS brisbane-hub DESTINATION bin)
+
+if(USE_FORTRAN)
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/src/brisbane.mod DESTINATION include/brisbane)
+endif()

@@ -19,7 +19,7 @@ Scheduler::Scheduler(Platform* platform) {
     policies_ = new Policies(this);
 //    queue_ = new LockFreeQueue<Task*>(1024);
     queue_ = new TaskQueue();
-    hub_client_ = new HubClient();
+    hub_client_ = new HubClient(this);
     InitWorkers();
     InitHubClient();
 }

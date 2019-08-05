@@ -72,7 +72,7 @@ int Platform::GetCLPlatforms() {
     bool enabled = true;
 
     clerr_ = clGetPlatformIDs((cl_uint) nplatforms_, cl_platforms_, (cl_uint*) &nplatforms_);
-    _trace("nplatforms[%u]", nplatforms_);
+    _info("nplatforms[%u]", nplatforms_);
     cl_uint num_devices;
     char platform_vendor[64];
     char platform_name[64];

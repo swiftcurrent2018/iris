@@ -1,30 +1,28 @@
 #include <brisbane/brisbane.h>
 #include "Hub.h"
+#include "HubClient.h"
 #include "Debug.h"
 #include "Message.h"
 #include <stdlib.h>
-#include <signal.h>
 
 namespace brisbane {
 namespace rt {
 
-char brisbane_log_prefix_[256];
+char brisbane_log_prefix_[32] = "BRISBANE-HUB";
+const static char* app = "BRISBANE-HUB";
 
 Hub::Hub() {
-    sprintf(brisbane_log_prefix_, "BRISBANE_HUB");
     running_ = false;
-    mqid_ = -1;
-    int ndevs_ = BRISBANE_MAX_NDEVS;
-    for (int i = 0; i < ndevs_; i++) ntasks_[i] = 0;
+    mq_ = -1;
+    ndevs_ = 0;
+    for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) ntasks_[i] = 0;
 }
 
 Hub::~Hub() {
-    _check();
-    CloseMQ();
+    if (mq_ != -1) CloseMQ();
 }
 
 int Hub::OpenMQ() {
-    _check();
     char cmd[64];
     memset(cmd, 0, 64);
     sprintf(cmd, "touch %s", BRISBANE_HUB_MQ_PATH);
@@ -33,7 +31,7 @@ int Hub::OpenMQ() {
         perror("ftok");
         return BRISBANE_ERR;
     }
-    if ((mqid_ = msgget(key_, 0644 | IPC_CREAT)) == -1) {
+    if ((mq_ = msgget(key_, 0644 | IPC_CREAT)) == -1) {
         perror("msgget");
         return BRISBANE_ERR;
     }
@@ -41,11 +39,10 @@ int Hub::OpenMQ() {
 }
 
 int Hub::CloseMQ() {
-    _check();
     char cmd[64];
     memset(cmd, 0, 64);
     sprintf(cmd, "rm -f %s %s*", BRISBANE_HUB_MQ_PATH, BRISBANE_HUB_FIFO_PATH);
-    system(cmd);
+    if (system(cmd) == -1) perror(cmd);
     return BRISBANE_OK;
 }
 
@@ -62,18 +59,19 @@ int Hub::SendFIFO(Message& msg, int pid) {
 int Hub::Run() {
     OpenMQ();
     running_ = true;
-    Message msg;
-    int ret;
     while (running_) {
-        msg.Clear();
-        if (msgrcv(mqid_, msg.buf(), BRISBANE_HUB_MQ_MSG_SIZE, 0, 0) == -1) {
+        Message msg;
+        if (msgrcv(mq_, msg.buf(), BRISBANE_HUB_MQ_MSG_SIZE, 0, 0) == -1) {
             perror("msgrcv");
             continue;
         }
         int header = msg.ReadHeader();
         int pid = msg.ReadPID();
+        int ret = BRISBANE_OK;
         switch (header) {
             _debug("header[0x%x]", header);
+            case BRISBANE_HUB_MQ_STOP:          ret = ExecuteStop(msg, pid);        break;
+            case BRISBANE_HUB_MQ_STATUS:        ret = ExecuteStatus(msg, pid);      break;
             case BRISBANE_HUB_MQ_REGISTER:      ret = ExecuteRegister(msg, pid);    break;
             case BRISBANE_HUB_MQ_DEREGISTER:    ret = ExecuteDeregister(msg, pid);  break;
             case BRISBANE_HUB_MQ_TASK_INC:      ret = ExecuteTaskInc(msg, pid);     break;
@@ -85,7 +83,33 @@ int Hub::Run() {
     return BRISBANE_OK;
 }
 
+bool Hub::Running() {
+    return access(BRISBANE_HUB_MQ_PATH, F_OK) != -1;
+}
+
+int Hub::ExecuteStop(Message& msg, int pid) {
+    running_ = false;
+    Message fmsg(BRISBANE_HUB_FIFO_STOP);
+    SendFIFO(fmsg, pid);
+    return BRISBANE_OK;
+}
+
+int Hub::ExecuteStatus(Message& msg, int pid) {
+    Message fmsg(BRISBANE_HUB_FIFO_STATUS);
+    fmsg.WriteInt(ndevs_);
+    for (int i = 0; i < ndevs_; i++) {
+        fmsg.WriteULong(ntasks_[i]);
+    }
+    SendFIFO(fmsg, pid);
+    return BRISBANE_OK;
+}
+
 int Hub::ExecuteRegister(Message& msg, int pid) {
+    int ndevs = msg.ReadInt();
+    if (ndevs != -1) {
+        if (ndevs_ != 0 && ndevs_ != ndevs) _error("ndevs_[%d] ndev[%d]", ndevs_, ndevs);
+        ndevs_ = ndevs;
+    }
     char path[64];
     sprintf(path, "%s.%d", BRISBANE_HUB_FIFO_PATH, pid);
     _debug("open fifo[%s]", path);
@@ -106,7 +130,7 @@ int Hub::ExecuteDeregister(Message& msg, int pid) {
     }
     iret = remove(path);
     if (iret == -1) {
-        _error("iret[%d]", iret);
+        _error("iret[%d][%s]", iret, path);
         perror("remove");
     }
     fifos_.erase(pid);
@@ -138,25 +162,69 @@ int Hub::ExecuteTaskAll(Message& msg, int pid) {
 
 using namespace brisbane::rt;
 
-Hub* hub;
-
-void brisbane_hub_sigint_handler(int signum) {
-    if (signum == SIGINT) {
-        if (hub) delete hub;
-        exit(0);
-    } else {
-        _debug("signum[%d]", signum);
-    }
+int usage(char** argv) {
+    printf("Usage: %s [start | stop | status]\n", argv[0]);
+    return -1;
 }
 
-int main(int argc, char** argv) {
-    hub = new Hub();
-    if (argc > 1 && strcmp("kill", argv[1]) == 0) {
-        delete hub;
+int start(char** argv) {
+    HubClient* client = new HubClient(NULL);
+    client->Init();
+    if (client->available()) {
+        printf("%s is already running.\n", app);
+        delete client;
         return 0;
     }
-    signal(SIGINT, brisbane_hub_sigint_handler);
+    delete client;
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return 1;
+    }
+    if (pid > 0) exit(0);
+
+    setsid();
+    Hub* hub = new Hub();
+    printf("%s is running.\n", app);
     hub->Run();
     delete hub;
     return 0;
+}
+
+int stop(char** argv) {
+    HubClient* client = new HubClient(NULL);
+    client->Init();
+    if (client->available()) {
+        printf("%s is stopping...", app);
+        client->StopHub();
+    } else printf("%s is not running...", app);
+    delete client;
+    char cmd[64];
+    memset(cmd, 0, 64);
+    sprintf(cmd, "rm -f %s %s*", BRISBANE_HUB_MQ_PATH, BRISBANE_HUB_FIFO_PATH);
+    if (system(cmd) == -1) perror(cmd);
+    printf("done.\n");
+    return 0;
+}
+
+int status(char** argv) {
+    HubClient* client = new HubClient(NULL);
+    client->Init();
+    if (!client->available()) {
+        printf("%s is not running.\n", app);
+    } else {
+        printf("%s is running.\n", app);
+        client->Status();
+    }
+    delete client;
+    return 0;
+}
+
+int main(int argc, char** argv) {
+    if (argc == 1) return usage(argv);
+    if (strcmp(argv[1], "start") == 0)  return start(argv);
+    if (strcmp(argv[1], "stop") == 0)   return stop(argv);
+    if (strcmp(argv[1], "status") == 0) return status(argv);
+    return usage(argv);
 }
