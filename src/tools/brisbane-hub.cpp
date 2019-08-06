@@ -17,7 +17,7 @@ const static char* app = "BRISBANE-HUB";
 
 int usage(char** argv) {
   printf("Usage: %s [ start | stop | restart | status ]\n", argv[0]);
-  return -1;
+  return 1;
 }
 
 int start(char** argv) {

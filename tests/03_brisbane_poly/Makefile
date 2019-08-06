@@ -1,11 +1,12 @@
-all:hello.ll hello
+all: opt
 
-hello.ll:hello.c
+vecadd.ll: vecadd.c
 	clang -O3 -emit-llvm -S -o $@ $^
 
-hello:hello.c
-	clang -O3 -o $@ $^
+opt: vecadd.ll
+	opt -load LLVMBrisbanePoly.so -brisbane-poly < vecadd.ll -o vecadd.bc
+	llvm-dis vecadd.bc -o vecadd.bc.ll
 
 clean:
-	rm -f hello.ll hello
+	rm -f vecadd.ll vecadd.bc vecadd.bc.ll
 
