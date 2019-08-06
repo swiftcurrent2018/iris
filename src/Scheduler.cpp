@@ -68,8 +68,8 @@ size_t Scheduler::NTasksOnDev(int i) {
 void Scheduler::Enqueue(Task* task) {
   if (task->HasSubtasks()) {
     std::vector<Task*>* subtasks = task->subtasks();
-    for (std::vector<Task*>::iterator it = subtasks->begin(); it != subtasks->end(); ++it) {
-      while (!queue_->Enqueue(*it)) {}
+    for (std::vector<Task*>::iterator I = subtasks->begin(), E = subtasks->end(); I != E; ++I) {
+      while (!queue_->Enqueue(*I)) {}
     }
   } else while (!queue_->Enqueue(task)) {}
   Invoke();

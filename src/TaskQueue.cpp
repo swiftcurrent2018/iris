@@ -17,10 +17,10 @@ bool TaskQueue::Peek(Task** task) {
     pthread_mutex_unlock(&mutex_tasks_);
     return false;
   }
-  for (std::list<Task*>::iterator it = tasks_.begin(); it != tasks_.end(); ++it) {
-    Task* t = *it;
+  for (std::list<Task*>::iterator I = tasks_.begin(), E = tasks_.end(); I != E; ++I) {
+    Task* t = *I;
     if (!t->Submittable()) continue;
-    if (t->marker() && it != tasks_.begin()) continue;
+    if (t->marker() && I != tasks_.begin()) continue;
     *task = t;
     pthread_mutex_unlock(&mutex_tasks_);
     return true;

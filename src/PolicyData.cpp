@@ -24,8 +24,8 @@ void PolicyData::GetDevices(Task* task, Device** devs, int* ndevs) {
     if (cmd->type() == BRISBANE_CMD_KERNEL) {
       Kernel* kernel = cmd->kernel();
       std::map<int, KernelArg*>* args = kernel->args();
-      for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
-        Mem* mem = it->second->mem;
+      for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
+        Mem* mem = I->second->mem;
         if (!mem || !mem->owner()) continue;
         total_size[mem->owner()->dev_no()] += mem->size();
       }

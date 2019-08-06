@@ -35,8 +35,8 @@ Task::~Task() {
 void Task::set_brs_device(int brs_device) {
   brs_device_ = brs_device == brisbane_default ? platform_->device_default() : brs_device;
   if (!HasSubtasks()) return;
-  for (std::vector<Task*>::iterator it = subtasks_.begin(); it != subtasks_.end(); ++it)
-    (*it)->set_brs_device(brs_device);
+  for (std::vector<Task*>::iterator I = subtasks_.begin(), E = subtasks_.end(); I != E; ++I)
+    (*I)->set_brs_device(brs_device);
 }
 
 void Task::AddCommand(Command* cmd) {

@@ -115,8 +115,8 @@ int Platform::DeviceGetDefault(int* device) {
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
-  for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
-    Kernel* kernel = *it;
+  for (std::set<Kernel*>::iterator I = kernels_.begin(), E = kernels_.end(); I != E; ++I) {
+    Kernel* kernel = *I;
     if (strcmp(kernel->name(), name) == 0) {
       if (brs_kernel) *brs_kernel = kernel->struct_obj();
       return BRISBANE_OK;
@@ -270,8 +270,8 @@ int Platform::ShowKernelHistory() {
   double t_ker = 0.0;
   double t_h2d = 0.0;
   double t_d2h = 0.0;
-  for (std::set<Kernel*>::iterator it = kernels_.begin(); it != kernels_.end(); ++it) {
-    Kernel* kernel = *it;
+  for (std::set<Kernel*>::iterator I = kernels_.begin(), E = kernels_.end(); I != E; ++I) {
+    Kernel* kernel = *I;
     History* history = kernel->history();
     _info("kernel[%s] k[%lf][%lu] h2d[%lf][%lu] d2h[%lf][%lu]", kernel->name(), history->t_kernel(), history->c_kernel(), history->t_h2d(), history->c_h2d(), history->t_d2h(), history->c_d2h());
     t_ker += history->t_kernel();

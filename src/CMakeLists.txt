@@ -1,6 +1,7 @@
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 option(USE_FORTRAN "Enable support for Fortran 90" OFF)
 if (USE_FORTRAN)
@@ -8,8 +9,6 @@ if (USE_FORTRAN)
 endif()
 
 configure_file(Config.h.in Config.h)
-
-include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(BRISBANE_RUNTIME_SOURCES
   CAPI.cpp
@@ -48,21 +47,12 @@ endif()
 
 add_library(brisbane ${BRISBANE_RUNTIME_SOURCES})
 
-SET_TARGET_PROPERTIES(brisbane PROPERTIES OUTPUT_NAME brisbane)
-
-set(BRISBANE_HUB_SOURCES
-  Hub.cpp
-  HubClient.cpp
-  Message.cpp)
-
-add_executable(brisbane-hub ${BRISBANE_HUB_SOURCES})
-
 #target_compile_options(brisbane PRIVATE -Wall)
 
-install(TARGETS brisbane brisbane-hub
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS brisbane DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(USE_FORTRAN)
   install(DIRECTORY ${PROJECT_BINARY_DIR}/src/brisbane.mod DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/brisbane)
 endif()
+
+add_subdirectory(tools)

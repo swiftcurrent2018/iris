@@ -11,8 +11,8 @@ Command::Command(Task* task, int type) {
 
 Command::~Command() {
   if (kernel_args_) {
-    for (std::map<int, KernelArg*>::iterator it = kernel_args_->begin(); it != kernel_args_->end(); ++it)
-      delete it->second;
+    for (std::map<int, KernelArg*>::iterator I = kernel_args_->begin(), E = kernel_args_->end(); I != E; ++I)
+      delete I->second;
   }
 }
 

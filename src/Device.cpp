@@ -110,10 +110,10 @@ void Device::ExecuteKernel(Command* cmd) {
   bool reduction = false;
   int max_idx = 0;
   std::map<int, KernelArg*>* args = cmd->kernel_args();
-  for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
-    int idx = it->first;
+  for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
+    int idx = I->first;
     if (idx > max_idx) max_idx = idx;
-    KernelArg* arg = it->second;
+    KernelArg* arg = I->second;
     Mem* mem = arg->mem;
     if (mem) {
       if (arg->mode & brisbane_wr) mem->SetOwner(this);

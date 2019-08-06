@@ -16,8 +16,8 @@ Kernel::Kernel(const char* name, Platform* platform) {
 }
 
 Kernel::~Kernel() {
-  for (std::map<int, KernelArg*>::iterator it = args_.begin(); it != args_.end(); ++it)
-    delete it->second;
+  for (std::map<int, KernelArg*>::iterator I = args_.begin(), E = args_.end(); I != E; ++I)
+    delete I->second;
 }
 
 int Kernel::SetArg(int idx, size_t size, void* value) {
@@ -39,8 +39,8 @@ int Kernel::SetMem(int idx, Mem* mem, int mode) {
 
 std::map<int, KernelArg*>* Kernel::ExportArgs() {
   std::map<int, KernelArg*>* new_args = new std::map<int, KernelArg*>();
-  for (std::map<int, KernelArg*>::iterator it = args_.begin(); it != args_.end(); ++it) {
-    KernelArg* arg = it->second;
+  for (std::map<int, KernelArg*>::iterator I = args_.begin(), E = args_.end(); I != E; ++I) {
+    KernelArg* arg = I->second;
     KernelArg* new_arg = new KernelArg;
     if (arg->mem) {
       new_arg->mem = arg->mem;
@@ -50,7 +50,7 @@ std::map<int, KernelArg*>* Kernel::ExportArgs() {
       memcpy(new_arg->value, arg->value, arg->size);
       new_arg->mem = NULL;
     }
-    (*new_args)[it->first] = new_arg;
+    (*new_args)[I->first] = new_arg;
   }
   return new_args;
 }

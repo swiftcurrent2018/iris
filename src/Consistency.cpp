@@ -28,9 +28,9 @@ void Consistency::Resolve(Task* task, Command* cmd) {
   Device* dev = task->dev();
   Kernel* kernel = cmd->kernel();
   std::map<int, KernelArg*>* args = kernel->args();
-  for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
-    KernelArg* arg = it->second;
-    Mem* mem = it->second->mem;
+  for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
+    KernelArg* arg = I->second;
+    Mem* mem = I->second->mem;
     if (!mem || mem->IsOwner(dev)) continue;
 
     Device* owner = mem->owner();

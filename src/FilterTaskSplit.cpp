@@ -33,9 +33,9 @@ int FilterTaskSplit::Execute(Task* task) {
   }
   int nmems = 0;
   std::map<int, KernelArg*>* args = cmd_kernel->kernel_args();
-  for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
-    int idx = it->first;
-    KernelArg* arg = it->second;
+  for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
+    int idx = I->first;
+    KernelArg* arg = I->second;
     Mem* mem = arg->mem;
     if (mem) nmems++;
     else polyhedral_->SetArg(idx, arg->size, arg->value); 
@@ -55,9 +55,9 @@ int FilterTaskSplit::Execute(Task* task) {
     else ndr[0] = chunk_size;
     polyhedral_->Launch(dim, off, ndr);
     int mem_idx = 0;
-    for (std::map<int, KernelArg*>::iterator it = args->begin(); it != args->end(); ++it) {
-      int idx = it->first;
-      KernelArg* arg = it->second;
+    for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
+      int idx = I->first;
+      KernelArg* arg = I->second;
       Mem* mem = arg->mem;
       if (mem) {
         polyhedral_->GetMem(idx, plmems + mem_idx);
