@@ -1,6 +1,6 @@
-BRISBANE=../../install
+BRISBANE=$(HOME)/.local
 CFLAGS=-g -I. -Wno-write-strings -DSPEC -DSPEC_USE_INNER_SIMD
-LDFLAGS=-L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
+LDFLAGS=-L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -lpthread -ldl
 
 all: bt bt-brisbane
 

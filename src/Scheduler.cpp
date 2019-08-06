@@ -17,7 +17,7 @@ Scheduler::Scheduler(Platform* platform) {
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
   policies_ = new Policies(this);
-  //    queue_ = new LockFreeQueue<Task*>(1024);
+  //queue_ = new LockFreeQueue<Task*>(1024);
   queue_ = new TaskQueue();
   hub_client_ = new HubClient(this);
   InitWorkers();
@@ -96,6 +96,10 @@ void Scheduler::Submit(Task* task) {
   int ndevs = 0;
   Device* devs[BRISBANE_MAX_NDEVS];
   policies_->GetPolicy(brs_device)->GetDevices(task, devs, &ndevs);
+  if (ndevs == 0) {
+    _error("no device[0x%x]", brs_device);
+    task->Complete();
+  }
   for (int i = 0; i < ndevs; i++) {
     devs[i]->worker()->Enqueue(task);
     if (hub_available_) hub_client_->TaskInc(devs[i]->dev_no(), 1);

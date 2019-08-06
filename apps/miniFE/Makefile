@@ -1,11 +1,11 @@
-BRISBANE=../../install
+BRISBANE=$(HOME)/.local
 
 MINIFE_TYPES=-DMINIFE_SCALAR=double -DMINIFE_LOCAL_ORDINAL=int -DMINIFE_GLOBAL_ORDINAL=int
 MINIFE_MATRIX_TYPE=-DMINIFE_CSR_MATRIX
 
 CXX=g++
 CFLAGS=-g -I. -I$(BRISBANE)/include $(MINIFE_TYPES) $(MINIFE_MATRIX_TYPE)
-LDFLAGS=-L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -pthread
+LDFLAGS=-L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -pthread -ldl
 
 all: miniFE miniFE-brisbane
 

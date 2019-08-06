@@ -1,6 +1,6 @@
-BRISBANE=../../install
+BRISBANE=$(HOME)/.local
 CFLAGS=-g -I$(BRISBANE)/include
-LDFLAGS=-L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -pthread -ldl
+LDFLAGS=-L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -pthread -ldl
 
 all: epoch epoch-brisbane epoch-brisbane-v2
 

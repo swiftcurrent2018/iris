@@ -1,4 +1,4 @@
-BRISBANE=../../install
+BRISBANE=$(HOME)/.local
 
 all: pomirq pomirq-brisbane
 
@@ -6,7 +6,7 @@ pomirq: file.c main.c parboil.c
 	g++ -I . -DSPEC -o $@ $^
 
 pomirq-brisbane: file.c main-brisbane.c parboil.c
-	g++ -I. -I$(BRISBANE)/include -DSPEC -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lOpenCL -lpthread
+	g++ -I. -I$(BRISBANE)/include -DSPEC -o $@ $^ -L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -lpthread -ldl
 
 run: pomirq
 	./$^ -i 32_32_32_dataset.bin -o 32_32_32_dataset.out

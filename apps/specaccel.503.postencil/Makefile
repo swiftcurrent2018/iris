@@ -1,5 +1,5 @@
-BRISBANE=../../install
-LDFLAGS=-L$(BRISBANE)/lib -L$(HOME)/install/lib -lbrisbane -lOpenCL -lpthread
+BRISBANE=$(HOME)/.local
+LDFLAGS=-L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -lpthread -ldl
 
 all: postencil postencil-brisbane
 
