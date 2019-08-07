@@ -104,7 +104,6 @@ int HubClient::OpenFIFO() {
     perror("read");
     return BRISBANE_ERR;
   }
-  _debug("open fifo[%s]", path);
   return BRISBANE_OK;
 }
 
@@ -144,7 +143,6 @@ int HubClient::Deregister() {
 
 int HubClient::TaskInc(int dev, int i) {
   if (!available_) return BRISBANE_OK;
-  _debug("dev[%d] i[%d]", dev, i);
   Message msg(BRISBANE_HUB_MQ_TASK_INC);
   msg.WritePID(pid_);
   msg.WriteInt(dev);
@@ -158,7 +156,6 @@ int HubClient::TaskDec(int dev, int i) {
 }
 
 int HubClient::TaskAll(size_t* ntasks, int ndevs) {
-  _debug("ndevs[%d]", ndevs);
   Message msg(BRISBANE_HUB_MQ_TASK_ALL);
   msg.WritePID(pid_);
   msg.WriteInt(ndevs);

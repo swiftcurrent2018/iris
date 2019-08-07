@@ -22,7 +22,6 @@ void PolicyEager::GetDevices(Task* task, Device** devs, int* ndevs) {
   scheduler_->RefreshNTasksOnDevs();
   for (int i = 0; i < ndevs_; i++) {
     unsigned long n = scheduler_->NTasksOnDev(i);
-    _debug("dev[%d] ntask[%lu]", i, n);
     if (n == 0) {
       min_dev = i;
       break;

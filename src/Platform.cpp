@@ -22,6 +22,12 @@ Platform::Platform() {
   init_ = false;
   nplatforms_ = BRISBANE_MAX_NDEVS;
   ndevs_ = 0;
+
+  scheduler_ = NULL;
+  polyhedral_ = NULL;
+  filter_task_split_ = NULL;
+  timer_ = NULL;
+  null_kernel_ = NULL;
 }
 
 Platform::~Platform() {
@@ -45,8 +51,10 @@ int Platform::Init(int* argc, char*** argv) {
   timer_->Start(BRISBANE_TIMER_INIT);
   GetCLPlatforms();
   polyhedral_ = new Polyhedral(this);
-  polyhedral_->Load();
-  filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
+  polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
+  if (polyhedral_available_)
+    filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
+  _info("polyhedral_avilable[%d]", polyhedral_available_);
   timer_->Stop(BRISBANE_TIMER_INIT);
 
   brisbane_kernel null_brs_kernel;
@@ -253,6 +261,7 @@ int Platform::MemRelease(brisbane_mem brs_mem) {
 }
 
 int Platform::FilterSubmitExecute(Task* task) {
+  if (!polyhedral_available_) return BRISBANE_OK;
   int err = BRISBANE_OK;
   if (task->brs_device() & brisbane_all) {
     err = filter_task_split_->Execute(task);

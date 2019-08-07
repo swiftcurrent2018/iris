@@ -9,3 +9,4 @@ __kernel void ijk(__global double* restrict C, __global double* restrict A, __gl
   }
   C[i * SIZE + j] = sum;
 }
+

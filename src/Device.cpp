@@ -28,7 +28,11 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
   clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_COMPILER_AVAILABLE, sizeof(compiler_available_), &compiler_available_, NULL);
 
   if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_device_cpu;
-  else if (cltype_ == CL_DEVICE_TYPE_GPU) type_ = brisbane_device_gpu;
+  else if (cltype_ == CL_DEVICE_TYPE_GPU) {
+    type_ = brisbane_device_gpu;
+    if (strcasestr(vendor_, "NVIDIA")) type_ = brisbane_device_nvidia;
+    else if (strcasestr(vendor_, "AMD")) type_ = brisbane_device_amd;
+  }
   else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) {
     if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_device_fpga;
     else type_ = brisbane_device_phi;
@@ -52,14 +56,24 @@ bool Device::BuildProgram() {
   char path[256];
   memset(path, 0, 256);
   sprintf(path, "kernel-%s",
-    type_ == brisbane_device_cpu  ? "cpu.cl"  :
-    type_ == brisbane_device_gpu  ? "gpu.cl"  :
-    type_ == brisbane_device_phi  ? "phi.cl"  :
-    type_ == brisbane_device_fpga ? "fpga.aocx" : "default.cl");
+    type_ == brisbane_device_cpu    ? "cpu.cl"  :
+    type_ == brisbane_device_nvidia ? "nvidia.cl"  :
+    type_ == brisbane_device_amd    ? "amd.cl"  :
+    type_ == brisbane_device_gpu    ? "gpu.cl"  :
+    type_ == brisbane_device_phi    ? "phi.cl"  :
+    type_ == brisbane_device_fpga   ? "fpga.aocx" : "default.cl");
   char* src = NULL;
   size_t srclen = 0;
-  Utils::ReadFile(path, &src, &srclen);
-  if (srclen == 0) return true;
+  if (Utils::ReadFile(path, &src, &srclen) == BRISBANE_ERR) {
+    memset(path, 0, 256);
+    sprintf(path, "kernel.cl");
+    Utils::ReadFile(path, &src, &srclen);
+  }
+  if (srclen == 0) {
+    _error("dev[%d][%s] has no kernel file", dev_no_, name_);
+    return false;
+  }
+  _trace("dev[%d][%s] kernels[%s]", dev_no_, name_, path);
   if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
   else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
   _clerror(clerr_);

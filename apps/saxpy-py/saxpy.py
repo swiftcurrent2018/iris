@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import numpy as np
 import brisbane
+import numpy as np
+import sys
 
 brisbane.init()
 
-SIZE = 10
-A = 5
+SIZE = 10 if len(sys.argv) == 1 else int(sys.argv[1])
+A = 5.0
 
 x = np.arange(SIZE, dtype=np.float32)
 y = np.arange(SIZE, dtype=np.float32)
@@ -37,3 +38,4 @@ brisbane.task_submit(task, brisbane.brisbane_eager, True)
 print 'Z =', A, '* X + Y', z
 
 brisbane.finalize()
+

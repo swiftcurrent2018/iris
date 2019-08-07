@@ -30,20 +30,23 @@ void Utils::Logo(bool color) {
   }
 }
 
-void Utils::ReadFile(char* path, char** string, size_t* len) {
+int Utils::ReadFile(char* path, char** string, size_t* len) {
   int fd = open((const char*) path, O_RDONLY);
   if (fd == -1) {
-    _error("path[%s] %s", path, strerror(errno));
     *len = 0UL;
-    return;
+    return BRISBANE_ERR;
   }
   off_t s = lseek(fd, 0, SEEK_END);
   *string = (char*) malloc(s);
   *len = s;
   lseek(fd, 0, SEEK_SET);
   ssize_t r = read(fd, *string, s);
-  if (r != s) _error("read[%lu] vs [%lu]", r, s);
+  if (r != s) {
+    _error("read[%lu] vs [%lu]", r, s);
+    return BRISBANE_ERR;
+  }
   close(fd);
+  return BRISBANE_OK;
 }
 
 } /* namespace rt */

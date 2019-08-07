@@ -10,15 +10,17 @@ brisbane_rw         =   (brisbane_r | brisbane_w)
 
 brisbane_default    =   (1 << 0)
 brisbane_cpu        =   (1 << 1)
-brisbane_gpu        =   (1 << 2)
-brisbane_phi        =   (1 << 3)
-brisbane_fpga       =   (1 << 4)
-brisbane_data       =   (1 << 5)
-brisbane_profile    =   (1 << 6)
-brisbane_eager      =   (1 << 7)
-brisbane_random     =   (1 << 8)
-brisbane_any        =   (1 << 9)
-brisbane_all        =   (1 << 10)
+brisbane_nvidia     =   (1 << 2)
+brisbane_amd        =   (1 << 3)
+brisbane_gpu        =   (brisbane_nvidia | brisbane_amd)
+brisbane_phi        =   (1 << 4)
+brisbane_fpga       =   (1 << 5)
+brisbane_data       =   (1 << 6)
+brisbane_profile    =   (1 << 7)
+brisbane_eager      =   (1 << 8)
+brisbane_random     =   (1 << 9)
+brisbane_any        =   (1 << 10)
+brisbane_all        =   (1 << 11)
 
 class brisbane_kernel(Structure):
     _fields_ = [("class_obj", c_void_p)]
@@ -55,7 +57,8 @@ def kernel_create(name):
     return k
 
 def kernel_setarg(kernel, idx, size, value):
-    cvalue = byref(c_float(value))
+    if type(value) == int: cvalue = byref(c_int(value))
+    elif type(value) == float: cvalue = byref(c_float(value))
     return dll.brisbane_kernel_setarg(kernel, c_int(idx), c_size_t(size), cvalue)
 
 def kernel_setmem(kernel, idx, mem, mode):

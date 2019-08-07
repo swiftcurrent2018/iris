@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   brisbane_task_h2d(task0, mem_Y, 0, SIZE * sizeof(float), Y);
   brisbane_task_kernel(task0, kernel_saxpy, 1, kernel_saxpy_off, kernel_saxpy_idx);
   brisbane_task_d2h(task0, mem_Z, 0, SIZE * sizeof(float), Z);
-  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_eager, NULL, true);
   /*
 #pragma omp target map(from:Z) map(to:X, Y)
 #pragma omp teams num_teams(nteams)

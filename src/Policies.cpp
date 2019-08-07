@@ -28,9 +28,11 @@ Policies::~Policies() {
 }
 
 Policy* Policies::GetPolicy(int brs_device) {
-  if (brs_device &  brisbane_cpu ||
-      brs_device &  brisbane_gpu ||
-      brs_device &  brisbane_phi ||
+  if (brs_device &  brisbane_cpu    ||
+      brs_device &  brisbane_nvidia ||
+      brs_device &  brisbane_amd    ||
+      brs_device &  brisbane_gpu    ||
+      brs_device &  brisbane_phi    ||
       brs_device &  brisbane_fpga) return policy_specific_;
   if (brs_device == brisbane_data) return policy_data_;
   if (brs_device == brisbane_default) return policy_default_;

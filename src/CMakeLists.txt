@@ -4,7 +4,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/src)
 
 option(USE_FORTRAN "Enable support for Fortran 90" OFF)
-if (USE_FORTRAN)
+if(USE_FORTRAN)
   enable_language(Fortran)
 endif()
 

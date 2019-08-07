@@ -22,6 +22,13 @@
 #define PURPLE  "\033[22;35m"
 #define CYAN    "\033[22;36m"
 #define GRAY    "\033[22;37m"
+#define BRED    "\033[1;31m"
+#define BGREEN  "\033[1;32m"
+#define BYELLOW "\033[1;33m"
+#define BBLUE   "\033[1;34m"
+#define BPURPLE "\033[1;35m"
+#define BCYAN   "\033[1;36m"
+#define BGRAY   "\033[1;37m"
 #define _RED    "\033[22;41m"
 #define _GREEN  "\033[22;42m"
 #define _YELLOW "\033[22;43m"
@@ -38,6 +45,13 @@
 #define PURPLE
 #define CYAN
 #define GRAY
+#define BRED
+#define BGREEN
+#define BYELLOW
+#define BBLUE
+#define BPURPLE
+#define BCYAN
+#define BGRAY
 #define _RED
 #define _GREEN
 #define _YELLOW

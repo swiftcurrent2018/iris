@@ -1,12 +1,12 @@
 BRISBANE=$(HOME)/.local
 
-all: matmul matmul-brisbane
+all: dgemm dgemm-brisbane
 
-matmul: matmul.cpp
+dgemm: dgemm.cpp
 	g++ -g -o $@ $^
 
-matmul-brisbane: matmul-brisbane.cpp
+dgemm-brisbane: dgemm-brisbane.cpp
 	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -lpthread -ldl
 
 clean:
-	rm -f matmul matmul-brisbane
+	rm -f dgemm dgemm-brisbane

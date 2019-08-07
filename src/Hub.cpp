@@ -108,7 +108,6 @@ int Hub::ExecuteRegister(Message& msg, int pid) {
   }
   char path[64];
   sprintf(path, "%s.%d", BRISBANE_HUB_FIFO_PATH, pid);
-  _debug("open fifo[%s]", path);
   int fd = open(path, O_RDWR);
   fifos_[pid] = fd;
   return BRISBANE_OK;
@@ -117,7 +116,6 @@ int Hub::ExecuteRegister(Message& msg, int pid) {
 int Hub::ExecuteDeregister(Message& msg, int pid) {
   char path[64];
   sprintf(path, "%s.%d", BRISBANE_HUB_FIFO_PATH, pid);
-  _debug("pid[%d]", pid);
   int fifo = fifos_[pid];
   int iret = close(fifo);
   if (iret == -1) {
@@ -137,16 +135,11 @@ int Hub::ExecuteTaskInc(Message& msg, int pid) {
   int dev = msg.ReadInt();
   int i = msg.ReadInt();
   ntasks_[dev] += i;
-  _debug("dev[%d] i[%d] ntasks[%lu]", dev, i, ntasks_[dev]);
   return BRISBANE_OK;
 }
 
 int Hub::ExecuteTaskAll(Message& msg, int pid) {
   int ndevs = msg.ReadInt();
-  _debug("ndevs[%d]", ndevs);
-  for (int i = 0; i < ndevs; i++) {
-    _debug("dev[%d] ntasks[%lu]", i, ntasks_[i]);
-  }
   Message fmsg(BRISBANE_HUB_FIFO_TASK_ALL);
   fmsg.Write(ntasks_, ndevs * sizeof(size_t));
   SendFIFO(fmsg, pid);

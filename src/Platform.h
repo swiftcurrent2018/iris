@@ -97,9 +97,10 @@ private:
   std::set<Kernel*> kernels_;
   std::set<Mem*> mems_;
 
-  Polyhedral* polyhedral_;
   Scheduler* scheduler_;
   Timer* timer_;
+  Polyhedral* polyhedral_;
+  bool polyhedral_available_;
   Filter* filter_task_split_;
 
   Kernel* null_kernel_;

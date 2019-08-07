@@ -21,10 +21,7 @@ Polyhedral::~Polyhedral() {
 
 int Polyhedral::Load() {
   handle_ = dlopen("./libbrisbane_poly.so", RTLD_LAZY);
-  if (!handle_) {
-    _error("%s", dlerror());
-    return BRISBANE_ERR;
-  }
+  if (!handle_) return BRISBANE_ERR;
 
   *(void**) (&kernel_) = dlsym(handle_, "brisbane_poly_kernel");
   if (!kernel_) _error("%s", dlerror());
