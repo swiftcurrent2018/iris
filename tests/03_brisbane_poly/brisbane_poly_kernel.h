@@ -9,7 +9,7 @@
                                     for (size_t __ly = 0;           __ly < __lws1;     __ly++) \
                                     for (size_t __lx = 0;           __lx < __lws0;     __lx++) {
 #define BRISBANE_POLY_KERNEL_END    }
-#define BRISBANE_KERNEL_TAIL        size_t __groupoff0, size_t __groupoff1, size_t __groupoff2, \
+#define BRISBANE_KERNEL_ARGS        size_t __groupoff0, size_t __groupoff1, size_t __groupoff2, \
                                     size_t __ngroups0,  size_t __ngroups1,  size_t __ngroups2,  \
                                     size_t __gws0,      size_t __gws1,      size_t __gws2,      \
                                     size_t __lws0,      size_t __lws1,      size_t __lws2
