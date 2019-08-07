@@ -73,6 +73,9 @@ def task_create():
     dll.brisbane_task_create(byref(t))
     return t
 
+def task_depend(task, ntasks, tasks):
+    return dll.brisbane_task_depend(task, c_int(ntasks), (brisbane_task * len(tasks))(*tasks))
+
 def task_kernel(task, kernel, dim, off, ndr):
     coff = (c_size_t * dim)(*off)
     cndr = (c_size_t * dim)(*ndr)
@@ -91,7 +94,7 @@ def task_d2h_full(task, mem, host):
     return dll.brisbane_task_d2h_full(task, mem, host.ctypes.data_as(c_void_p))
 
 def task_submit(task, device, wait):
-    return dll.brisbane_task_submit(task, c_int(device), c_bool(wait))
+    return dll.brisbane_task_submit(task, c_int(device), None, c_bool(wait))
 
 def task_wait(task):
     return dll.brisbane_task_wait(task)

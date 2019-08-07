@@ -93,7 +93,7 @@ int Platform::GetCLPlatforms() {
     _clerror(clerr_);
     for (cl_uint j = 0; j < num_devices; j++) {
       devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
-      enabled &= devices_[ndevs_]->enabled();
+      //enabled &= devices_[ndevs_]->enabled();
       ndevs_++;
     }
   }

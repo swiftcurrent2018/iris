@@ -1,8 +1,8 @@
-BRISBANE 	:= ../../
-CC			:= g++
-LD_INC		:= -L$(BRISBANE)/install/lib
+BRISBANE 	:= $(HOME)/.local/
+CC				:= g++
+C_FLAGS		:= -I$(BRISBANE)/include -g
+LD_INC		:= -L$(BRISBANE)/lib64
 LD_FLAGS	:= -lbrisbane -lOpenCL -lpthread -ldl
-C_FLAGS		:= -I$(BRISBANE)/install/include -g
 
 $(TEST):$(TEST).c
 	$(CC) $(C_FLAGS) -o $@ $^ $(LD_INC) $(LD_FLAGS)
