@@ -100,3 +100,4 @@ extern int brisbane_timer_now(double* time);
 #endif
 
 #endif /* BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H */
+

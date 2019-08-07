@@ -51,3 +51,4 @@ private:
 } /* namespace brisbane */
 
 #endif /* BRISBANE_RT_SRC_HUB_CLIENT_H */
+

@@ -58,7 +58,8 @@ def kernel_create(name):
 
 def kernel_setarg(kernel, idx, size, value):
     if type(value) == int: cvalue = byref(c_int(value))
-    elif type(value) == float: cvalue = byref(c_float(value))
+    elif type(value) == float and size == 4: cvalue = byref(c_float(value))
+    elif type(value) == float and size == 8: cvalue = byref(c_double(value))
     return dll.brisbane_kernel_setarg(kernel, c_int(idx), c_size_t(size), cvalue)
 
 def kernel_setmem(kernel, idx, mem, mode):
@@ -103,3 +104,4 @@ def task_release(task):
 
 def task_release_mem(task, mem):
     return dll.brisbane_task_release_mem(task, mem)
+

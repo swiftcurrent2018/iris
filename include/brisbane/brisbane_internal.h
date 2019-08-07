@@ -12,3 +12,4 @@ typedef struct {
 } brisbane_poly_mem;
 
 #endif /* BRINSBANE_INCLUDE_BRISBANE_BRISBANE_INTERNAL_H */
+

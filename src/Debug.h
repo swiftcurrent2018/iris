@@ -62,6 +62,9 @@
 #define RESET
 #endif
 
+#define CHECK_O   "\u2714 "
+#define CHECK_X   "\u2716 "
+
 namespace brisbane {
 namespace rt {
 

@@ -6,7 +6,7 @@ import sys
 
 brisbane.init()
 
-SIZE = 10 if len(sys.argv) == 1 else int(sys.argv[1])
+SIZE = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 A = 5.0
 
 x = np.arange(SIZE, dtype=np.float32)

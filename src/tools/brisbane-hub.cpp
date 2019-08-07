@@ -24,7 +24,7 @@ int start(char** argv) {
   HubClient* client = new HubClient(NULL);
   client->Init();
   if (client->available()) {
-    printf(BRED "%s is already running." RESET "\n", app);
+    printf(BRED CHECK_O "%s is already running." RESET "\n", app);
     delete client;
     return 0;
   }
@@ -39,7 +39,7 @@ int start(char** argv) {
 
   setsid();
   Hub* hub = new Hub();
-  printf(BGREEN "%s is running." RESET "\n", app);
+  printf(BGREEN CHECK_O "%s is running." RESET "\n", app);
   hub->Run();
   delete hub;
   return 0;
@@ -49,9 +49,9 @@ int stop(char** argv) {
   HubClient* client = new HubClient(NULL);
   client->Init();
   if (client->available()) {
-    printf(BPURPLE "%s is stopping...", app);
+    printf(BPURPLE CHECK_O "%s is stopping...", app);
     client->StopHub();
-  } else printf(BRED "%s is not running...", app);
+  } else printf(BRED CHECK_X "%s is not running...", app);
   delete client;
   char cmd[64];
   memset(cmd, 0, 64);
@@ -70,9 +70,9 @@ int status(char** argv) {
   HubClient* client = new HubClient(NULL);
   client->Init();
   if (!client->available()) {
-    printf(BRED "%s is not running." RESET "\n", app);
+    printf(BRED CHECK_X "%s is not running." RESET "\n", app);
   } else {
-    printf(BGREEN "%s is running." RESET "\n", app);
+    printf(BGREEN CHECK_O "%s is running." RESET "\n", app);
     client->Status();
   }
   delete client;

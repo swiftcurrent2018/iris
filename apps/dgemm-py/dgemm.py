@@ -6,14 +6,14 @@ import sys
 
 brisbane.init()
 
-SIZE = 10 if len(sys.argv) == 1 else int(sys.argv[1])
+SIZE = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 
 x = np.arange(SIZE * SIZE, dtype=np.float64).reshape((SIZE, SIZE))
 y = np.arange(SIZE * SIZE, dtype=np.float64).reshape((SIZE, SIZE))
 z = np.arange(SIZE * SIZE, dtype=np.float64).reshape((SIZE, SIZE))
 
-print 'X\n', x
-print 'Y\n', y
+print 'X[', SIZE, ',', SIZE, ']\n', x
+print 'Y[', SIZE, ',', SIZE, ']\n', y
 
 mem_x = brisbane.mem_create(SIZE * SIZE * 8)
 mem_y = brisbane.mem_create(SIZE * SIZE * 8)
@@ -34,7 +34,7 @@ brisbane.task_kernel(task, kernel, 2, off, ndr)
 brisbane.task_d2h_full(task, mem_z, z)
 brisbane.task_submit(task, brisbane.brisbane_eager, True)
 
-print 'Z = X * Y\n', z
+print 'Z[', SIZE, ',', SIZE, '] = X * Y\n', z
 
 brisbane.finalize()
 
