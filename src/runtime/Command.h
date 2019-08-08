@@ -39,6 +39,8 @@ public:
   std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
   Mem* mem() { return mem_; }
   Task* task() { return task_; }
+  double time() { return time_; }
+  double SetTime(double t);
 
 private:
   int type_;
@@ -50,6 +52,7 @@ private:
   Kernel* kernel_;
   Mem* mem_;
   Task* task_;
+  double time_;
   std::map<int, KernelArg*>* kernel_args_;
 
 public:

@@ -1,4 +1,5 @@
 #include "Command.h"
+#include "Task.h"
 
 namespace brisbane {
 namespace rt {
@@ -6,6 +7,7 @@ namespace rt {
 Command::Command(Task* task, int type) {
   task_ = task;
   type_ = type;
+  time_ = 0.0;
   kernel_args_ = NULL;
 }
 
@@ -15,6 +17,13 @@ Command::~Command() {
       delete I->second;
     delete kernel_args_;
   }
+}
+
+double Command::SetTime(double t) {
+  if (time_ != 0.0) _error("double set time[%lf]", t);
+  time_ = t;
+  task_->TimeInc(t);
+  return time_;
 }
 
 Command* Command::Create(Task* task, int type) {

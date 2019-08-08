@@ -65,7 +65,7 @@ void Device::Execute(Task* task) {
       default: _error("cmd type[0x%x]", cmd->type());
     }
   }
-  _info("task[%lu] complete", task->uid());
+  _info("task[%lu][%s] complete dev[%d] time[%lf]", task->uid(), task->name(), task->dev()->dev_no(), task->time());
   busy_ = false;
 }
 
@@ -82,6 +82,7 @@ void Device::ExecuteBuild(Command* cmd) {
     type_ == brisbane_device_fpga   ? "fpga.aocx" : "default.cl");
   char* src = NULL;
   size_t srclen = 0;
+  timer_->Start(14);
   if (Utils::ReadFile(path, &src, &srclen) == BRISBANE_ERR) {
     memset(path, 0, 256);
     sprintf(path, "kernel.cl");
@@ -111,6 +112,8 @@ void Device::ExecuteBuild(Command* cmd) {
     return;
   }
   free(src);
+  double time = timer_->Stop(14);
+  cmd->SetTime(time);
   enable_ = true;
 }
 
@@ -175,6 +178,7 @@ void Device::ExecuteKernel(Command* cmd) {
   clerr_ = clFinish(clcmdq_);
   _clerror(clerr_);
   double time = timer_->Stop(11);
+  cmd->SetTime(time);
   _trace("devno[%d][%s] kernel[%s] time[%lf]", dev_no_, name_, kernel->name(), time);
   kernel->history()->AddKernel(cmd, this, time);
 }
@@ -191,6 +195,8 @@ void Device::ExecuteH2D(Command* cmd) {
   clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
   _clerror(clerr_);
   double time = timer_->Stop(12);
+  cmd->SetTime(time);
+  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] time[%lf]", dev_no_, name_, mem->uid(), clmem, off, size, host, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddH2D(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddH2D(cmd, this, time);
@@ -212,6 +218,8 @@ void Device::ExecuteD2H(Command* cmd) {
   } else clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
   _clerror(clerr_);
   double time = timer_->Stop(13);
+  cmd->SetTime(time);
+  _trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p] time[%lf]", dev_no_, name_, mem->uid(), off, size, expansion, host, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddD2H(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddD2H(cmd, this, time);

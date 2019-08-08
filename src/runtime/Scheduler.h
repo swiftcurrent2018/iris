@@ -9,6 +9,7 @@ namespace brisbane {
 namespace rt {
 
 class Device;
+class DOT;
 class HubClient;
 class Task;
 class TaskQueue;
@@ -55,6 +56,8 @@ private:
   int ndevs_;
   HubClient* hub_client_;
   bool hub_available_;
+  bool dot_available_;
+  DOT* dot_;
 };
 
 } /* namespace rt */

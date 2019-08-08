@@ -23,7 +23,7 @@ class Scheduler;
 
 class Task: public Object<struct _brisbane_task, Task> {
 public:
-  Task(Platform* platform, int type = BRISBANE_TASK);
+  Task(Platform* platform, int type = BRISBANE_TASK, const char* name = NULL);
   virtual ~Task();
 
   void AddCommand(Command* cmd);
@@ -39,7 +39,12 @@ public:
   void Complete();
   void Wait();
 
+  double TimeInc(double t);
+
   int type() { return type_; }
+  char* name() { return name_; }
+  bool system() { return system_; }
+  void set_system() { system_ = true; }
   bool marker() { return type_ == BRISBANE_MARKER; }
   int status() { return status_; }
   Task* parent() { return parent_; }
@@ -48,16 +53,20 @@ public:
   void set_dev(Device* dev) { dev_ = dev; }
   Device* dev() { return dev_; }
   int ncmds() { return ncmds_; }
+  double time() { return time_; }
   void set_parent(Task* task) { parent_ = task; }
   void set_brs_device(int brs_device);
   int brs_device() { return brs_device_; }
   std::vector<Task*>* subtasks() { return &subtasks_; }
   Task* subtask(int i) { return subtasks_[i]; }
+  int ndepends() { return ndepends_; }
+  Task** depends() { return depends_; }
 
 private:
   void CompleteSub();
 
 private:
+  char name_[32];
   Task* parent_;
   int ncmds_;
   Command* cmds_[64];
@@ -75,6 +84,10 @@ private:
 
   int type_;
   int status_;
+  bool system_;
+
+  double time_;
+
   pthread_mutex_t executable_mutex_;
   pthread_mutex_t complete_mutex_;
   pthread_cond_t complete_cond_;

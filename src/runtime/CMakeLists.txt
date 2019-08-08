@@ -17,6 +17,7 @@ set(BRISBANE_RUNTIME_SOURCES
   Command.cpp
   Consistency.cpp
   Device.cpp
+  DOT.cpp
   FilterTaskSplit.cpp
   History.cpp
   HubClient.cpp

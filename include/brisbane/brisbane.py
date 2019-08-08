@@ -68,9 +68,9 @@ def kernel_setmem(kernel, idx, mem, mode):
 def kernel_release(kernel):
     return dll.brisbane_kernel_release(kernel)
 
-def task_create():
+def task_create(name = None):
     t = brisbane_task()
-    dll.brisbane_task_create(byref(t))
+    dll.brisbane_task_create(c_char_p(name), byref(t))
     return t
 
 def task_depend(task, ntasks, tasks):

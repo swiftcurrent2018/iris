@@ -48,8 +48,8 @@ int brisbane_kernel_release(brisbane_kernel kernel) {
   return Platform::GetPlatform()->KernelRelease(kernel);
 }
 
-int brisbane_task_create(brisbane_task* task) {
-  return Platform::GetPlatform()->TaskCreate(task);
+int brisbane_task_create(const char* name, brisbane_task* task) {
+  return Platform::GetPlatform()->TaskCreate(name, task);
 }
 
 int brisbane_task_depend(brisbane_task task, int ntasks, brisbane_task* tasks) {

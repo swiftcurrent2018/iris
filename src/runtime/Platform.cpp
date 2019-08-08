@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include "Command.h"
 #include "Device.h"
+#include "DOT.h"
 #include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
@@ -29,6 +30,9 @@ Platform::Platform() {
   filter_task_split_ = NULL;
   timer_ = NULL;
   null_kernel_ = NULL;
+  dot_ = NULL;
+  time_app_ = 0.0;
+  time_init_ = 0.0;
 }
 
 Platform::~Platform() {
@@ -39,12 +43,17 @@ Platform::~Platform() {
   if (filter_task_split_) delete filter_task_split_;
   if (timer_) delete timer_;
   if (null_kernel_) delete null_kernel_;
+  if (dot_) delete dot_;
 }
 
 int Platform::Init(int* argc, char*** argv, bool sync) {
   if (init_) return BRISBANE_ERR;
-  gethostname(brisbane_log_prefix_, 256);
   Utils::Logo(true);
+
+  gethostname(brisbane_log_prefix_, 256);
+  gethostname(host_, 256);
+  if (argv && *argv) sprintf(app_, "%s", (*argv)[0]);
+  else sprintf(app_, "%s", "app");
 
   timer_ = new Timer();
   timer_->Start(BRISBANE_TIMER_APP);
@@ -60,6 +69,8 @@ int Platform::Init(int* argc, char*** argv, bool sync) {
   brisbane_kernel null_brs_kernel;
   KernelCreate("brisbane_null", &null_brs_kernel);
   null_kernel_ = null_brs_kernel->class_obj;
+
+  dot_ = new DOT(this);
 
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
@@ -112,6 +123,7 @@ int Platform::BuildPrograms(bool sync) {
   Task** tasks = new Task*[ndevs_];
   for (int i = 0; i < ndevs_; i++) {
     tasks[i] = new Task(this);
+    tasks[i]->set_system();
     Command* cmd = Command::CreateBuild(tasks[i]);
     tasks[i]->AddCommand(cmd);
     scheduler_->worker(i)->Enqueue(tasks[i]);
@@ -177,8 +189,8 @@ int Platform::KernelRelease(brisbane_kernel brs_kernel) {
   return BRISBANE_OK;
 }
 
-int Platform::TaskCreate(brisbane_task* brs_task) {
-  Task* task = new Task(this);
+int Platform::TaskCreate(const char* name, brisbane_task* brs_task) {
+  Task* task = new Task(this, BRISBANE_TASK, name);
   *brs_task = task->struct_obj();
   return BRISBANE_OK;
 }
@@ -331,8 +343,10 @@ Platform* Platform::GetPlatform() {
 int Platform::Finalize() {
   singleton_->Synchronize();
   singleton_->ShowKernelHistory();
-  double time_app = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
-  double time_init = singleton_->timer()->Total(BRISBANE_TIMER_INIT);
+  singleton_->time_app_ = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
+  singleton_->time_init_ = singleton_->timer()->Total(BRISBANE_TIMER_INIT);
+  double time_app = singleton_->time_app();
+  double time_init = singleton_->time_init();
   if (singleton_ == NULL) return BRISBANE_ERR;
   if (singleton_) delete singleton_;
   singleton_ = NULL;

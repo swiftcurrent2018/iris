@@ -1,6 +1,7 @@
 #include "Scheduler.h"
 #include "Debug.h"
 #include "Device.h"
+#include "DOT.h"
 #include "HubClient.h"
 #include "Platform.h"
 #include "Policies.h"
@@ -16,6 +17,8 @@ Scheduler::Scheduler(Platform* platform) {
   platform_ = platform;
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
+  dot_ = platform_->dot();
+  dot_available_ = true;
   policies_ = new Policies(this);
   //queue_ = new LockFreeQueue<Task*>(1024);
   queue_ = new TaskQueue();
@@ -48,8 +51,10 @@ void Scheduler::InitHubClient() {
 }
 
 void Scheduler::CompleteTask(Task* task, Worker* worker) {
-  int dev_no = worker->device()->dev_no();
+  Device* dev = worker->device();
+  int dev_no = dev->dev_no();
   if (hub_available_) hub_client_->TaskDec(dev_no, 1);
+  if (dot_available_ & !task->system()) dot_->AddTask(task);
 }
 
 int Scheduler::RefreshNTasksOnDevs() {

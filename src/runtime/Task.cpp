@@ -9,7 +9,7 @@
 namespace brisbane {
 namespace rt {
 
-Task::Task(Platform* platform, int type) {
+Task::Task(Platform* platform, int type, const char* name) {
   type_ = type;
   ncmds_ = 0;
   cmd_kernel_ = NULL;
@@ -19,6 +19,10 @@ Task::Task(Platform* platform, int type) {
   parent_ = NULL;
   subtasks_complete_ = 0;
   ndepends_ = 0;
+  time_ = 0.0;
+  system_ = false;
+  if (name) strcpy(name_, name);
+  sprintf(name_, "task%ld", uid());
   status_ = BRISBANE_NONE;
 
   pthread_mutex_init(&executable_mutex_, NULL);
@@ -31,6 +35,11 @@ Task::~Task() {
   pthread_mutex_destroy(&executable_mutex_);
   pthread_mutex_destroy(&complete_mutex_);
   pthread_cond_destroy(&complete_cond_);
+}
+
+double Task::TimeInc(double t) {
+  time_ += t;
+  return time_;
 }
 
 void Task::set_brs_device(int brs_device) {

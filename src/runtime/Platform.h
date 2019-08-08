@@ -14,6 +14,7 @@ namespace brisbane {
 namespace rt {
 
 class Device;
+class DOT;
 class Filter;
 class Kernel;
 class Mem;
@@ -45,7 +46,7 @@ public:
   int KernelSetMem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
   int KernelRelease(brisbane_kernel kernel);
 
-  int TaskCreate(brisbane_task* brs_task);
+  int TaskCreate(const char* name, brisbane_task* brs_task);
   int TaskDepend(brisbane_task task, int ntasks, brisbane_task* tasks);
   int TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr);
   int TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
@@ -74,6 +75,11 @@ public:
   Scheduler* scheduler() { return scheduler_; }
   Timer* timer() { return timer_; }
   Kernel* null_kernel() { return null_kernel_; }
+  char* app() { return app_; }
+  char* host() { return host_; }
+  DOT* dot() { return dot_; }
+  double time_app() { return time_app_; }
+  double time_init() { return time_init_; }
 
 private:
   int FilterSubmitExecute(Task* task);
@@ -106,6 +112,12 @@ private:
   Filter* filter_task_split_;
 
   Kernel* null_kernel_;
+
+  DOT* dot_;
+  char app_[256];
+  char host_[256];
+  double time_app_;
+  double time_init_;
 
 private:
   static Platform* singleton_;
