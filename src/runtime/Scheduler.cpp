@@ -18,6 +18,7 @@ Scheduler::Scheduler(Platform* platform) {
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
   dot_ = platform_->dot();
+  last_task_ = NULL;
   dot_available_ = true;
   policies_ = new Policies(this);
   //queue_ = new LockFreeQueue<Task*>(1024);
@@ -70,7 +71,11 @@ size_t Scheduler::NTasksOnDev(int i) {
   return ntasks_on_devs_[i];
 }
 
-void Scheduler::Enqueue(Task* task) {
+void Scheduler::Enqueue(Task* task, bool sync) {
+  if (sync) {
+    if (last_task_) task->AddDepend(last_task_);
+    last_task_ = task;
+  }
   while (!queue_->Enqueue(task)) {}
   Invoke();
 }

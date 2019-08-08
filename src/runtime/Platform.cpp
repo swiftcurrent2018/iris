@@ -245,7 +245,7 @@ int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool
   Task* task = brs_task->class_obj;
   task->set_brs_device(brs_device);
   FilterSubmitExecute(task);
-  scheduler_->Enqueue(task);
+  scheduler_->Enqueue(task, sync);
   if (sync) task->Wait();
   return BRISBANE_OK;
 }

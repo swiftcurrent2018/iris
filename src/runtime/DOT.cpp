@@ -64,11 +64,25 @@ int DOT::AddTask(Task* task) {
   unsigned long tid = task->uid();
   Device* dev = task->dev();
   int type = dev->type();
+  int policy = task->brs_device();
   double time = task->time();
   tasks_exit_.insert(tid);
   char s[256];
-  sprintf(s, "task%lu[style=filled, fillcolor=%s, label=\"%s\\n%lf\"]", tid,
-      type & brisbane_cpu ? "cyan" : type & brisbane_gpu ? "green" : "purple", task->name(), time);
+  sprintf(s, "task%lu[style=filled, fillcolor=%s, label=\"%s (%s)\\n%lf\"]", tid,
+      type & brisbane_cpu ? "cyan" : type & brisbane_gpu ? "green" : "purple", task->name(),
+      policy == brisbane_default  ? "default" :
+      policy == brisbane_cpu      ? "cpu" :
+      policy == brisbane_nvidia   ? "nvidia" :
+      policy == brisbane_amd      ? "amd" :
+      policy == brisbane_gpu      ? "gpu" :
+      policy == brisbane_phi      ? "phi" :
+      policy == brisbane_fpga     ? "fpga" :
+      policy == brisbane_data     ? "data" :
+      policy == brisbane_profile  ? "profile" :
+      policy == brisbane_eager    ? "eager" :
+      policy == brisbane_random   ? "random" :
+      policy == brisbane_any      ? "any" :
+      policy &  brisbane_all      ? "all" : "?", time);
   Write(s);
 
   int ndepends = task->ndepends();

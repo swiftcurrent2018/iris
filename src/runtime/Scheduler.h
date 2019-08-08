@@ -22,7 +22,7 @@ public:
   Scheduler(Platform* platform);
   virtual ~Scheduler();
 
-  void Enqueue(Task* task);
+  void Enqueue(Task* task, bool sync = false);
 
   Platform* platform() { return platform_; }
   Device** devices() { return devices_; }
@@ -54,6 +54,7 @@ private:
   Worker* workers_[BRISBANE_MAX_NDEVS];
   size_t ntasks_on_devs_[BRISBANE_MAX_NDEVS];
   int ndevs_;
+  Task* last_task_;
   HubClient* hub_client_;
   bool hub_available_;
   bool dot_available_;

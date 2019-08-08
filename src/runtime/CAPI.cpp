@@ -48,7 +48,11 @@ int brisbane_kernel_release(brisbane_kernel kernel) {
   return Platform::GetPlatform()->KernelRelease(kernel);
 }
 
-int brisbane_task_create(const char* name, brisbane_task* task) {
+int brisbane_task_create(brisbane_task* task) {
+  return Platform::GetPlatform()->TaskCreate(NULL, task);
+}
+
+int brisbane_task_create_name(const char* name, brisbane_task* task) {
   return Platform::GetPlatform()->TaskCreate(name, task);
 }
 
