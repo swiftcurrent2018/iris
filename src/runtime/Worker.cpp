@@ -35,6 +35,7 @@ void Worker::Execute(Task* task) {
     return;
   }
   busy_ = true;
+  scheduler_->StartTask(task, this);
   consistency_->Resolve(task);
   device_->Execute(task);
   task->Complete();

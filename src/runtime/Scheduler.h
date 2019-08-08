@@ -4,15 +4,18 @@
 #include "Config.h"
 #include "Thread.h"
 //#include "Queue.h"
+#include <pthread.h>
 
 namespace brisbane {
 namespace rt {
 
+class Charts;
 class Device;
 class DOT;
 class HubClient;
 class Task;
 class TaskQueue;
+class Timer;
 class Platform;
 class Policies;
 class Worker;
@@ -30,6 +33,7 @@ public:
   Worker* worker(int i) { return workers_[i]; }
   int ndevs() { return ndevs_; }
   int nworkers() { return ndevs_; }
+  void StartTask(Task* task, Worker* worker);
   void CompleteTask(Task* task, Worker* worker);
   int RefreshNTasksOnDevs();
   size_t NTasksOnDev(int i);
@@ -57,8 +61,12 @@ private:
   Task* last_task_;
   HubClient* hub_client_;
   bool hub_available_;
+  bool charts_available_;
   bool dot_available_;
+  Charts* charts_;
   DOT* dot_;
+  Timer* timer_;
+  pthread_mutex_t mutex_;
 };
 
 } /* namespace rt */

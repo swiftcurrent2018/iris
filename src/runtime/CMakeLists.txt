@@ -14,6 +14,7 @@ configure_file(Config.h.in Config.h)
 
 set(BRISBANE_RUNTIME_SOURCES
   CAPI.cpp
+  Charts.cpp
   Command.cpp
   Consistency.cpp
   Device.cpp

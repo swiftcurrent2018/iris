@@ -20,6 +20,8 @@ Task::Task(Platform* platform, int type, const char* name) {
   subtasks_complete_ = 0;
   ndepends_ = 0;
   time_ = 0.0;
+  time_start_ = 0.0;
+  time_end_ = 0.0;
   system_ = false;
   if (name) strcpy(name_, name);
   else sprintf(name_, "task%ld", uid());

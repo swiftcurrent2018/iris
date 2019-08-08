@@ -13,6 +13,7 @@
 namespace brisbane {
 namespace rt {
 
+class Charts;
 class Device;
 class DOT;
 class Filter;
@@ -77,6 +78,7 @@ public:
   Kernel* null_kernel() { return null_kernel_; }
   char* app() { return app_; }
   char* host() { return host_; }
+  Charts* charts() { return charts_; }
   DOT* dot() { return dot_; }
   double time_app() { return time_app_; }
   double time_init() { return time_init_; }
@@ -114,6 +116,7 @@ private:
   Kernel* null_kernel_;
 
   DOT* dot_;
+  Charts* charts_;
   char app_[256];
   char host_[256];
   double time_app_;

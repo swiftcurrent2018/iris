@@ -16,6 +16,7 @@ public:
   ~Timer();
 
   double Now();
+  unsigned long NowUS();
   double Start(int i);
   double Stop(int i);
   double Total(int i);
@@ -29,6 +30,7 @@ private:
   size_t total_ul_[BRISBANE_TIMER_MAX];
 
   double base_sec_;
+  unsigned long base_ms_;
 };
 
 } /* namespace rt */

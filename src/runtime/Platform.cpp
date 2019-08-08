@@ -1,5 +1,6 @@
 #include "Platform.h"
 #include "Utils.h"
+#include "Charts.h"
 #include "Command.h"
 #include "Device.h"
 #include "DOT.h"
@@ -43,6 +44,7 @@ Platform::~Platform() {
   if (filter_task_split_) delete filter_task_split_;
   if (timer_) delete timer_;
   if (null_kernel_) delete null_kernel_;
+  if (charts_) delete charts_;
   if (dot_) delete dot_;
 }
 
@@ -70,6 +72,7 @@ int Platform::Init(int* argc, char*** argv, bool sync) {
   KernelCreate("brisbane_null", &null_brs_kernel);
   null_kernel_ = null_brs_kernel->class_obj;
 
+  charts_ = new Charts(this);
   dot_ = new DOT(this);
 
   scheduler_ = new Scheduler(this);

@@ -53,7 +53,11 @@ public:
   void set_dev(Device* dev) { dev_ = dev; }
   Device* dev() { return dev_; }
   int ncmds() { return ncmds_; }
+  void set_time_start(double d) { time_start_ = d; }
+  void set_time_end(double d) { time_end_ = d; }
   double time() { return time_; }
+  double time_start() { return time_start_; }
+  double time_end() { return time_end_; }
   void set_parent(Task* task) { parent_ = task; }
   void set_brs_device(int brs_device);
   int brs_device() { return brs_device_; }
@@ -87,6 +91,8 @@ private:
   bool system_;
 
   double time_;
+  double time_start_;
+  double time_end_;
 
   pthread_mutex_t executable_mutex_;
   pthread_mutex_t complete_mutex_;

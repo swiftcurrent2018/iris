@@ -1,4 +1,5 @@
 #include "Scheduler.h"
+#include "Charts.h"
 #include "Debug.h"
 #include "Device.h"
 #include "DOT.h"
@@ -8,6 +9,7 @@
 #include "Policy.h"
 #include "Task.h"
 #include "TaskQueue.h"
+#include "Timer.h"
 #include "Worker.h"
 
 namespace brisbane {
@@ -17,9 +19,13 @@ Scheduler::Scheduler(Platform* platform) {
   platform_ = platform;
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
+  charts_ = platform_->charts();
   dot_ = platform_->dot();
   last_task_ = NULL;
+  charts_available_ = true;
   dot_available_ = true;
+  pthread_mutex_init(&mutex_, NULL);
+  timer_ = new Timer();
   policies_ = new Policies(this);
   //queue_ = new LockFreeQueue<Task*>(1024);
   queue_ = new TaskQueue();
@@ -33,6 +39,7 @@ Scheduler::~Scheduler() {
   delete queue_;
   delete policies_;
   delete hub_client_;
+  pthread_mutex_destroy(&mutex_);
 }
 
 void Scheduler::InitWorkers() {
@@ -51,11 +58,21 @@ void Scheduler::InitHubClient() {
   _info("hub_available[%d]", hub_available_);
 }
 
+void Scheduler::StartTask(Task* task, Worker* worker) {
+  task->set_time_start(timer_->Now());
+}
+
 void Scheduler::CompleteTask(Task* task, Worker* worker) {
+  pthread_mutex_lock(&mutex_); //TODO: no lock
   Device* dev = worker->device();
   int dev_no = dev->dev_no();
   if (hub_available_) hub_client_->TaskDec(dev_no, 1);
+  if (charts_available_ & !task->system()) {
+    task->set_time_end(timer_->Now());
+    charts_->AddTask(task);
+  }
   if (dot_available_ & !task->system()) dot_->AddTask(task);
+  pthread_mutex_unlock(&mutex_);
 }
 
 int Scheduler::RefreshNTasksOnDevs() {

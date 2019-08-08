@@ -40,7 +40,7 @@ int DOT::OpenFD() {
 }
 
 int DOT::Main() {
-  Write("digraph {", false);
+  Write((char*) "digraph {", false);
   char s[256];
   sprintf(s, "start[shape=Mdiamond, label=\"%s\"]", "main");
   Write(s);
@@ -54,9 +54,9 @@ int DOT::Exit() {
     sprintf(s, "task%lu -> end", tid);
     Write(s);
   }
-  sprintf(s, "end[shape=Mdiamond, label=\"exit\\n%lf\"]", platform_->app(), platform_->time_app());
+  sprintf(s, "end[shape=Msquare, label=\"exit\\n%lf\"]", platform_->app(), platform_->time_app());
   Write(s);
-  Write("}", false);
+  Write((char*) "}", false);
   return BRISBANE_OK;
 }
 
