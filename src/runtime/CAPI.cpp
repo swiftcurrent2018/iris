@@ -4,8 +4,8 @@
 
 using namespace brisbane::rt;
 
-int brisbane_init(int* argc, char*** argv) {
-  return Platform::GetPlatform()->Init(argc, argv);
+int brisbane_init(int* argc, char*** argv, bool sync) {
+  return Platform::GetPlatform()->Init(argc, argv, sync);
 }
 
 int brisbane_finalize() {
@@ -80,12 +80,16 @@ int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, si
   return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }
 
-int brisbane_task_submit(brisbane_task task, int device, char* opt, bool wait) {
-  return Platform::GetPlatform()->TaskSubmit(task, device, opt, wait);
+int brisbane_task_submit(brisbane_task task, int device, char* opt, bool sync) {
+  return Platform::GetPlatform()->TaskSubmit(task, device, opt, sync);
 }
 
 int brisbane_task_wait(brisbane_task task) {
   return Platform::GetPlatform()->TaskWait(task);
+}
+
+int brisbane_task_wait_all(int ntasks, brisbane_task* tasks) {
+  return Platform::GetPlatform()->TaskWaitAll(ntasks, tasks);
 }
 
 int brisbane_task_add_subtask(brisbane_task task, brisbane_task subtask) {

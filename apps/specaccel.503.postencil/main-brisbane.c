@@ -70,7 +70,7 @@ static int read_data(float *A0, int nx,int ny,int nz,FILE *fp)
 }
 
 int main(int argc, char** argv) {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   struct pb_Parameters *parameters;
        
 	

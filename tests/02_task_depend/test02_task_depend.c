@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 int main(int argc, char** argv) {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
 
   brisbane_task task2;
   brisbane_task_create(&task2);

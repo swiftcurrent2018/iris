@@ -60,7 +60,7 @@ typedef struct _brisbane_task*      brisbane_task;
 typedef struct _brisbane_mem*       brisbane_mem;
 typedef struct _brisbane_kernel*    brisbane_kernel;
 
-extern int brisbane_init(int* argc, char*** argv);
+extern int brisbane_init(int* argc, char*** argv, bool sync);
 extern int brisbane_finalize();
 extern int brisbane_synchronize();
 
@@ -83,8 +83,9 @@ extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, s
 extern int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
-extern int brisbane_task_submit(brisbane_task task, int device, char* opt, bool wait);
+extern int brisbane_task_submit(brisbane_task task, int device, char* opt, bool sync);
 extern int brisbane_task_wait(brisbane_task task);
+extern int brisbane_task_wait_all(int ntasks, brisbane_task* tasks);
 extern int brisbane_task_add_subtask(brisbane_task task, brisbane_task subtask);
 extern int brisbane_task_release(brisbane_task task);
 extern int brisbane_task_release_mem(brisbane_task task, brisbane_mem mem);

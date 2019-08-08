@@ -27,6 +27,7 @@ Task::Task(Platform* platform, int type) {
 }
 
 Task::~Task() {
+  for (int i = 0; i < ncmds_; i++) delete cmds_[i];
   pthread_mutex_destroy(&executable_mutex_);
   pthread_mutex_destroy(&complete_mutex_);
   pthread_cond_destroy(&complete_cond_);
@@ -40,6 +41,7 @@ void Task::set_brs_device(int brs_device) {
 }
 
 void Task::AddCommand(Command* cmd) {
+  if (ncmds_ == 63) _error("ncmds[%d]", ncmds_);
   cmds_[ncmds_++] = cmd;
   if (cmd->type() == BRISBANE_CMD_KERNEL) {
     if (cmd_kernel_) _error("kernel[%s] is already set", cmd->kernel()->name());

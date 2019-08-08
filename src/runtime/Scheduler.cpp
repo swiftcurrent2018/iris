@@ -66,12 +66,7 @@ size_t Scheduler::NTasksOnDev(int i) {
 }
 
 void Scheduler::Enqueue(Task* task) {
-  if (task->HasSubtasks()) {
-    std::vector<Task*>* subtasks = task->subtasks();
-    for (std::vector<Task*>::iterator I = subtasks->begin(), E = subtasks->end(); I != E; ++I) {
-      while (!queue_->Enqueue(*I)) {}
-    }
-  } else while (!queue_->Enqueue(task)) {}
+  while (!queue_->Enqueue(task)) {}
   Invoke();
 }
 
@@ -89,9 +84,19 @@ void Scheduler::Run() {
 
 void Scheduler::Submit(Task* task) {
   if (task->marker()) {
-    task->Complete();
+    for (int i = 0; i < ndevs_; i++) workers_[i]->Enqueue(task->subtask(i));
     return;
   }
+  if (!task->HasSubtasks()) {
+    SubmitWorker(task);
+    return;
+  }
+  std::vector<Task*>* subtasks = task->subtasks();
+  for (std::vector<Task*>::iterator I = subtasks->begin(), E = subtasks->end(); I != E; ++I)
+    SubmitWorker(*I);
+}
+
+void Scheduler::SubmitWorker(Task* task) {
   int brs_device = task->brs_device();
   int ndevs = 0;
   Device* devs[BRISBANE_MAX_NDEVS];

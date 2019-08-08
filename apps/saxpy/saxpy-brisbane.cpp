@@ -4,7 +4,7 @@
 #include <malloc.h>
 
 int main(int argc, char** argv) {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
 
   size_t SIZE;
   float *X, *Y, *Z;

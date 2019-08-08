@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
   int ERROR = 0;
   int DEV = 0;
 
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
 
   SIZE = argc > 1 ? atol(argv[1]) : 16;
   UNIT = argc > 2 ? atol(argv[2]) : SIZE / 4;

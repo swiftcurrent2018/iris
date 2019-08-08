@@ -44,14 +44,32 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
   clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
   _clerror(clerr_);
 
-  enabled_ = BuildProgram();
+  enable_ = false;
 }
 
 Device::~Device() {
   delete timer_;
 }
 
-bool Device::BuildProgram() {
+void Device::Execute(Task* task) {
+  busy_ = true;
+  for (int i = 0; i < task->ncmds(); i++) {
+    Command* cmd = task->cmd(i);
+    switch (cmd->type()) {
+      case BRISBANE_CMD_BUILD:        ExecuteBuild(cmd);      break;
+      case BRISBANE_CMD_KERNEL:       ExecuteKernel(cmd);     break;
+      case BRISBANE_CMD_H2D:          ExecuteH2D(cmd);        break;
+      case BRISBANE_CMD_D2H:          ExecuteD2H(cmd);        break;
+      case BRISBANE_CMD_PRESENT:      ExecutePresent(cmd);    break;
+      case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
+      default: _error("cmd type[0x%x]", cmd->type());
+    }
+  }
+  _info("task[%lu] complete", task->uid());
+  busy_ = false;
+}
+
+void Device::ExecuteBuild(Command* cmd) {
   cl_int status;
   char path[256];
   memset(path, 0, 256);
@@ -71,7 +89,7 @@ bool Device::BuildProgram() {
   }
   if (srclen == 0) {
     _error("dev[%d][%s] has no kernel file", dev_no_, name_);
-    return false;
+    return;
   }
   _trace("dev[%d][%s] kernels[%s]", dev_no_, name_, path);
   if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
@@ -90,28 +108,12 @@ bool Device::BuildProgram() {
     _error("status[%d] log_size[%lu] log:%s", s, log_size, log);
     _error("srclen[%lu] src\n%s", srclen, src);
     free(src);
-    return false;
+    return;
   }
   free(src);
-  return true;
+  enable_ = true;
 }
 
-void Device::Execute(Task* task) {
-  busy_ = true;
-  for (int i = 0; i < task->ncmds(); i++) {
-    Command* cmd = task->cmd(i);
-    switch (cmd->type()) {
-      case BRISBANE_CMD_KERNEL:       ExecuteKernel(cmd);     break;
-      case BRISBANE_CMD_H2D:          ExecuteH2D(cmd);        break;
-      case BRISBANE_CMD_D2H:          ExecuteD2H(cmd);        break;
-      case BRISBANE_CMD_PRESENT:      ExecutePresent(cmd);    break;
-      case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
-      default: _error("cmd type[0x%x]", cmd->type());
-    }
-  }
-  _info("task[%lu] complete", task->uid());
-  busy_ = false;
-}
 
 void Device::ExecuteKernel(Command* cmd) {
   Kernel* kernel = cmd->kernel();

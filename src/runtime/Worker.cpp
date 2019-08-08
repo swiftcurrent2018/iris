@@ -30,6 +30,10 @@ void Worker::Enqueue(Task* task) {
 
 void Worker::Execute(Task* task) {
   if (!task->Executable()) return;
+  if (task->marker()) {
+    task->Complete();
+    return;
+  }
   busy_ = true;
   consistency_->Resolve(task);
   device_->Execute(task);

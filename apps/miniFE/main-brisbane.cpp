@@ -89,7 +89,7 @@ void add_timestring_to_yaml(YAML_Doc& doc);
 //
 
 int main(int argc, char** argv) {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   miniFE::Parameters params;
   miniFE::get_parameters(argc, argv, params);
 

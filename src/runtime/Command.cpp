@@ -13,11 +13,16 @@ Command::~Command() {
   if (kernel_args_) {
     for (std::map<int, KernelArg*>::iterator I = kernel_args_->begin(), E = kernel_args_->end(); I != E; ++I)
       delete I->second;
+    delete kernel_args_;
   }
 }
 
 Command* Command::Create(Task* task, int type) {
   return new Command(task, type);
+}
+
+Command* Command::CreateBuild(Task* task) {
+  return Create(task, BRISBANE_CMD_BUILD);
 }
 
 Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr) {

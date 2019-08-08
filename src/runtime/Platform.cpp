@@ -10,6 +10,7 @@
 #include "Scheduler.h"
 #include "Task.h"
 #include "Timer.h"
+#include "Worker.h"
 #include <unistd.h>
 #include <algorithm>
 
@@ -40,7 +41,7 @@ Platform::~Platform() {
   if (null_kernel_) delete null_kernel_;
 }
 
-int Platform::Init(int* argc, char*** argv) {
+int Platform::Init(int* argc, char*** argv, bool sync) {
   if (init_) return BRISBANE_ERR;
   gethostname(brisbane_log_prefix_, 256);
   Utils::Logo(true);
@@ -49,13 +50,12 @@ int Platform::Init(int* argc, char*** argv) {
   timer_->Start(BRISBANE_TIMER_APP);
 
   timer_->Start(BRISBANE_TIMER_INIT);
-  GetCLPlatforms();
+  InitCLPlatforms();
   polyhedral_ = new Polyhedral(this);
   polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
   if (polyhedral_available_)
     filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
   _info("polyhedral_avilable[%d]", polyhedral_available_);
-  timer_->Stop(BRISBANE_TIMER_INIT);
 
   brisbane_kernel null_brs_kernel;
   KernelCreate("brisbane_null", &null_brs_kernel);
@@ -64,20 +64,26 @@ int Platform::Init(int* argc, char*** argv) {
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
 
+  BuildPrograms(sync);
+
   init_ = true;
+
+  timer_->Stop(BRISBANE_TIMER_INIT);
 
   return BRISBANE_OK;
 }
 
 int Platform::Synchronize() {
   Task* task = new Task(this, BRISBANE_MARKER);
+  for (int i = 0; i < ndevs_; i++)
+    task->AddSubtask(new Task(this, BRISBANE_MARKER));
   scheduler_->Enqueue(task);
   task->Wait();
   return BRISBANE_OK;
 }
 
-int Platform::GetCLPlatforms() {
-  bool enabled = true;
+int Platform::InitCLPlatforms() {
+  bool enable = true;
 
   clerr_ = clGetPlatformIDs((cl_uint) nplatforms_, cl_platforms_, (cl_uint*) &nplatforms_);
   _info("nplatforms[%u]", nplatforms_);
@@ -93,12 +99,30 @@ int Platform::GetCLPlatforms() {
     _clerror(clerr_);
     for (cl_uint j = 0; j < num_devices; j++) {
       devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
-      //enabled &= devices_[ndevs_]->enabled();
+      //enable &= devices_[ndevs_]->enable();
       ndevs_++;
     }
   }
   if (ndevs_) device_default_ = devices_[0]->type();
-  if (!enabled) exit(-1);
+  if (!enable) exit(-1);
+  return BRISBANE_OK;
+}
+
+int Platform::BuildPrograms(bool sync) {
+  Task** tasks = new Task*[ndevs_];
+  for (int i = 0; i < ndevs_; i++) {
+    tasks[i] = new Task(this);
+    Command* cmd = Command::CreateBuild(tasks[i]);
+    tasks[i]->AddCommand(cmd);
+    scheduler_->worker(i)->Enqueue(tasks[i]);
+  }
+  if (sync) {
+    for (int i = 0; i < ndevs_; i++) {
+      tasks[i]->Wait();
+      delete tasks[i];
+    }
+  }
+  delete[] tasks;
   return BRISBANE_OK;
 }
 
@@ -205,12 +229,12 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
   return BRISBANE_OK;
 }
 
-int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait) {
+int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool sync) {
   Task* task = brs_task->class_obj;
   task->set_brs_device(brs_device);
   FilterSubmitExecute(task);
   scheduler_->Enqueue(task);
-  if (wait) task->Wait();
+  if (sync) task->Wait();
   return BRISBANE_OK;
 }
 
@@ -218,6 +242,12 @@ int Platform::TaskWait(brisbane_task brs_task) {
   Task* task = brs_task->class_obj;
   task->Wait();
   return BRISBANE_OK;
+}
+
+int Platform::TaskWaitAll(int ntasks, brisbane_task* brs_tasks) {
+  int iret = BRISBANE_OK;
+  for (int i = 0; i < ntasks; i++) iret &= TaskWait(brs_tasks[i]);
+  return iret;
 }
 
 int Platform::TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask) {

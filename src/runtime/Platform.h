@@ -28,10 +28,11 @@ private:
   ~Platform();
 
 public:
-  int Init(int* argc, char*** argv);
+  int Init(int* argc, char*** argv, bool sync);
   int Synchronize();
 
-  int GetCLPlatforms();
+  int InitCLPlatforms();
+  int BuildPrograms(bool sync);
 
   int InfoNumPlatforms(int* nplatforms);
   int InfoNumDevices(int* ndevs);
@@ -54,6 +55,7 @@ public:
   int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
   int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait);
   int TaskWait(brisbane_task brs_task);
+  int TaskWaitAll(int ntasks, brisbane_task* brs_tasks);
   int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);
   int TaskRelease(brisbane_task brs_task);
   int TaskReleaseMem(brisbane_task brs_task, brisbane_mem brs_mem);

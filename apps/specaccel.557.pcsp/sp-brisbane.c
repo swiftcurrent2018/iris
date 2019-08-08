@@ -107,7 +107,7 @@ double lhsm[IMAXP+1][IMAXP+1][5];
 
 int main(int argc, char *argv[])
 {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   int i, niter, step, n3;
   double mflops, t, tmax, trecs[t_last+1];
   int verified;

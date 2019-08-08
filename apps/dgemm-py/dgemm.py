@@ -4,7 +4,7 @@ import brisbane
 import numpy as np
 import sys
 
-brisbane.init()
+brisbane.init(True)
 
 SIZE = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 

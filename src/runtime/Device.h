@@ -15,9 +15,8 @@ public:
   Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no);
   ~Device();
 
-  bool BuildProgram();
-
   void Execute(Task* task);
+  void ExecuteBuild(Command* cmd);
   void ExecuteKernel(Command* cmd);
   void ExecuteH2D(Command* cmd);
   void ExecuteD2H(Command* cmd);
@@ -31,7 +30,7 @@ public:
   char* name() { return name_; }
   bool busy() { return busy_; }
   bool idle() { return !busy_; }
-  bool enabled() { return enabled_; }
+  bool enable() { return enable_; }
 
   void set_worker(Worker* worker) { worker_ = worker; }
   Worker* worker() { return worker_; }
@@ -55,7 +54,7 @@ private:
   cl_bool compiler_available_;
 
   bool busy_;
-  bool enabled_;
+  bool enable_;
 
   Worker* worker_;
   Timer* timer_;

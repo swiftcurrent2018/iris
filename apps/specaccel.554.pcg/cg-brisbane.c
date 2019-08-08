@@ -139,7 +139,7 @@ static void vecset(int n, double v[], int iv[], int *nzv, int i, double val);
 
 int main(int argc, char *argv[])
 {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   int i, j, k, it, nit, set_zeta;
   int end;
 

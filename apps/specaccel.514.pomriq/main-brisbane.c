@@ -40,7 +40,7 @@
 
 int
 main (int argc, char *argv[]) {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   int numX, numK;		/* Number of X and K values */
   int original_numK;		/* Number of K values in input file */
   float *kx, *ky, *kz;		/* K trajectory (3D vectors) */

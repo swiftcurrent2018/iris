@@ -26,6 +26,7 @@ public:
   Platform* platform() { return platform_; }
   Device** devices() { return devices_; }
   Worker** workers() { return workers_; }
+  Worker* worker(int i) { return workers_[i]; }
   int ndevs() { return ndevs_; }
   int nworkers() { return ndevs_; }
   void CompleteTask(Task* task, Worker* worker);
@@ -34,6 +35,7 @@ public:
 
 private:
   void Submit(Task* task);
+  void SubmitWorker(Task* task);
   virtual void Run();
 
   void InitWorkers();

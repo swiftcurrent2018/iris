@@ -52,6 +52,7 @@ public:
   void set_brs_device(int brs_device);
   int brs_device() { return brs_device_; }
   std::vector<Task*>* subtasks() { return &subtasks_; }
+  Task* subtask(int i) { return subtasks_[i]; }
 
 private:
   void CompleteSub();

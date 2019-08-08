@@ -5,11 +5,12 @@
 #include "Kernel.h"
 
 #define BRISBANE_CMD_NOP            0x1000
-#define BRISBANE_CMD_KERNEL         0x1001
-#define BRISBANE_CMD_H2D            0x1002
-#define BRISBANE_CMD_D2H            0x1003
-#define BRISBANE_CMD_PRESENT        0x1004
-#define BRISBANE_CMD_RELEASE_MEM    0x1005
+#define BRISBANE_CMD_BUILD          0x1001
+#define BRISBANE_CMD_KERNEL         0x1002
+#define BRISBANE_CMD_H2D            0x1003
+#define BRISBANE_CMD_D2H            0x1004
+#define BRISBANE_CMD_PRESENT        0x1005
+#define BRISBANE_CMD_RELEASE_MEM    0x1006
 
 namespace brisbane {
 namespace rt {
@@ -23,6 +24,7 @@ public:
   ~Command();
 
   int type() { return type_; }
+  bool type_build() { return type_ == BRISBANE_CMD_BUILD; }
   bool type_h2d() { return type_ == BRISBANE_CMD_H2D; }
   bool type_d2h() { return type_ == BRISBANE_CMD_D2H; }
   bool type_kernel() { return type_ == BRISBANE_CMD_KERNEL; }
@@ -52,6 +54,7 @@ private:
 
 public:
   static Command* Create(Task* task, int type);
+  static Command* CreateBuild(Task* task);
   static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
   static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
   static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);

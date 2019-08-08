@@ -106,7 +106,7 @@ double tmp1, tmp2, tmp3;
 
 int main(int argc, char *argv[])
 {
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
   int i, niter, step;
   double navg, mflops, n3;
 

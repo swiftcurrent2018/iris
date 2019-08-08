@@ -35,7 +35,7 @@ void kij() {
 int main(int argc, char** argv) {
   int ERROR = 0;
 
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
 
   SIZE = argc > 1 ? atol(argv[1]) : 16;
 

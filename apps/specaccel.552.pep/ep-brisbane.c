@@ -157,7 +157,7 @@ INLINE double randlc_ep( double *x, double a )
 
 int main()
 {
-  brisbane_init(NULL, NULL);
+  brisbane_init(NULL, NULL, true);
   double Mops, t1, t2, t3, t4, x1, x2;
   double sx, sy, tm, an, tt, gc;
   double sx_verify_value, sy_verify_value, sx_err, sy_err;
