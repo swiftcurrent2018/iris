@@ -22,7 +22,7 @@ Task::Task(Platform* platform, int type, const char* name) {
   time_ = 0.0;
   system_ = false;
   if (name) strcpy(name_, name);
-  sprintf(name_, "task%ld", uid());
+  else sprintf(name_, "task%ld", uid());
   status_ = BRISBANE_NONE;
 
   pthread_mutex_init(&executable_mutex_, NULL);
