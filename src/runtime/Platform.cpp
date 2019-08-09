@@ -1,14 +1,15 @@
 #include "Platform.h"
 #include "Utils.h"
-#include "Charts.h"
 #include "Command.h"
 #include "Device.h"
-#include "DOT.h"
 #include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
 #include "Polyhedral.h"
+#include "Profiler.h"
+#include "ProfilerDOT.h"
+#include "ProfilerGoogleCharts.h"
 #include "Scheduler.h"
 #include "Task.h"
 #include "Timer.h"
@@ -31,7 +32,8 @@ Platform::Platform() {
   filter_task_split_ = NULL;
   timer_ = NULL;
   null_kernel_ = NULL;
-  dot_ = NULL;
+  enable_profiler_ = getenv("BRISBANE_PROFILE");
+  nprofilers_ = 0;
   time_app_ = 0.0;
   time_init_ = 0.0;
 }
@@ -44,8 +46,8 @@ Platform::~Platform() {
   if (filter_task_split_) delete filter_task_split_;
   if (timer_) delete timer_;
   if (null_kernel_) delete null_kernel_;
-  if (charts_) delete charts_;
-  if (dot_) delete dot_;
+  if (enable_profiler_)
+    for (int i = 0; i < nprofilers_; i++) delete profilers_[i];
 }
 
 int Platform::Init(int* argc, char*** argv, bool sync) {
@@ -66,14 +68,17 @@ int Platform::Init(int* argc, char*** argv, bool sync) {
   polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
   if (polyhedral_available_)
     filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
-  _info("polyhedral_avilable[%d]", polyhedral_available_);
 
   brisbane_kernel null_brs_kernel;
   KernelCreate("brisbane_null", &null_brs_kernel);
   null_kernel_ = null_brs_kernel->class_obj;
 
-  charts_ = new Charts(this);
-  dot_ = new DOT(this);
+  if (enable_profiler_) {
+    profilers_[nprofilers_++] = new ProfilerDOT(this);
+    profilers_[nprofilers_++] = new ProfilerGoogleCharts(this);
+  }
+
+  _info("available: polyhedral[%d] profile[%d]", polyhedral_available_, enable_profiler_);
 
   scheduler_ = new Scheduler(this);
   scheduler_->Start();

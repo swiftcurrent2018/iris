@@ -43,7 +43,7 @@ int FilterTaskSplit::Execute(Task* task) {
 
   brisbane_poly_mem* plmems = new brisbane_poly_mem[nmems];
   Mem* plmems_mem[nmems];
-  size_t chunk_size = 4;
+  size_t chunk_size = ndr[0] / (platform_->ndevs() * 4);
   size_t ndr0 = ndr[0];
   bool left_ndr = ndr[0] % chunk_size;
   size_t nchunks = ndr[0] / chunk_size + (left_ndr ? 1 : 0);

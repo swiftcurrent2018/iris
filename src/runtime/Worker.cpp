@@ -23,7 +23,6 @@ Worker::~Worker() {
 }
 
 void Worker::Enqueue(Task* task) {
-  task->set_dev(device_);
   while (!queue_->Enqueue(task)) {}
   Invoke();
 }

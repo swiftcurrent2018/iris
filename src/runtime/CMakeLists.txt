@@ -14,11 +14,9 @@ configure_file(Config.h.in Config.h)
 
 set(BRISBANE_RUNTIME_SOURCES
   CAPI.cpp
-  Charts.cpp
   Command.cpp
   Consistency.cpp
   Device.cpp
-  DOT.cpp
   FilterTaskSplit.cpp
   History.cpp
   HubClient.cpp
@@ -36,6 +34,9 @@ set(BRISBANE_RUNTIME_SOURCES
   PolicyRandom.cpp
   PolicySpecific.cpp
   Polyhedral.cpp
+  Profiler.cpp
+  ProfilerDOT.cpp
+  ProfilerGoogleCharts.cpp
   Reduction.cpp
   Scheduler.cpp
   Task.cpp

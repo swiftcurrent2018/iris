@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-size_t SIZE, UNIT, DEV;
+size_t SIZE, UNIT;
 double *A, *B, *C;
 double t0, t1;
 
@@ -38,10 +38,8 @@ int main(int argc, char** argv) {
   brisbane_init(&argc, &argv, true);
 
   SIZE = argc > 1 ? atol(argv[1]) : 16;
-  UNIT = argc > 2 ? SIZE / atol(argv[2]) : SIZE / 8;
-  DEV = argc > 3 ? atoi(argv[3]) : brisbane_cpu | brisbane_gpu;
 
-  printf("SIZE[%d] MATRIX_SIZE[%lu]MB UNIT[%d] DEV[0x%x]\n", SIZE, SIZE * SIZE * sizeof(double) / 1024 / 1024, UNIT, DEV);
+  printf("SIZE[%d] MATRIX_SIZE[%lu]MB\n", SIZE, SIZE * SIZE * sizeof(double) / 1024 / 1024);
 
   A = (double*) valloc(SIZE * SIZE * sizeof(double));
   B = (double*) valloc(SIZE * SIZE * sizeof(double));
@@ -71,20 +69,15 @@ int main(int argc, char** argv) {
 
   brisbane_timer_now(&t0);
 
-  brisbane_task task0;
-  brisbane_task_create(&task0);
-  for (size_t i = 0; i < SIZE; i += UNIT) {
-    brisbane_task subtask;
-    brisbane_task_create(&subtask);
-    brisbane_task_present(subtask, mem_A, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), A + (i * SIZE));
-    brisbane_task_present(subtask, mem_B, 0, SIZE * SIZE * sizeof(double), B);
-    size_t kernel_ijk_off[2] = { 0, i };
-    size_t kernel_ijk_idx[2] = { SIZE, UNIT };
-    brisbane_task_kernel(subtask, kernel_ijk, 2, kernel_ijk_off, kernel_ijk_idx);
-    brisbane_task_d2h(subtask, mem_C, i * SIZE * sizeof(double), UNIT * SIZE * sizeof(double), C + (i * SIZE));
-    brisbane_task_add_subtask(task0, subtask);
-  }
-  brisbane_task_submit(task0, DEV, NULL, true);
+  brisbane_task task;
+  brisbane_task_create(&task);
+  brisbane_task_h2d_full(task, mem_A, A);
+  brisbane_task_h2d_full(task, mem_B, B);
+  size_t kernel_ijk_off[2] = { 0, 0 };
+  size_t kernel_ijk_idx[2] = { SIZE, SIZE };
+  brisbane_task_kernel(task, kernel_ijk, 2, kernel_ijk_off, kernel_ijk_idx);
+  brisbane_task_d2h_full(task, mem_C, C);
+  brisbane_task_submit(task, brisbane_all | brisbane_cpu | brisbane_gpu, NULL, true);
 
   brisbane_timer_now(&t1);
 
@@ -129,7 +122,7 @@ int main(int argc, char** argv) {
 
   printf("ERROR[%d] TIME[%lf]\n", ERROR, t1 - t0);
 
-  brisbane_task_release(task0);
+  brisbane_task_release(task);
   brisbane_kernel_release(kernel_ijk);
   brisbane_mem_release(mem_A);
   brisbane_mem_release(mem_B);
@@ -143,3 +136,4 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+

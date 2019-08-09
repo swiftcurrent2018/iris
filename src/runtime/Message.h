@@ -14,18 +14,19 @@ public:
   Message(long header = -1);
   ~Message();
 
-  void WriteHeader(int32_t v);
-  void WritePID(pid_t v);
-  void WriteBool(bool v);
-  void WriteInt(int32_t v);
-  void WriteUInt(uint32_t v);
-  void WriteLong(int64_t v);
-  void WriteULong(uint64_t v);
-  void WriteFloat(float v);
-  void WriteDouble(double v);
-  void WriteString(const char* v);
-  void WritePtr(void *ptr);
-  void Write(const void* v, size_t size);
+  bool WriteHeader(int32_t v);
+  bool WritePID(pid_t v);
+  bool WriteBool(bool v);
+  bool WriteChar(char v);
+  bool WriteInt(int32_t v);
+  bool WriteUInt(uint32_t v);
+  bool WriteLong(int64_t v);
+  bool WriteULong(uint64_t v);
+  bool WriteFloat(float v);
+  bool WriteDouble(double v);
+  bool WriteString(const char* v);
+  bool WritePtr(void *ptr);
+  bool Write(const void* v, size_t size);
 
   int32_t ReadHeader();
   pid_t ReadPID();
@@ -42,6 +43,7 @@ public:
   void* Read(size_t size);
 
   char* buf() { return buf_; }
+  size_t offset() { return offset_; }
   void Clear();
 
 private:

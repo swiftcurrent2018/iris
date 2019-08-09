@@ -9,15 +9,14 @@
 namespace brisbane {
 namespace rt {
 
-class Charts;
 class Device;
-class DOT;
 class HubClient;
 class Task;
 class TaskQueue;
 class Timer;
 class Platform;
 class Policies;
+class Profiler;
 class Worker;
 
 class Scheduler : public Thread {
@@ -61,10 +60,9 @@ private:
   Task* last_task_;
   HubClient* hub_client_;
   bool hub_available_;
-  bool charts_available_;
-  bool dot_available_;
-  Charts* charts_;
-  DOT* dot_;
+  bool enable_profiler_;
+  int nprofilers_;
+  Profiler** profilers_;
   Timer* timer_;
   pthread_mutex_t mutex_;
 };

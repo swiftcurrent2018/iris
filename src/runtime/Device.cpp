@@ -53,6 +53,7 @@ Device::~Device() {
 
 void Device::Execute(Task* task) {
   busy_ = true;
+  task->set_dev(this);
   for (int i = 0; i < task->ncmds(); i++) {
     Command* cmd = task->cmd(i);
     switch (cmd->type()) {

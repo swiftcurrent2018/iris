@@ -1,12 +1,11 @@
 #include "Scheduler.h"
-#include "Charts.h"
 #include "Debug.h"
 #include "Device.h"
-#include "DOT.h"
 #include "HubClient.h"
 #include "Platform.h"
 #include "Policies.h"
 #include "Policy.h"
+#include "Profiler.h"
 #include "Task.h"
 #include "TaskQueue.h"
 #include "Timer.h"
@@ -19,11 +18,10 @@ Scheduler::Scheduler(Platform* platform) {
   platform_ = platform;
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
-  charts_ = platform_->charts();
-  dot_ = platform_->dot();
   last_task_ = NULL;
-  charts_available_ = true;
-  dot_available_ = true;
+  enable_profiler_ = platform->enable_profiler();
+  nprofilers_ = platform->nprofilers();
+  profilers_ = platform->profilers();
   pthread_mutex_init(&mutex_, NULL);
   timer_ = new Timer();
   policies_ = new Policies(this);
@@ -63,16 +61,15 @@ void Scheduler::StartTask(Task* task, Worker* worker) {
 }
 
 void Scheduler::CompleteTask(Task* task, Worker* worker) {
-  pthread_mutex_lock(&mutex_); //TODO: no lock
   Device* dev = worker->device();
   int dev_no = dev->dev_no();
   if (hub_available_) hub_client_->TaskDec(dev_no, 1);
-  if (charts_available_ & !task->system()) {
+  if (enable_profiler_ & !task->system()) {
     task->set_time_end(timer_->Now());
-    charts_->AddTask(task);
+    pthread_mutex_lock(&mutex_); //TODO: no lock
+    for (int i = 0; i < nprofilers_; i++) profilers_[i]->CompleteTask(task); 
+    pthread_mutex_unlock(&mutex_);
   }
-  if (dot_available_ & !task->system()) dot_->AddTask(task);
-  pthread_mutex_unlock(&mutex_);
 }
 
 int Scheduler::RefreshNTasksOnDevs() {
@@ -89,7 +86,7 @@ size_t Scheduler::NTasksOnDev(int i) {
 }
 
 void Scheduler::Enqueue(Task* task, bool sync) {
-  if (sync) {
+  if (sync && !task->is_subtask()) {
     if (last_task_) task->AddDepend(last_task_);
     last_task_ = task;
   }

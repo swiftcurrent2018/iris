@@ -63,6 +63,7 @@ public:
   int brs_device() { return brs_device_; }
   std::vector<Task*>* subtasks() { return &subtasks_; }
   Task* subtask(int i) { return subtasks_[i]; }
+  bool is_subtask() { return parent_ != NULL; }
   int ndepends() { return ndepends_; }
   Task** depends() { return depends_; }
 

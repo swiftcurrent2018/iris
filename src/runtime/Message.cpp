@@ -14,54 +14,59 @@ Message::Message(long header) {
 Message::~Message() {
 }
 
-void Message::WriteHeader(int32_t v) {
-  WriteInt(v);
+bool Message::WriteHeader(int32_t v) {
+  return WriteInt(v);
 }
 
-void Message::WritePID(pid_t v) {
-  WriteInt(v);
+bool Message::WritePID(pid_t v) {
+  return WriteInt(v);
 }
 
-void Message::WriteBool(bool v) {
-  Write(&v, sizeof(v));
+bool Message::WriteBool(bool v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteInt(int32_t v) {
-  Write(&v, sizeof(v));
+bool Message::WriteChar(char v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteUInt(uint32_t v) {
-  Write(&v, sizeof(v));
+bool Message::WriteInt(int32_t v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteLong(int64_t v) {
-  Write(&v, sizeof(v));
+bool Message::WriteUInt(uint32_t v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteULong(uint64_t v) {
-  Write(&v, sizeof(v));
+bool Message::WriteLong(int64_t v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteFloat(float v) {
-  Write(&v, sizeof(v));
+bool Message::WriteULong(uint64_t v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteDouble(double v) {
-  Write(&v, sizeof(v));
+bool Message::WriteFloat(float v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WriteString(const char* v) {
-  Write(v, strlen(v) + 1);
+bool Message::WriteDouble(double v) {
+  return Write(&v, sizeof(v));
 }
 
-void Message::WritePtr(void *ptr) {
-  Write(reinterpret_cast<void *>(&ptr), sizeof(void *));
+bool Message::WriteString(const char* v) {
+  return Write(v, strlen(v) + 1);
 }
 
-void Message::Write(const void* v, size_t size) {
+bool Message::WritePtr(void *ptr) {
+  return Write(reinterpret_cast<void *>(&ptr), sizeof(void *));
+}
+
+bool Message::Write(const void* v, size_t size) {
+  if (offset_ + size >= BRISBANE_MSG_SIZE) return false;
   memcpy(buf_ + offset_, v, size);
   offset_ += size;
-  if (offset_ >= BRISBANE_MSG_SIZE) _error("message size is over %d (%lu)", BRISBANE_MSG_SIZE, offset_);
+  return true;
 }
 
 int32_t Message::ReadHeader() {

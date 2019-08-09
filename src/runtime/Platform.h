@@ -13,13 +13,12 @@
 namespace brisbane {
 namespace rt {
 
-class Charts;
 class Device;
-class DOT;
 class Filter;
 class Kernel;
 class Mem;
 class Polyhedral;
+class Profiler;
 class Scheduler;
 class Task;
 class Timer;
@@ -78,10 +77,11 @@ public:
   Kernel* null_kernel() { return null_kernel_; }
   char* app() { return app_; }
   char* host() { return host_; }
-  Charts* charts() { return charts_; }
-  DOT* dot() { return dot_; }
+  Profiler** profilers() { return profilers_; }
+  int nprofilers() { return nprofilers_; }
   double time_app() { return time_app_; }
   double time_init() { return time_init_; }
+  bool enable_profiler() { return enable_profiler_; }
 
 private:
   int FilterSubmitExecute(Task* task);
@@ -112,11 +112,12 @@ private:
   Polyhedral* polyhedral_;
   bool polyhedral_available_;
   Filter* filter_task_split_;
+  bool enable_profiler_;
+  Profiler* profilers_[8];
+  int nprofilers_;
 
   Kernel* null_kernel_;
 
-  DOT* dot_;
-  Charts* charts_;
   char app_[256];
   char host_[256];
   double time_app_;
