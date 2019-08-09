@@ -55,7 +55,7 @@ bool Message::WriteDouble(double v) {
 }
 
 bool Message::WriteString(const char* v) {
-  return Write(v, strlen(v) + 1);
+  return Write(v, strlen(v));
 }
 
 bool Message::WritePtr(void *ptr) {
@@ -106,7 +106,7 @@ double Message::ReadDouble() {
 }
 
 char* Message::ReadString() {
-  return (char*) Read(strlen(buf_ + offset_) + 1);
+  return (char*) Read(strlen(buf_ + offset_));
 }
 
 char* Message::ReadString(size_t len) {

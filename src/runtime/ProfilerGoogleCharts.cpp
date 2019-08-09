@@ -20,7 +20,8 @@
 
 #define PROFILER_FOOTER   "]);\n" \
                           "var options = {\n" \
-                          "timeline: { colorByRowLabel: true }\n" \
+                          "timeline: { colorByRowLabel: true },\n" \
+                          "avoidOverlappingGridLines: false\n" \
                           "};\n" \
                           "chart.draw(dataTable, options);\n" \
                           "}\n" \

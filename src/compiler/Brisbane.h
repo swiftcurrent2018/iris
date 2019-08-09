@@ -32,6 +32,8 @@ public:
 
   void getAnalysisUsage(AnalysisUsage &AU) const override;
 };
+
 }
 
 #endif /* POLY_BRISBANE_H */
+

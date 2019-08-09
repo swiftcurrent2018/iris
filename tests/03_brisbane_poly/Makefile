@@ -5,7 +5,9 @@ vecadd.ll: vecadd.c
 
 brisbane: vecadd.ll
 	opt -S -polly-canonicalize $^ -o vecadd.preopt.ll
-	opt -basicaa -brisbane -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
+	#opt -basicaa -brisbane -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
+	opt -basicaa -brisbane vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
+	#opt -load lib/LLVMBrisbane.so -basicaa -brisbane -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
 
 polly: vecadd.ll
 	opt -S -polly-canonicalize $^ -o vecadd.preopt.ll
