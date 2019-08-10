@@ -7,19 +7,23 @@
 using namespace llvm;
 
 namespace llvm {
-void initializeBrisbanePass(PassRegistry &);
+void initializeBrisbaneXPass(PassRegistry &);
+}
+
+namespace polly {
+Pass *createBrisbaneXPass();
 }
 
 namespace polly {
 
-class Brisbane : public FunctionPass {
+class BrisbaneX : public FunctionPass {
   std::unique_ptr<ScopInfo> Result;
 
 public:
   static char ID;
 
-  Brisbane() : FunctionPass(ID) {}
-  ~Brisbane() override = default;
+  BrisbaneX() : FunctionPass(ID) {}
+  ~BrisbaneX() override = default;
 
   ScopInfo *getSI() { return Result.get(); }
   const ScopInfo *getSI() const { return Result.get(); }

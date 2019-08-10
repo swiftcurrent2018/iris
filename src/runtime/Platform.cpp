@@ -50,7 +50,7 @@ Platform::~Platform() {
     for (int i = 0; i < nprofilers_; i++) delete profilers_[i];
 }
 
-int Platform::Init(int* argc, char*** argv, bool sync) {
+int Platform::Init(int* argc, char*** argv, int sync) {
   if (init_) return BRISBANE_ERR;
   Utils::Logo(true);
 
@@ -249,7 +249,7 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
   return BRISBANE_OK;
 }
 
-int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool sync) {
+int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, int sync) {
   Task* task = brs_task->class_obj;
   task->set_brs_device(brs_device);
   FilterSubmitExecute(task);

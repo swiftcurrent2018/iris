@@ -31,8 +31,8 @@ class brisbane_mem(Structure):
 class brisbane_task(Structure):
     _fields_ = [("class_obj", c_void_p)]
 
-def init(sync = True):
-    return dll.brisbane_init(0, None, c_bool(sync))
+def init(sync = 1):
+    return dll.brisbane_init(0, None, c_int(sync))
 
 def finalize():
     return dll.brisbane_finalize()
@@ -94,7 +94,7 @@ def task_d2h_full(task, mem, host):
     return dll.brisbane_task_d2h_full(task, mem, host.ctypes.data_as(c_void_p))
 
 def task_submit(task, device, sync):
-    return dll.brisbane_task_submit(task, c_int(device), None, c_bool(sync))
+    return dll.brisbane_task_submit(task, c_int(device), None, c_int(sync))
 
 def task_wait(task):
     return dll.brisbane_task_wait(task)

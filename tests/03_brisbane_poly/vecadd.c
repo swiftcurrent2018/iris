@@ -7,9 +7,11 @@ __kernel void vecadd(__global int* restrict C, __global int* restrict A, __globa
   BRISBANE_POLY_KERNEL_END;
 }
 
+/*
 __kernel void saxpy(__global float* restrict Z, float A, __global float* restrict X, __global float* restrict Y, BRISBANE_KERNEL_ARGS) {
   BRISBANE_POLY_KERNEL_BEGIN;
   size_t id = get_global_id(0);
   Z[id] = A * X[id] + Y[id % (int) A];
   BRISBANE_POLY_KERNEL_END;
 }
+*/

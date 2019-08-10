@@ -29,7 +29,7 @@ private:
   ~Platform();
 
 public:
-  int Init(int* argc, char*** argv, bool sync);
+  int Init(int* argc, char*** argv, int sync);
   int Synchronize();
 
   int InitCLPlatforms();
@@ -54,7 +54,7 @@ public:
   int TaskH2DFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
   int TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
   int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
-  int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, bool wait);
+  int TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, int wait);
   int TaskWait(brisbane_task brs_task);
   int TaskWaitAll(int ntasks, brisbane_task* brs_tasks);
   int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);
