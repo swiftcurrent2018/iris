@@ -7,34 +7,40 @@
 using namespace llvm;
 
 namespace llvm {
-void initializeBrisbaneXPass(PassRegistry &);
+void initializeBrisbanePass(PassRegistry &);
 }
 
 namespace polly {
-Pass *createBrisbaneXPass();
+Pass *createBrisbanePass();
 }
 
 namespace polly {
 
-class BrisbaneX : public FunctionPass {
-  std::unique_ptr<ScopInfo> Result;
+class Brisbane : public FunctionPass {
+  std::unique_ptr<ScopInfo> SI;
 
 public:
   static char ID;
 
-  BrisbaneX() : FunctionPass(ID) {}
-  ~BrisbaneX() override = default;
+  Brisbane() : FunctionPass(ID) {}
+  ~Brisbane() override = default;
 
-  ScopInfo *getSI() { return Result.get(); }
-  const ScopInfo *getSI() const { return Result.get(); }
+  ScopInfo *getSI() { return SI.get(); }
+  const ScopInfo *getSI() const { return SI.get(); }
 
   bool runOnFunction(Function &F) override;
 
-  void releaseMemory() override { Result.reset(); }
+  void releaseMemory() override { SI.reset(); }
 
   void print(raw_ostream &O, const Module *M = nullptr) const override;
 
   void getAnalysisUsage(AnalysisUsage &AU) const override;
+
+private:
+  std::string getArrayName(std::string N);
+  std::set<std::string>* printDomain(raw_string_ostream &OS, unsigned dim, std::string str);
+  void printMemoryAccess(raw_string_ostream &OS, StringRef F, MemoryAccess* MA, std::set<std::string>* params);
+  void printRange(raw_string_ostream &OS, StringRef S, int i, std::set<std::string>* params);
 };
 
 }

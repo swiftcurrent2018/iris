@@ -5,7 +5,8 @@ vecadd.ll: vecadd.c
 
 brisbane: vecadd.ll
 	opt -S -polly-canonicalize $^ -o vecadd.preopt.ll
-	opt -load libLLVMBrisbaneX.so -basicaa -brisbane-x -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names 2>&1 1>/dev/null
+	opt -load libLLVMBrisbane.so -basicaa -brisbane -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names 2>kernel-poly.h 1>/dev/null
+	#opt -load libLLVMBrisbane.so -basicaa -brisbane -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names 2>&1 1>/dev/null
 
 polly: vecadd.ll
 	opt -S -polly-canonicalize $^ -o vecadd.preopt.ll
@@ -13,5 +14,5 @@ polly: vecadd.ll
 	opt -basicaa -polly-scops -analyze vecadd.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
 
 clean:
-	rm -f vecadd.ll vecadd.bc vecadd.bc.ll vecadd.preopt.ll
+	rm -f *.ll *.bc *.o kernel-poly.h
 
