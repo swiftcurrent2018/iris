@@ -124,9 +124,9 @@ private:
   Rewriter &Rewrite;
 };
 
-class BrisbanePollyCallback : public MatchFinder::MatchCallback {
+class BrisbaneLLVMCallback : public MatchFinder::MatchCallback {
 public:
-  BrisbanePollyCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
+  BrisbaneLLVMCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
 
   void run(const MatchFinder::MatchResult &Result) override {
     SourceManager &SM = *Result.SourceManager;
@@ -136,12 +136,12 @@ public:
     const ParmVarDecl* PVD = F->getParamDecl(nparams - 1);
 //    SourceLocation Loc = PVD->getEndLoc().getLocWithOffset(PVD->getName().size());
     Loc = PVD->getEndLoc().getLocWithOffset(PVD->getName().size());
-    Rewrite.InsertText(Loc, ", BRISBANE_POLY_KERNEL_ARGS", true, true);
+    Rewrite.InsertText(Loc, ", BRISBANE_LLVM_KERNEL_ARGS", true, true);
 
     Loc = F->getBody()->getBeginLoc();
-    Rewrite.InsertTextAfterToken(Loc, "\n  BRISBANE_POLY_KERNEL_BEGIN;");
+    Rewrite.InsertTextAfterToken(Loc, "\n  BRISBANE_LLVM_KERNEL_BEGIN;");
     Loc = F->getBody()->getEndLoc();
-    Rewrite.InsertText(Loc, "  BRISBANE_POLY_KERNEL_END;\n", true, true);
+    Rewrite.InsertText(Loc, "  BRISBANE_LLVM_KERNEL_END;\n", true, true);
   }
 
   void onStartOfTranslationUnit() override {
@@ -150,15 +150,15 @@ public:
   void onEndOfTranslationUnit() override {
     SourceManager& SM = Rewrite.getSourceMgr();
     llvm::SmallString<128> FilePath(SM.getFilename(Loc));
-    FilePath.append(".poly.c");
-    llvm::outs() << "Generated [" << FilePath << "] for Brisbane Poly.\n";
+    FilePath.append(".llvm.c");
+    llvm::outs() << "Generated [" << FilePath << "] for Brisbane LLVM Polly.\n";
     std::error_code EC;
     llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::OF_None);
     if (EC) {
       llvm::errs() << EC.message() << "\n";
       return;
     }
-    OS << "#include \"brisbane_poly_kernel.h\"\n\n";
+    OS << "#include <brisbane/brisbane_llvm.h>\n\n";
     Rewrite.getEditBuffer(Rewrite.getSourceMgr().getMainFileID()).write(OS);
     OS.close();
   }
@@ -170,9 +170,9 @@ private:
 
 class BrisbaneASTConsumer : public ASTConsumer {
 public:
-  BrisbaneASTConsumer(Rewriter &R) : handleWrapper(R), CallbackPolly(R) {
+  BrisbaneASTConsumer(Rewriter &R) : handleWrapper(R), CallbackLLVM(R) {
     //Finder.addMatcher(functionDecl(hasName(targetMethod)).bind("wrapFunc"), &handleWrapper);
-    Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackPolly);
+    Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackLLVM);
   }
 
   void HandleTranslationUnit(ASTContext &Context) override {
@@ -181,7 +181,7 @@ public:
 
 private:
   BrisbaneWrapper handleWrapper;
-  BrisbanePollyCallback CallbackPolly;
+  BrisbaneLLVMCallback CallbackLLVM;
   MatchFinder Finder;
 };
 

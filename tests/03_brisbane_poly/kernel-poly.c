@@ -1,59 +1,12 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-
-typedef int32_t i32;
-
-#define BRISBANE_POLY_KERNEL_ARGS   size_t _wgo0, size_t _wgo1, size_t _wgo2, \
-                                    size_t _wgs0, size_t _wgs1, size_t _wgs2, \
-                                    size_t _gws0, size_t _gws1, size_t _gws2, \
-                                    size_t _lws0, size_t _lws1, size_t _lws2
-#define BRISBANE_POLY_ARRAY_2D(F, M, TYPESZ, S1, S0)                          \
-        F##_args.M.dim    = 2;                                                \
-        F##_args.M.typesz = TYPESZ;                                           \
-        F##_args.M.s1     = S1;                                               \
-        F##_args.M.s0     = S0
-#define BRISBANE_POLY_DOMAIN(D, I0, I1)                                       \
-        size_t D[2] = { I0, I1 }       
-#define BRISBANE_POLY_READ(F, M, I0, I1)                                      \
-        brisbane_poly_read(&F##_args.M, I0 * F##_args.M.s0 + I1);
-#define BRISBANE_POLY_MUWR(F, M, I0, I1)                                      \
-        brisbane_poly_muwr(&F##_args.M, I0 * F##_args.M.s0 + I1);             
+#include <brisbane/brisbane_poly_types.h>
+#include <brisbane/brisbane_poly.h>
 
 typedef struct {
-  size_t typesz;
-  size_t s0;
-  size_t s1;
-  size_t r0;
-  size_t r1;
-  size_t w0;
-  size_t w1;
-  int dim;
-} brisbane_poly;
-
-void brisbane_poly_read(brisbane_poly* p, size_t idx) {
-  if (idx < p->r0) p->r0 = idx;
-  if (idx > p->r1) p->r1 = idx;
-}
-
-void brisbane_poly_muwr(brisbane_poly* p, size_t idx) {
-  if (idx < p->w0) p->w0 = idx;
-  if (idx > p->w1) p->w1 = idx;
-}
-
-void brisbane_poly_mawr(brisbane_poly* p, size_t idx) {
-  return brisbane_poly_muwr(p, idx);
-}
-
-typedef struct {
-  brisbane_poly C;
-  brisbane_poly A;
-  brisbane_poly B;
+  brisbane_poly_mem C;
+  brisbane_poly_mem A;
+  brisbane_poly_mem B;
   int AI;
-  size_t _wgo0; size_t _wgo1; size_t _wgo2;
-  size_t _wgs0; size_t _wgs1; size_t _wgs2;
-  size_t _gws0; size_t _gws1; size_t _gws2;
-  size_t _lws0; size_t _lws1; size_t _lws2;
+  BRISBANE_POLY_KERNEL_ARGS_STRUCT;
 } bp_vecadd_args;
 
 bp_vecadd_args vecadd_args;

@@ -78,6 +78,7 @@ int Profiler::CloseFD() {
       perror("close");
     }
   }
+  return BRISBANE_OK;
 }
 
 const char* Profiler::policy_str(int policy) {
