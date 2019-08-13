@@ -1,4 +1,4 @@
-#include "Brisbane.h"
+#include "BrisbaneLLVM.h"
 #include "polly/LinkAllPasses.h"
 #include "polly/Options.h"
 #include "polly/ScopBuilder.h"
@@ -8,7 +8,7 @@
 using namespace llvm;
 using namespace polly;
 
-bool Brisbane::runOnFunction(Function &F) {
+bool BrisbaneLLVM::runOnFunction(Function &F) {
   auto &SD = getAnalysis<ScopDetectionWrapperPass>().getSD();
   auto &SE = getAnalysis<ScalarEvolutionWrapperPass>().getSE();
   auto &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
@@ -84,7 +84,7 @@ bool Brisbane::runOnFunction(Function &F) {
   return false;
 }
 
-void Brisbane::print(raw_ostream &OS, const Module *M) const {
+void BrisbaneLLVM::print(raw_ostream &OS, const Module *M) const {
   for (auto &It : *SI) {
     if (It.second)
       It.second->print(OS, true);
@@ -93,7 +93,7 @@ void Brisbane::print(raw_ostream &OS, const Module *M) const {
   }
 }
 
-void Brisbane::getAnalysisUsage(AnalysisUsage &AU) const {
+void BrisbaneLLVM::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<LoopInfoWrapperPass>();
   AU.addRequired<RegionInfoPass>();
   AU.addRequired<DominatorTreeWrapperPass>();
@@ -105,11 +105,11 @@ void Brisbane::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesAll();
 }  
 
-std::string Brisbane::getArrayName(std::string N) {
+std::string BrisbaneLLVM::getArrayName(std::string N) {
   return N.find("MemRef_") == 0 ? N.substr(7) : N;
 }
 
-std::set<std::string>* Brisbane::printDomain(raw_string_ostream &OS, unsigned dim, std::string str) {
+std::set<std::string>* BrisbaneLLVM::printDomain(raw_string_ostream &OS, unsigned dim, std::string str) {
   std::set<std::string>* params = new std::set<std::string>;
   StringRef S = StringRef(str);
   size_t I = S.find(": ");
@@ -129,7 +129,7 @@ std::set<std::string>* Brisbane::printDomain(raw_string_ostream &OS, unsigned di
   return params;
 }
 
-void Brisbane::printMemoryAccess(raw_string_ostream &OS, StringRef F, MemoryAccess* MA, std::set<std::string>* params) {
+void BrisbaneLLVM::printMemoryAccess(raw_string_ostream &OS, StringRef F, MemoryAccess* MA, std::set<std::string>* params) {
   isl::id I = MA->getOriginalArrayId();
   isl::map M = MA->getLatestAccessRelation();
   MemoryAccess::AccessType AT = MA->getType();
@@ -164,7 +164,7 @@ void Brisbane::printMemoryAccess(raw_string_ostream &OS, StringRef F, MemoryAcce
   OS << ");\n";
 }
 
-void Brisbane::printRange(raw_string_ostream &OS, StringRef S, int i, std::set<std::string>* params) {
+void BrisbaneLLVM::printRange(raw_string_ostream &OS, StringRef S, int i, std::set<std::string>* params) {
   while (!S.empty()) {
     std::pair<StringRef, StringRef> Split = StringRef(S).split(" ");
     S = Split.first;
@@ -181,18 +181,18 @@ void Brisbane::printRange(raw_string_ostream &OS, StringRef S, int i, std::set<s
   }
 }
 
-char Brisbane::ID = 0;
+char BrisbaneLLVM::ID = 0;
 
 Pass *polly::createBrisbanePass() {
-  return new Brisbane();
+  return new BrisbaneLLVM();
 }
 
-static RegisterPass<Brisbane> X("brisbane", "Brisbane Polyhedral Analyzer", false, false);
+static RegisterPass<BrisbaneLLVM> X("brisbane", "Brisbane Polyhedral Analyzer", false, false);
 
 /*
-INITIALIZE_PASS_BEGIN(Brisbane, "brisbane", "Brisbane Polyhedral Analyzer", false, false);
+INITIALIZE_PASS_BEGIN(BrisbaneLLVM, "brisbane", "Brisbane Polyhedral Analyzer", false, false);
 INITIALIZE_PASS_DEPENDENCY(PollyCanonicalize)
 INITIALIZE_PASS_DEPENDENCY(ScopInfoWrapperPass)
-INITIALIZE_PASS_END(Brisbane, "brisbane", "Brisbane Polyhedral Analyzer", false, false)
+INITIALIZE_PASS_END(BrisbaneLLVM, "brisbane", "Brisbane Polyhedral Analyzer", false, false)
 */
 

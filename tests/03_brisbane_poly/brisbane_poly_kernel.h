@@ -18,7 +18,7 @@
 #define get_local_id(N)             (N == 0 ? _lx    : N == 1 ? _ly   : _lz)
 #define get_global_size(N)          (N == 0 ? _gws0  : N == 1 ? _gws1 : _gws2)
 #define get_local_size(N)           (N == 0 ? _lws0  : N == 1 ? _lws1 : _lws2)
-#define __kernel                    
+#define __kernel                    __attribute__((kernel))
 #define __global                    
 #define __local
 

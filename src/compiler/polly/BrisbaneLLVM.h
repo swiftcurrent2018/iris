@@ -16,14 +16,14 @@ Pass *createBrisbanePass();
 
 namespace polly {
 
-class Brisbane : public FunctionPass {
+class BrisbaneLLVM : public FunctionPass {
   std::unique_ptr<ScopInfo> SI;
 
 public:
   static char ID;
 
-  Brisbane() : FunctionPass(ID) {}
-  ~Brisbane() override = default;
+  BrisbaneLLVM() : FunctionPass(ID) {}
+  ~BrisbaneLLVM() override = default;
 
   ScopInfo *getSI() { return SI.get(); }
   const ScopInfo *getSI() const { return SI.get(); }

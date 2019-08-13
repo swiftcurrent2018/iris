@@ -31,19 +31,6 @@ typedef struct {
   int dim;
 } brisbane_poly;
 
-typedef struct {
-  brisbane_poly C;
-  brisbane_poly A;
-  brisbane_poly B;
-  int AI;
-  size_t _wgo0; size_t _wgo1; size_t _wgo2;
-  size_t _wgs0; size_t _wgs1; size_t _wgs2;
-  size_t _gws0; size_t _gws1; size_t _gws2;
-  size_t _lws0; size_t _lws1; size_t _lws2;
-} bp_vecadd_args;
-
-bp_vecadd_args vecadd_args;
-
 void brisbane_poly_read(brisbane_poly* p, size_t idx) {
   if (idx < p->r0) p->r0 = idx;
   if (idx > p->r1) p->r1 = idx;
@@ -57,6 +44,19 @@ void brisbane_poly_muwr(brisbane_poly* p, size_t idx) {
 void brisbane_poly_mawr(brisbane_poly* p, size_t idx) {
   return brisbane_poly_muwr(p, idx);
 }
+
+typedef struct {
+  brisbane_poly C;
+  brisbane_poly A;
+  brisbane_poly B;
+  int AI;
+  size_t _wgo0; size_t _wgo1; size_t _wgo2;
+  size_t _wgs0; size_t _wgs1; size_t _wgs2;
+  size_t _gws0; size_t _gws1; size_t _gws2;
+  size_t _lws0; size_t _lws1; size_t _lws2;
+} bp_vecadd_args;
+
+bp_vecadd_args vecadd_args;
 
 int vecadd(BRISBANE_POLY_KERNEL_ARGS) {
   BRISBANE_POLY_ARRAY_2D(vecadd, A, sizeof(i32), 0, _lws0);

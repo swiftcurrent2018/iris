@@ -10,6 +10,6 @@ __kernel void vecadd(__global int* restrict C, __global int* restrict A, __globa
 __kernel void saxpy(__global float* restrict Z, float A, __global float* restrict X, __global float* restrict Y, BRISBANE_POLY_KERNEL_ARGS) {
   BRISBANE_POLY_KERNEL_BEGIN;
   size_t i = get_global_id(0);
-  Z[i] = A * X[i] + Y[i + (int) X[i]];
+  Z[i] = A * X[i] + Y[i];
   BRISBANE_POLY_KERNEL_END;
 }

@@ -1,0 +1,4 @@
+ln -nfs brisbane-rts/src/compiler/clang llvm-project/clang-tools-extra/brisbane-clang
+
+add_subdirectory(brisbane-clang) in llvm-project/clang-tools-extra/CMakefile.txt
+

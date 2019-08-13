@@ -1,5 +1,5 @@
 add_llvm_library(LLVMBrisbane MODULE
-  Brisbane.cpp
+  BrisbaneLLVM.cpp
 
   PLUGIN_TOOL
   opt
