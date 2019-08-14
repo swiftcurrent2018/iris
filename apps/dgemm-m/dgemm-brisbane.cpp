@@ -67,7 +67,6 @@ int main(int argc, char** argv) {
   brisbane_kernel_setmem(kernel_ijk, 0, mem_C, brisbane_wr);
   brisbane_kernel_setmem(kernel_ijk, 1, mem_A, brisbane_rd);
   brisbane_kernel_setmem(kernel_ijk, 2, mem_B, brisbane_rd);
-  brisbane_kernel_setarg(kernel_ijk, 3, sizeof(int), &SIZE);
 
   brisbane_timer_now(&t0);
 
@@ -90,7 +89,7 @@ int main(int argc, char** argv) {
 
   //ijk();
 
-#if 0
+#if 1
   printf("[[ A ]]\n");
   for (int i = 0; i < SIZE; i++) {
     for (int j = 0; j < SIZE; j++) {

@@ -312,12 +312,15 @@ int Platform::MemRelease(brisbane_mem brs_mem) {
 
 int Platform::FilterSubmitExecute(Task* task) {
   if (!polyhedral_available_) return BRISBANE_OK;
-  int err = BRISBANE_OK;
+  if (!task->cmd_kernel()) return BRISBANE_OK;
   if (task->brs_device() & brisbane_all) {
-    err = filter_task_split_->Execute(task);
-    if (err != BRISBANE_OK) _error("err[%d]", err);
+    if (filter_task_split_->Execute(task) != BRISBANE_OK) {
+      _debug("poly is not available kernel[%s] task[%lu]", task->cmd_kernel()->kernel()->name(), task->uid());
+      return BRISBANE_ERR;
+    }
+    _debug("poly is available kernel[%s] task[%lu]", task->cmd_kernel()->kernel()->name(), task->uid());
   }
-  return err;
+  return BRISBANE_OK;
 }
 
 int Platform::TimerNow(double* time) {

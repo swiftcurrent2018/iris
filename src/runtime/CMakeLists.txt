@@ -1,7 +1,5 @@
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
-MESSAGE("BRISBANE_BIN_DIR ${BRISBANE_BIN_DIR}")
-
 include_directories(${BRISBANE_INC_DIR})
 include_directories(${BRISBANE_BIN_DIR}/runtime)
 

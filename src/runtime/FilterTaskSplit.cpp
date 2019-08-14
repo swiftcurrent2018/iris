@@ -23,7 +23,8 @@ int FilterTaskSplit::Execute(Task* task) {
   if (!cmd_kernel) return BRISBANE_OK;
   Kernel* kernel = cmd_kernel->kernel();
 
-  polyhedral_->Kernel(kernel->name());
+  int poly_available = polyhedral_->Kernel(kernel->name());
+  if (!poly_available) return BRISBANE_ERR;
   int nmems = 0;
   std::map<int, KernelArg*>* args = cmd_kernel->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
@@ -42,28 +43,23 @@ int FilterTaskSplit::Execute(Task* task) {
     ndr[i] = cmd_kernel->ndr(i);
   }
 
-  size_t wgo[3] = { off[0], off[1], off[2] };
-  size_t wgs[3] = { ndr[0], ndr[1], ndr[2] };
   size_t gws[3] = { ndr[0], ndr[1], ndr[2] };
   size_t lws[3] = { 1, 1, 1 };
 
   brisbane_poly_mem* plmems = new brisbane_poly_mem[nmems];
   Mem* plmems_mem[nmems];
-  size_t chunk_size = ndr[0] / (platform_->ndevs() * 4);
-  size_t ndr0 = ndr[0];
-  bool left_ndr = ndr[0] % chunk_size;
-  size_t nchunks = ndr[0] / chunk_size + (left_ndr ? 1 : 0);
+  size_t chunk_size = ndr[dim - 1] / (platform_->ndevs() * 4);
+  size_t ndr0 = ndr[dim - 1];
+  bool left_ndr = ndr[dim - 1] % chunk_size;
+  size_t nchunks = ndr[dim - 1] / chunk_size + (left_ndr ? 1 : 0);
   Task** subtasks = new Task*[nchunks];
   for (size_t i = 0; i < nchunks; i++) {
     subtasks[i] = new Task(platform_);
-    off[0] = i * chunk_size;
-    if (left_ndr && i == nchunks - 1) ndr[0] = ndr0 - i * chunk_size;
-    else ndr[0] = chunk_size;
+    off[dim - 1] = i * chunk_size;
+    if (left_ndr && i == nchunks - 1) ndr[dim - 1] = ndr0 - i * chunk_size;
+    else ndr[dim - 1] = chunk_size;
 
-    wgo[0] = off[0];
-    wgs[0] = ndr[0];
-
-    polyhedral_->Launch(dim, wgo, wgs, gws, lws);
+    polyhedral_->Launch(dim, off, ndr, gws, lws);
     int mem_idx = 0;
     for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
       int idx = I->first;
@@ -71,7 +67,7 @@ int FilterTaskSplit::Execute(Task* task) {
       Mem* mem = arg->mem;
       if (mem) {
         polyhedral_->GetMem(idx, plmems + mem_idx);
-        _debug("idx[%d] mem[%lu] typesz[%lu] read[%lu,%lu] write[%lu,%lu]", idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].r0, plmems[mem_idx].r1, plmems[mem_idx].w0, plmems[mem_idx].w1);
+        _trace("idx[%d] mem[%lu] typesz[%lu] read[%lu,%lu] write[%lu,%lu]", idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].r0, plmems[mem_idx].r1, plmems[mem_idx].w0, plmems[mem_idx].w1);
         plmems_mem[mem_idx] = mem;
         mem_idx++;
       }
@@ -83,6 +79,8 @@ int FilterTaskSplit::Execute(Task* task) {
         for (int k = 0; k < nmems; k++) {
           if (plmems_mem[k] == mem) {
             brisbane_poly_mem* plmem = plmems + k; 
+            if (plmem->r0 > plmem->r1) _error("invalid poly_mem r0[%lu] r1[%lu]", plmem->r0, plmem->r1);
+            _trace("r0:r1[%lu,%lu] typesz[%lu]", plmem->r0, plmem->r1, plmem->typesz);
             Command* sub_cmd = Command::CreateH2D(subtasks[i], mem, plmem->typesz * plmem->r0, plmem->typesz * (plmem->r1 - plmem->r0 + 1), (char*) cmd->host() + plmem->typesz * plmem->r0);
             subtasks[i]->AddCommand(sub_cmd);
           }
@@ -92,6 +90,7 @@ int FilterTaskSplit::Execute(Task* task) {
         for (int k = 0; k < nmems; k++) {
           if (plmems_mem[k] == mem) {
             brisbane_poly_mem* plmem = plmems + k; 
+            if (plmem->w0 > plmem->w1) _error("invalid poly_mem w0[%lu] w1[%lu]", plmem->w0, plmem->w1);
             Command* sub_cmd = Command::CreateD2H(subtasks[i], mem, plmem->typesz * plmem->w0, plmem->typesz * (plmem->w1 - plmem->w0 + 1), (char*) cmd->host() + plmem->typesz * plmem->w0);
             subtasks[i]->AddCommand(sub_cmd);
           }

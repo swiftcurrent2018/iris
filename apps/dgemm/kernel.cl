@@ -1,7 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-__kernel void ijk(__global double* restrict C, __global double* restrict A, __global double* restrict B, int SIZE) {
+__kernel void ijk(__global double* restrict C, __global double* restrict A, __global double* restrict B) {
   int i = get_global_id(1);
   int j = get_global_id(0);
+  int SIZE = get_global_size(0);
 
   double sum = 0.0;
   for (int k = 0; k < SIZE; k++) {
@@ -9,3 +10,4 @@ __kernel void ijk(__global double* restrict C, __global double* restrict A, __gl
   }
   C[i * SIZE + j] = sum;
 }
+

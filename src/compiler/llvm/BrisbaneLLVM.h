@@ -29,6 +29,7 @@ public:
   const ScopInfo *getSI() const { return SI.get(); }
 
   bool runOnFunction(Function &F) override;
+  bool doFinalization(Module &M) override;
 
   void releaseMemory() override { SI.reset(); }
 
@@ -37,10 +38,14 @@ public:
   void getAnalysisUsage(AnalysisUsage &AU) const override;
 
 private:
+  void printFunctionPolyAvailable(raw_ostream &OS, StringRef &Fname, int available);
   std::string getArrayName(std::string N);
   std::set<std::string>* printDomain(raw_string_ostream &OS, unsigned dim, std::string str);
   void printMemoryAccess(raw_string_ostream &OS, StringRef F, MemoryAccess* MA, std::set<std::string>* params);
   void printRange(raw_string_ostream &OS, StringRef S, int i, std::set<std::string>* params);
+
+private:
+  std::string S;
 };
 
 }

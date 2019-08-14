@@ -23,7 +23,6 @@ kernel = brisbane.kernel_create("ijk")
 brisbane.kernel_setmem(kernel, 0, mem_z, brisbane.brisbane_w)
 brisbane.kernel_setmem(kernel, 1, mem_x, brisbane.brisbane_r)
 brisbane.kernel_setmem(kernel, 2, mem_y, brisbane.brisbane_r)
-brisbane.kernel_setarg(kernel, 3, 4, SIZE)
 
 off = [ 0, 0 ]
 ndr = [ SIZE, SIZE ]

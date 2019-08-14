@@ -30,14 +30,8 @@ public:
     const FunctionDecl *F = Result.Nodes.getNodeAs<FunctionDecl>("kernel");
     StringRef Fname = F->getName();
     const unsigned nparams = F->getNumParams();
-    SourceLocation Loc = F->getBeginLoc();
-    Rewrite.InsertText(Loc, "/* ", true, true);
-    Loc = F->getEndLoc().getLocWithOffset(1);
 
-    std::string Str;
-    llvm::raw_string_ostream OS(Str);
-    OS << " */\n\n";
-
+    llvm::raw_string_ostream OS(S);
     OS << "typedef struct {\n";
     for (const ParmVarDecl *P : F->parameters()) {
       const QualType T = P->getType();
@@ -75,9 +69,7 @@ public:
       if (!T->isPointerType()) continue;
       OS << "    case " << i << ": memcpy(mem, &" << Fname << "_args." << P->getName() << ", sizeof(brisbane_poly_mem)); break;\n";
     }
-    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}";
-
-    Rewrite.InsertText(Loc, OS.str(), true, true);
+    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}\n";
 
     Kernels.push_back(F);
   }
@@ -95,13 +87,12 @@ public:
       return;
     }
     OS << "#include <brisbane/brisbane.h>\n";
-    OS << "#include <brisbane/brisbane_poly_types.h>\n";
     OS << "#include <brisbane/brisbane_poly.h>\n\n";
     OS << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n";
 
-    Rewrite.getEditBuffer(Rewrite.getSourceMgr().getMainFileID()).write(OS);
+    OS << S;
 
-    OS << "#include \"kernel-poly.h\"\n\n";
+    OS << "\n#include \"kernel-poly.h\"\n\n";
 
     OS << "int brisbane_poly_kernel(const char* name) {\n";
     OS << "  brisbane_poly_lock();\n";
@@ -109,7 +100,7 @@ public:
       StringRef Fname = Kernels[i]->getName();
       OS << "  if (strcmp(name, \"" << Fname << "\") == 0) {\n";
       OS << "    brisbane_poly_kernel_idx = " << i << ";\n";
-      OS << "    return BRISBANE_OK;\n  }\n";
+      OS << "    return " << Fname << "_poly_available();\n  }\n";
     }
     OS << "  return BRISBANE_ERR;\n}\n\n";
 
@@ -147,6 +138,7 @@ public:
 private:
   Rewriter &Rewrite;
   SmallVector<const FunctionDecl*, 32> Kernels;
+  std::string S;
 };
 
 class BrisbaneLLVMCallback : public MatchFinder::MatchCallback {

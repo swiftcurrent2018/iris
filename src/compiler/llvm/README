@@ -1,0 +1,4 @@
+ln -nfs brisbane-rts/src/compiler/llvm llvm-project/llvm/lib/Transforms/BrisbaneLLVM
+
+add_subdirectory(BrisbaneLLVM) in llvm-project/llvm/lib/Transforms/CMakefile.txt
+
