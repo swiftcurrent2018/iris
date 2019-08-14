@@ -2,7 +2,7 @@
 #define BRISBANE_RT_SRC_POLYHEDRAL_H
 
 #include <brisbane/brisbane.h>
-#include <brisbane/brisbane_internal.h>
+#include <brisbane/brisbane_poly_types.h>
 
 namespace brisbane {
 namespace rt {
@@ -16,7 +16,7 @@ public:
   int Load();
   int Kernel(const char* name);
   int SetArg(int idx, size_t size, void* value);
-  int Launch(int dim, size_t* off, size_t* ndr);
+  int Launch(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws);
   int GetMem(int idx, brisbane_poly_mem* plmem);
 
 private:
@@ -26,13 +26,11 @@ private:
 
   int (*kernel_)(const char* name);
   int (*setarg_)(int idx, size_t size, void* value);
-  int (*launch_)(int dim, size_t* off, size_t* ndr);
+  int (*launch_)(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws);
   int (*getmem_)(int idx, brisbane_poly_mem* plmem);
 
   int (*init_)();
   int (*finalize_)();
-  int (*lock_)();
-  int (*unlock_)();
 };
 
 } /* namespace rt */

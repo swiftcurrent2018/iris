@@ -2,9 +2,9 @@
 #define BRISBANE_INCLUDE_BRISBANE_LLVM_H
 
 #include <stdlib.h>
-#define BRISBANE_LLVM_KERNEL_BEGIN  for (size_t _gz = _wgo2; _gz < _wgs2; _gz++) \
-                                    for (size_t _gy = _wgo1; _gy < _wgs1; _gy++) \
-                                    for (size_t _gx = _wgo0; _gx < _wgs0; _gx++) \
+#define BRISBANE_LLVM_KERNEL_BEGIN  for (size_t _gz = _wgo2; _gz < _wgo2 + _wgs2; _gz++) \
+                                    for (size_t _gy = _wgo1; _gy < _wgo1 + _wgs1; _gy++) \
+                                    for (size_t _gx = _wgo0; _gx < _wgo0 + _wgs0; _gx++) \
                                     for (size_t _lz = 0;     _lz < _lws2; _lz++) \
                                     for (size_t _ly = 0;     _ly < _lws1; _ly++) \
                                     for (size_t _lx = 0;     _lx < _lws0; _lx++) {

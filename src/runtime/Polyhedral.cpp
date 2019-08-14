@@ -36,10 +36,6 @@ int Polyhedral::Load() {
   if (!init_) _error("%s", dlerror());
   *(void**) (&finalize_) = dlsym(handle_, "brisbane_poly_finalize");
   if (!finalize_) _error("%s", dlerror());
-  *(void**) (&lock_) = dlsym(handle_, "brisbane_poly_lock");
-  if (!lock_) _error("%s", dlerror());
-  *(void**) (&unlock_) = dlsym(handle_, "brisbane_poly_unlock");
-  if (!unlock_) _error("%s", dlerror());
 
   init_();
 
@@ -56,9 +52,9 @@ int Polyhedral::SetArg(int idx, size_t size, void* value) {
   return setarg_(idx, size, value);
 }
 
-int Polyhedral::Launch(int dim, size_t* off, size_t* ndr) {
+int Polyhedral::Launch(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws) {
   if (!launch_) return BRISBANE_ERR;
-  return launch_(dim, off, ndr);
+  return launch_(dim, wgo, wgs, gws, lws);
 }
 
 int Polyhedral::GetMem(int idx, brisbane_poly_mem* plmem) {

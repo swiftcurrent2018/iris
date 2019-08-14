@@ -20,108 +20,133 @@ using namespace clang::driver;
 using namespace clang::tooling;
 using namespace std;
 
-const string type_format_specifier[][2] = {
-    {"int", "%d"},   {"long", "%ld"}, {"long long", "%lld"}, {"double", "%lf"},
-    {"float", "%f"}, {"char", "%c"},  {"string", "%s"}};
-
 static llvm::cl::OptionCategory BRISBANE_OPTION_CATEGORY("Brisbane Clang");
 
-static llvm::cl::opt<bool>
-    wFlag("wrap", llvm::cl::desc("Do you want to wrap a function?"),
-          llvm::cl::Optional, llvm::cl::cat(BRISBANE_OPTION_CATEGORY));
-//          llvm::cl::Required, llvm::cl::cat(BRISBANE_OPTION_CATEGORY));
-static llvm::cl::opt<std::string>
-    wrapPrefix("wrap-prefix",
-               llvm::cl::desc("Select the prefix of the wrapper."),
-               llvm::cl::Optional, llvm::cl::cat(BRISBANE_OPTION_CATEGORY));
-static llvm::cl::opt<std::string>
-    targetMethod("wrap-target", llvm::cl::desc("Name the function to wrap."),
-                 llvm::cl::Optional, llvm::cl::cat(BRISBANE_OPTION_CATEGORY));
+class BrisbanePOLYCallback : public MatchFinder::MatchCallback {
+public:
+  BrisbanePOLYCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
 
-static llvm::cl::extrahelp MoreHelp("\nA Clang Libtool to create a wrapper for "
-                                    "a function to show its input values\n");
+  void run(const MatchFinder::MatchResult &Result) override {
+    const FunctionDecl *F = Result.Nodes.getNodeAs<FunctionDecl>("kernel");
+    StringRef Fname = F->getName();
+    const unsigned nparams = F->getNumParams();
+    SourceLocation Loc = F->getBeginLoc();
+    Rewrite.InsertText(Loc, "/* ", true, true);
+    Loc = F->getEndLoc().getLocWithOffset(1);
 
-class BrisbaneWrapper : public MatchFinder::MatchCallback {
-private:
-  string getFormatSpecifier(string index) {
-    for (unsigned int i = 0;
-         i < sizeof(type_format_specifier) / sizeof(type_format_specifier[0]);
-         i++) {
-      if (type_format_specifier[i][0] == index) {
-        return type_format_specifier[i][1];
-      }
+    std::string Str;
+    llvm::raw_string_ostream OS(Str);
+    OS << " */\n\n";
+
+    OS << "typedef struct {\n";
+    for (const ParmVarDecl *P : F->parameters()) {
+      const QualType T = P->getType();
+      if (T->isPointerType()) OS << "  brisbane_poly_mem";
+      else OS << "  " << T.getAsString();
+      OS << " " << P->getName() << ";\n";
     }
-    return "%p";
+    OS << "} brisbane_poly_" << Fname << "_args;\n";
+    OS << "brisbane_poly_" << Fname << "_args " << Fname << "_args;\n\n";
+
+    OS << "int brisbane_poly_" << Fname << "_init() {\n";
+    for (unsigned i = 0; i < nparams; i++) {
+      const ParmVarDecl* P = F->getParamDecl(i);
+      const QualType T = P->getType();
+      if (!T->isPointerType()) continue;
+      OS << "  brisbane_poly_mem_init(&" << Fname << "_args." << P->getName() << ");\n";
+    }
+    OS << "  return BRISBANE_OK;\n}\n\n";
+
+    OS << "int brisbane_poly_" << Fname << "_setarg(int idx, size_t size, void* value) {\n";
+    OS << "  switch (idx) {\n";
+    for (unsigned i = 0; i < nparams; i++) {
+      const ParmVarDecl* P = F->getParamDecl(i);
+      const QualType T = P->getType();
+      if (T->isPointerType()) continue;
+      OS << "    case " << i << ": memcpy(&" << Fname << "_args." << P->getName() << ", value, size); break;\n";
+    }
+    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}\n\n";
+
+    OS << "int brisbane_poly_" << Fname << "_getmem(int idx, brisbane_poly_mem* mem) {\n";
+    OS << "  switch (idx) {\n";
+    for (unsigned i = 0; i < nparams; i++) {
+      const ParmVarDecl* P = F->getParamDecl(i);
+      const QualType T = P->getType();
+      if (!T->isPointerType()) continue;
+      OS << "    case " << i << ": memcpy(mem, &" << Fname << "_args." << P->getName() << ", sizeof(brisbane_poly_mem)); break;\n";
+    }
+    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}";
+
+    Rewrite.InsertText(Loc, OS.str(), true, true);
+
+    Kernels.push_back(F);
   }
 
-public:
-  BrisbaneWrapper(Rewriter &Rewrite) : Rewrite(Rewrite) {}
+  void onStartOfTranslationUnit() override {
+  }
 
-  // AST matcher match the function declaration with target function
-  virtual void run(const MatchFinder::MatchResult &Result) {
-    // you can use sourceManager to print debug information about sourceLocation
-    // SourceManager &sourceManager = Result.Context->getSourceManager();
-
-    // retrieve the matched function declaration
-    const FunctionDecl *func =
-        Result.Nodes.getNodeAs<clang::FunctionDecl>("wrapFunc");
-
-    // if function has a body
-    if (func->hasBody()) {
-      // collect the function return type
-      string retType = func->getReturnType().getAsString();
-      // collect number of params in the function
-      unsigned int paramNum = func->getNumParams();
-
-      // we create text for function body and signature
-      string funcParamSignature = "";
-      string funcBody = "";
-      // we create text for call the target function from wrap function
-      string argString = "";
-
-      for (unsigned int i = 0; i < paramNum; i++) {
-        // param_type param_name
-        funcParamSignature += func->getParamDecl(i)->getType().getAsString() +
-                              " " + func->getParamDecl(i)->getName().str();
-        // argument_name
-        argString += func->getParamDecl(i)->getName().str();
-        if (i < paramNum - 1) {
-          funcParamSignature += ", ";
-          argString += ", ";
-        }
-
-        // creates a printf for every param to print their value
-        string format_specifier =
-            getFormatSpecifier(func->getParamDecl(i)->getType().getAsString());
-        string pName;
-        if (format_specifier == "%p") {
-          // if not specified in format specifier array, then will print the
-          // address
-          pName = "&" + func->getParamDecl(i)->getName().str();
-        } else {
-          pName = func->getParamDecl(i)->getName().str();
-        }
-        funcBody +=
-            "    printf(\"" + format_specifier + "\\n\", " + pName + ");\n";
-      }
-      // at the end of function body, we call the target function with return
-      // statement
-      funcBody += "    return " + targetMethod + "(" + argString + ");";
-
-      // the target function end point is the '}', so we ask for +1 offset
-      SourceLocation TARGET_END = func->getEndLoc().getLocWithOffset(1);
-      std::stringstream wrapFunction;
-      string wrapFunctionName = wrapPrefix + "_" + targetMethod;
-      // we create the entire wrap function text
-      wrapFunction << "\n" + retType + " " + wrapFunctionName + +"(" +
-                          funcParamSignature + ")\n{\n" + funcBody + "\n}";
-      // let's insert the wrap function at the end of target function
-      Rewrite.InsertText(TARGET_END, wrapFunction.str(), true, true);
+  void onEndOfTranslationUnit() override {
+    StringRef FilePath = "kernel-poly.c";
+    llvm::outs() << "Generated [" << FilePath << "] for Brisbane POLY.\n";
+    std::error_code EC;
+    llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::OF_None);
+    if (EC) {
+      llvm::errs() << EC.message() << "\n";
+      return;
     }
+    OS << "#include <brisbane/brisbane.h>\n";
+    OS << "#include <brisbane/brisbane_poly_types.h>\n";
+    OS << "#include <brisbane/brisbane_poly.h>\n\n";
+    OS << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n";
+
+    Rewrite.getEditBuffer(Rewrite.getSourceMgr().getMainFileID()).write(OS);
+
+    OS << "#include \"kernel-poly.h\"\n\n";
+
+    OS << "int brisbane_poly_kernel(const char* name) {\n";
+    OS << "  brisbane_poly_lock();\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "  if (strcmp(name, \"" << Fname << "\") == 0) {\n";
+      OS << "    brisbane_poly_kernel_idx = " << i << ";\n";
+      OS << "    return BRISBANE_OK;\n  }\n";
+    }
+    OS << "  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "int brisbane_poly_setarg(int idx, size_t size, void* value) {\n";
+    OS << "  switch (brisbane_poly_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "    case " << i << ": return brisbane_poly_" << Fname << "_setarg(idx, size, value);\n";
+    }
+    OS << "  }\n  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "int brisbane_poly_launch(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws) {\n";
+    OS << "  int ret = BRISBANE_OK;\n";
+    OS << "  switch (brisbane_poly_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "    case " << i << ": brisbane_poly_" << Fname << "_init();";
+      OS << " ret = " << Fname << "(wgo[0], wgo[1], wgo[2], wgs[0], wgs[1], wgs[2], gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]); break;\n";
+    }
+    OS << "  }\n  brisbane_poly_unlock();\n";
+    OS << "  return ret;\n}\n\n";
+
+    OS << "int brisbane_poly_getmem(int idx, brisbane_poly_mem* mem) {\n";
+    OS << "  switch (brisbane_poly_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "    case " << i << ": return brisbane_poly_" << Fname << "_getmem(idx, mem);\n";
+    }
+    OS << "  }\n  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "#ifdef __cplusplus\n} /* end of extern \"C\" */\n#endif\n\n";
+    OS.close();
   }
 
 private:
   Rewriter &Rewrite;
+  SmallVector<const FunctionDecl*, 32> Kernels;
 };
 
 class BrisbaneLLVMCallback : public MatchFinder::MatchCallback {
@@ -129,12 +154,9 @@ public:
   BrisbaneLLVMCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
 
   void run(const MatchFinder::MatchResult &Result) override {
-    SourceManager &SM = *Result.SourceManager;
-    const LangOptions &Opts = Result.Context->getLangOpts();
     const FunctionDecl *F = Result.Nodes.getNodeAs<FunctionDecl>("kernel");
     const unsigned nparams = F->getNumParams();
     const ParmVarDecl* PVD = F->getParamDecl(nparams - 1);
-//    SourceLocation Loc = PVD->getEndLoc().getLocWithOffset(PVD->getName().size());
     Loc = PVD->getEndLoc().getLocWithOffset(PVD->getName().size());
     Rewrite.InsertText(Loc, ", BRISBANE_LLVM_KERNEL_ARGS", true, true);
 
@@ -170,9 +192,9 @@ private:
 
 class BrisbaneASTConsumer : public ASTConsumer {
 public:
-  BrisbaneASTConsumer(Rewriter &R) : handleWrapper(R), CallbackLLVM(R) {
-    //Finder.addMatcher(functionDecl(hasName(targetMethod)).bind("wrapFunc"), &handleWrapper);
+  BrisbaneASTConsumer(Rewriter &RWLLVM, Rewriter &RWPOLY) : CallbackLLVM(RWLLVM), CallbackPOLY(RWPOLY) {
     Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackLLVM);
+    Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackPOLY);
   }
 
   void HandleTranslationUnit(ASTContext &Context) override {
@@ -180,8 +202,8 @@ public:
   }
 
 private:
-  BrisbaneWrapper handleWrapper;
   BrisbaneLLVMCallback CallbackLLVM;
+  BrisbanePOLYCallback CallbackPOLY;
   MatchFinder Finder;
 };
 
@@ -199,37 +221,21 @@ public:
   }
 
   void EndSourceFileAction() override {
-//    TheRewriter.getEditBuffer(TheRewriter.getSourceMgr().getMainFileID()).write(llvm::outs());
   }
 
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef file) override {
-    TheRewriter.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-    return llvm::make_unique<BrisbaneASTConsumer>(TheRewriter);
+    RWLLVM.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
+    RWPOLY.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
+    return llvm::make_unique<BrisbaneASTConsumer>(RWLLVM, RWPOLY);
   }
 
 private:
-  Rewriter TheRewriter;
+  Rewriter RWLLVM;
+  Rewriter RWPOLY;
 };
 
 int main(int argc, const char **argv) {
   CommonOptionsParser op(argc, argv, BRISBANE_OPTION_CATEGORY);
   ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-
-  /*
-  if (wFlag) {
-    if (targetMethod.length()) {
-      llvm::errs() << "The target wrap function: " << targetMethod << "\n";
-      if (wrapPrefix.length()) {
-        llvm::errs() << "Prefix (User): " << wrapPrefix << "\n";
-      } else {
-        wrapPrefix = "syssec";
-        llvm::errs() << "Prefix (Default): " << wrapPrefix << "\n";
-      }
-    } else {
-      llvm::errs() << "Please, input a target function name.\n";
-    }
-  }
-  */
-
   return Tool.run(newFrontendActionFactory<BrisbaneFrontEndAction>().get());
 }

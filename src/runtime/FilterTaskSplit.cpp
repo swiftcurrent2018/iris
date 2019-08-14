@@ -24,13 +24,6 @@ int FilterTaskSplit::Execute(Task* task) {
   Kernel* kernel = cmd_kernel->kernel();
 
   polyhedral_->Kernel(kernel->name());
-  int dim = cmd_kernel->dim();
-  size_t off[3];
-  size_t ndr[3];
-  for (int i = 0; i < 3; i++) {
-    off[i] = cmd_kernel->off(i);
-    ndr[i] = cmd_kernel->ndr(i);
-  }
   int nmems = 0;
   std::map<int, KernelArg*>* args = cmd_kernel->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
@@ -40,6 +33,19 @@ int FilterTaskSplit::Execute(Task* task) {
     if (mem) nmems++;
     else polyhedral_->SetArg(idx, arg->size, arg->value); 
   }
+
+  int dim = cmd_kernel->dim();
+  size_t off[3];
+  size_t ndr[3];
+  for (int i = 0; i < 3; i++) {
+    off[i] = cmd_kernel->off(i);
+    ndr[i] = cmd_kernel->ndr(i);
+  }
+
+  size_t wgo[3] = { off[0], off[1], off[2] };
+  size_t wgs[3] = { ndr[0], ndr[1], ndr[2] };
+  size_t gws[3] = { ndr[0], ndr[1], ndr[2] };
+  size_t lws[3] = { 1, 1, 1 };
 
   brisbane_poly_mem* plmems = new brisbane_poly_mem[nmems];
   Mem* plmems_mem[nmems];
@@ -53,7 +59,11 @@ int FilterTaskSplit::Execute(Task* task) {
     off[0] = i * chunk_size;
     if (left_ndr && i == nchunks - 1) ndr[0] = ndr0 - i * chunk_size;
     else ndr[0] = chunk_size;
-    polyhedral_->Launch(dim, off, ndr);
+
+    wgo[0] = off[0];
+    wgs[0] = ndr[0];
+
+    polyhedral_->Launch(dim, wgo, wgs, gws, lws);
     int mem_idx = 0;
     for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
       int idx = I->first;
@@ -61,7 +71,7 @@ int FilterTaskSplit::Execute(Task* task) {
       Mem* mem = arg->mem;
       if (mem) {
         polyhedral_->GetMem(idx, plmems + mem_idx);
-        _debug("idx[%d] mem[%lu] typesz[%lu] off[%lu,%lu] len[%lu,%lu]", idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].off_r, plmems[mem_idx].off_w, plmems[mem_idx].len_r, plmems[mem_idx].len_w);
+        _debug("idx[%d] mem[%lu] typesz[%lu] read[%lu,%lu] write[%lu,%lu]", idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].r0, plmems[mem_idx].r1, plmems[mem_idx].w0, plmems[mem_idx].w1);
         plmems_mem[mem_idx] = mem;
         mem_idx++;
       }
@@ -73,7 +83,7 @@ int FilterTaskSplit::Execute(Task* task) {
         for (int k = 0; k < nmems; k++) {
           if (plmems_mem[k] == mem) {
             brisbane_poly_mem* plmem = plmems + k; 
-            Command* sub_cmd = Command::CreateH2D(subtasks[i], mem, plmem->typesz * plmem->off_r, plmem->typesz * plmem->len_r, (char*) cmd->host() + plmem->typesz * plmem->off_r);
+            Command* sub_cmd = Command::CreateH2D(subtasks[i], mem, plmem->typesz * plmem->r0, plmem->typesz * (plmem->r1 - plmem->r0 + 1), (char*) cmd->host() + plmem->typesz * plmem->r0);
             subtasks[i]->AddCommand(sub_cmd);
           }
         }
@@ -82,7 +92,7 @@ int FilterTaskSplit::Execute(Task* task) {
         for (int k = 0; k < nmems; k++) {
           if (plmems_mem[k] == mem) {
             brisbane_poly_mem* plmem = plmems + k; 
-            Command* sub_cmd = Command::CreateD2H(subtasks[i], mem, plmem->typesz * plmem->off_w, plmem->typesz * plmem->len_w, (char*) cmd->host() + plmem->typesz * plmem->off_w);
+            Command* sub_cmd = Command::CreateD2H(subtasks[i], mem, plmem->typesz * plmem->w0, plmem->typesz * (plmem->w1 - plmem->w0 + 1), (char*) cmd->host() + plmem->typesz * plmem->w0);
             subtasks[i]->AddCommand(sub_cmd);
           }
         }
