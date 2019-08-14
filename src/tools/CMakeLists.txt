@@ -8,7 +8,10 @@ set(BRISBANE_HUB_SOURCES
   ${BRISBANE_SRC_DIR}/runtime/HubClient.cpp
   ${BRISBANE_SRC_DIR}/runtime/Message.cpp)
 
-add_executable(brisbane-hub ${BRISBANE_HUB_SOURCES})
+set(BRISBANE_CLC_SOURCES brisbane-clc.cpp)
 
-install(TARGETS brisbane-hub DESTINATION ${CMAKE_INSTALL_BINDIR})
+add_executable(brisbane-hub ${BRISBANE_HUB_SOURCES})
+add_executable(brisbane-clc ${BRISBANE_CLC_SOURCES})
+
+install(TARGETS brisbane-hub brisbane-clc DESTINATION ${CMAKE_INSTALL_BINDIR})
 

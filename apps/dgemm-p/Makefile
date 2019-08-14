@@ -1,6 +1,6 @@
 BRISBANE=$(HOME)/.local
 
-all: dgemm dgemm-brisbane libbrisbane_poly.so
+all: dgemm dgemm-brisbane
 
 dgemm: dgemm.cpp
 	g++ -g -o $@ $^

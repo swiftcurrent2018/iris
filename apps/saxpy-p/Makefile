@@ -1,6 +1,6 @@
 BRISBANE=$(HOME)/.local
 
-all: saxpy saxpy-brisbane libbrisbane_poly.so
+all: saxpy saxpy-brisbane
 
 saxpy: saxpy.cpp
 	g++ -g -o $@ $^
