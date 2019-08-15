@@ -33,7 +33,7 @@ public:
 
   void releaseMemory() override { SI.reset(); }
 
-  void print(raw_ostream &O, const Module *M = nullptr) const override;
+//  void print(raw_ostream &O, const Module *M = nullptr) const override;
 
   void getAnalysisUsage(AnalysisUsage &AU) const override;
 
@@ -46,6 +46,8 @@ private:
 
 private:
   std::string S;
+  SmallVector<Function*, 64> Fs;
+  SmallVector<Function*, 64> Ff;
 };
 
 }

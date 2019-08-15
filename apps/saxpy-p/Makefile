@@ -24,4 +24,4 @@ polly: kernel.cl
 	opt -basicaa -polly-scops -analyze kernel.cl.llvm.preopt.ll -polly-process-unprofitable -polly-use-llvm-names
 
 clean:
-	rm -f saxpy saxpy-brisbane kernel-poly.h kernel-poly.c libbrisbane_poly.so kernel.cl.llvm.c kernel.cl.llvm.ll kernel.cl.llvm.preopt.ll kernel-llvm.h kernel.ll
+	rm -f saxpy saxpy-brisbane libbrisbane_poly.so

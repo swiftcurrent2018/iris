@@ -4,6 +4,18 @@
 #include "polly/ScopBuilder.h"
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/OptimizationRemarkEmitter.h"
+#include "llvm/Support/raw_ostream.h"
+
+#define BRED      "\033[1;31m"
+#define BGREEN    "\033[1;32m"
+#define BYELLOW   "\033[1;33m"
+#define BBLUE     "\033[1;34m"
+#define BPURPLE   "\033[1;35m"
+#define BCYAN     "\033[1;36m"
+#define BGRAY     "\033[1;37m"
+#define RESET     "\x1B[m"
+#define CHECK_O   "\u2714 "
+#define CHECK_X   "\u2716 "
 
 using namespace llvm;
 using namespace polly;
@@ -29,6 +41,7 @@ bool BrisbaneLLVM::runOnFunction(Function &F) {
   if ((*SI).empty()) {
     OS << "  return 0;\n}\n\n";
     printFunctionPolyAvailable(OS, Fname, 0);
+    Ff.push_back(&F);
     return false;
   }
 
@@ -78,20 +91,44 @@ bool BrisbaneLLVM::runOnFunction(Function &F) {
   }
   OS << "  return 1;\n}\n\n";
   printFunctionPolyAvailable(OS, Fname, 1);
+  Fs.push_back(&F);
   return false;
 }
 
 bool BrisbaneLLVM::doFinalization(Module &M) {
-  StringRef FilePath = "kernel-poly.h";
-  llvm::outs() << "Generated [" << FilePath << "] for Brisbane Poly.\n";
+  std::string filename = M.getSourceFileName();
+  filename.replace(filename.end() - 6, filename.end(), "poly.h");
+  StringRef Filepath(filename);
   std::error_code EC;
-  llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::OF_None);
+
+  llvm::raw_fd_ostream OS(Filepath, EC, llvm::sys::fs::OF_None);
   if (EC) {
     llvm::errs() << EC.message() << "\n";
     return false;
   }
   OS << S;
   OS.close();
+
+  outs() << BBLUE  CHECK_O "BrisbaneLLVM Pass generates [" << Filepath << "]" RESET "\n";
+
+  if (!Fs.empty()) {
+    outs() << BGREEN CHECK_O << Fs.size() << " functions [";
+    for (auto I = Fs.begin(), E = Fs.end(); I != E; ++I) {
+      outs() << (*I)->getName();
+      if ((I + 1) != E) outs() << ", ";
+    }
+    outs() << "] are available." RESET "\n";
+  }
+
+  if (!Ff.empty()) {
+    outs() << BRED   CHECK_X << Ff.size() << " functions [";
+    for (auto I = Ff.begin(), E = Ff.end(); I != E; ++I) {
+      outs() << (*I)->getName();
+      if ((I + 1) != E) outs() << ", ";
+    }
+    outs() << "] are NOT available." RESET "\n";
+  }
+
   return true;
 }
 
@@ -99,11 +136,7 @@ void BrisbaneLLVM::printFunctionPolyAvailable(raw_ostream &OS, StringRef& Fname,
   OS << "static int " << Fname << "_poly_available() { return " << available << "; }\n\n";
 }
 
-void BrisbaneLLVM::print(raw_ostream &OS, const Module *M) const {
-  OS << "Brisbane Polyhedral Analyzer: ";
-  if ((*SI).empty()) OS << "failed\n";
-  else OS << "success\n";
-}
+//void BrisbaneLLVM::print(raw_ostream &OS, const Module *M) const { }
 
 void BrisbaneLLVM::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<LoopInfoWrapperPass>();

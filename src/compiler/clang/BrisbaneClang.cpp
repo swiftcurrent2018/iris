@@ -14,6 +14,17 @@
 #include <string>
 #include <stdio.h>
 
+#define BRED      "\033[1;31m"
+#define BGREEN    "\033[1;32m"
+#define BYELLOW   "\033[1;33m"
+#define BBLUE     "\033[1;34m"
+#define BPURPLE   "\033[1;35m"
+#define BCYAN     "\033[1;36m"
+#define BGRAY     "\033[1;37m"
+#define RESET     "\x1B[m"
+#define CHECK_O   "\u2714 "
+#define CHECK_X   "\u2716 "
+
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::driver;
@@ -28,6 +39,7 @@ public:
 
   void run(const MatchFinder::MatchResult &Result) override {
     const FunctionDecl *F = Result.Nodes.getNodeAs<FunctionDecl>("kernel");
+    Loc = F->getBody()->getBeginLoc();
     StringRef Fname = F->getName();
     const unsigned nparams = F->getNumParams();
 
@@ -78,10 +90,13 @@ public:
   }
 
   void onEndOfTranslationUnit() override {
-    StringRef FilePath = "kernel-poly.c";
-    llvm::outs() << "Generated [" << FilePath << "] for Brisbane POLY.\n";
+    SourceManager& SM = Rewrite.getSourceMgr();
+    llvm::SmallString<128> Filepath(SM.getFilename(Loc));
+    StringRef Filename = llvm::sys::path::filename(Filepath.str());
+    Filepath.append(".poly.c");
+    llvm::outs() << BBLUE CHECK_O "BrisbaneClang Pass generates [" << Filepath << "]" RESET "\n";
     std::error_code EC;
-    llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::OF_None);
+    llvm::raw_fd_ostream OS(Filepath, EC, llvm::sys::fs::OF_None);
     if (EC) {
       llvm::errs() << EC.message() << "\n";
       return;
@@ -92,7 +107,7 @@ public:
 
     OS << S;
 
-    OS << "\n#include \"kernel-poly.h\"\n\n";
+    OS << "\n#include \"" << Filename << ".poly.h\"\n\n";
 
     OS << "int brisbane_poly_kernel(const char* name) {\n";
     OS << "  brisbane_poly_lock();\n";
@@ -137,6 +152,7 @@ public:
 
 private:
   Rewriter &Rewrite;
+  SourceLocation Loc;
   SmallVector<const FunctionDecl*, 32> Kernels;
   std::string S;
 };
@@ -165,7 +181,7 @@ public:
     SourceManager& SM = Rewrite.getSourceMgr();
     llvm::SmallString<128> FilePath(SM.getFilename(Loc));
     FilePath.append(".llvm.c");
-    llvm::outs() << "Generated [" << FilePath << "] for Brisbane LLVM Polly.\n";
+    llvm::outs() << BBLUE CHECK_O "BrisbaneClang Pass generates [" << FilePath << "]" RESET "\n";
     std::error_code EC;
     llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::OF_None);
     if (EC) {
