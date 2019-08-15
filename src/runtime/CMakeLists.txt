@@ -21,21 +21,22 @@ set(BRISBANE_RUNTIME_SOURCES
   Kernel.cpp
   Message.cpp
   Mem.cpp
-  Object.cpp
   Platform.cpp
   Policies.cpp
   Policy.cpp
+  PolicyAll.cpp
+  PolicyAny.cpp
   PolicyData.cpp
   PolicyDefault.cpp
-  PolicyEager.cpp
+  PolicyDevice.cpp
   PolicyProfile.cpp
   PolicyRandom.cpp
-  PolicySpecific.cpp
   Polyhedral.cpp
   Profiler.cpp
   ProfilerDOT.cpp
   ProfilerGoogleCharts.cpp
   Reduction.cpp
+  Retainable.cpp
   Scheduler.cpp
   Task.cpp
   TaskQueue.cpp

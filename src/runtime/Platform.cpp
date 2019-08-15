@@ -139,7 +139,7 @@ int Platform::BuildPrograms(bool sync) {
   if (sync) {
     for (int i = 0; i < ndevs_; i++) {
       tasks[i]->Wait();
-      delete tasks[i];
+      tasks[i]->Release();
     }
   }
   delete[] tasks;
@@ -194,6 +194,8 @@ int Platform::KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem brs
 }
 
 int Platform::KernelRelease(brisbane_kernel brs_kernel) {
+  Kernel* kernel = brs_kernel->class_obj;
+  kernel->Release();
   return BRISBANE_OK;
 }
 
@@ -249,11 +251,12 @@ int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t o
   return BRISBANE_OK;
 }
 
-int Platform::TaskSubmit(brisbane_task brs_task, int brs_device, char* opt, int sync) {
+int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, char* opt, int sync) {
   Task* task = brs_task->class_obj;
-  task->set_brs_device(brs_device);
+  task->set_brs_policy(brs_policy);
+  task->set_sync(sync);
   FilterSubmitExecute(task);
-  scheduler_->Enqueue(task, sync);
+  scheduler_->Enqueue(task);
   if (sync) task->Wait();
   return BRISBANE_OK;
 }
@@ -279,7 +282,7 @@ int Platform::TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask) 
 
 int Platform::TaskRelease(brisbane_task brs_task) {
   Task* task = brs_task->class_obj;
-  delete task;
+  task->Release();
   return BRISBANE_OK;
 }
 
@@ -306,14 +309,14 @@ int Platform::MemReduce(brisbane_mem brs_mem, int mode, int type) {
 
 int Platform::MemRelease(brisbane_mem brs_mem) {
   Mem* mem = brs_mem->class_obj;
-  delete mem;
+  mem->Release();
   return BRISBANE_OK;
 }
 
 int Platform::FilterSubmitExecute(Task* task) {
   if (!polyhedral_available_) return BRISBANE_OK;
   if (!task->cmd_kernel()) return BRISBANE_OK;
-  if (task->brs_device() & brisbane_all) {
+  if (task->brs_policy() & brisbane_all) {
     if (filter_task_split_->Execute(task) != BRISBANE_OK) {
       _debug("poly is not available kernel[%s] task[%lu]", task->cmd_kernel()->kernel()->name(), task->uid());
       return BRISBANE_ERR;

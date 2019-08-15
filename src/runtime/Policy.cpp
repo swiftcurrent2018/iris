@@ -13,7 +13,7 @@ Policy::~Policy() {
 
 void Policy::SetScheduler(Scheduler* scheduler) {
   scheduler_ = scheduler;
-  devices_ = scheduler_->devices();
+  devs_ = scheduler_->devices();
   ndevs_ = scheduler_->ndevs();
 }
 

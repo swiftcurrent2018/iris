@@ -27,17 +27,17 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
   clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(max_work_item_sizes_), max_work_item_sizes_, NULL);
   clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_COMPILER_AVAILABLE, sizeof(compiler_available_), &compiler_available_, NULL);
 
-  if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_device_cpu;
+  if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_cpu;
   else if (cltype_ == CL_DEVICE_TYPE_GPU) {
-    type_ = brisbane_device_gpu;
-    if (strcasestr(vendor_, "NVIDIA")) type_ = brisbane_device_nvidia;
-    else if (strcasestr(vendor_, "AMD")) type_ = brisbane_device_amd;
+    type_ = brisbane_gpu;
+    if (strcasestr(vendor_, "NVIDIA")) type_ = brisbane_nvidia;
+    else if (strcasestr(vendor_, "AMD")) type_ = brisbane_amd;
   }
   else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) {
-    if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_device_fpga;
-    else type_ = brisbane_device_phi;
+    if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_fpga;
+    else type_ = brisbane_phi;
   }
-  else type_ = brisbane_device_cpu;
+  else type_ = brisbane_cpu;
 
   _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu] compiler_available[%d]", dev_no_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], compiler_available_);
 
@@ -53,7 +53,6 @@ Device::~Device() {
 
 void Device::Execute(Task* task) {
   busy_ = true;
-  task->set_dev(this);
   for (int i = 0; i < task->ncmds(); i++) {
     Command* cmd = task->cmd(i);
     switch (cmd->type()) {
@@ -66,7 +65,7 @@ void Device::Execute(Task* task) {
       default: _error("cmd type[0x%x]", cmd->type());
     }
   }
-  _info("task[%lu][%s] complete dev[%d] time[%lf]", task->uid(), task->name(), task->dev()->dev_no(), task->time());
+  _info("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), dev_no(), name(), task->time());
   busy_ = false;
 }
 
@@ -75,12 +74,12 @@ void Device::ExecuteBuild(Command* cmd) {
   char path[256];
   memset(path, 0, 256);
   sprintf(path, "kernel-%s",
-    type_ == brisbane_device_cpu    ? "cpu.cl"  :
-    type_ == brisbane_device_nvidia ? "nvidia.cl"  :
-    type_ == brisbane_device_amd    ? "amd.cl"  :
-    type_ == brisbane_device_gpu    ? "gpu.cl"  :
-    type_ == brisbane_device_phi    ? "phi.cl"  :
-    type_ == brisbane_device_fpga   ? "fpga.aocx" : "default.cl");
+    type_ == brisbane_cpu    ? "cpu.cl"  :
+    type_ == brisbane_nvidia ? "nvidia.cl"  :
+    type_ == brisbane_amd    ? "amd.cl"  :
+    type_ == brisbane_gpu    ? "gpu.cl"  :
+    type_ == brisbane_phi    ? "phi.cl"  :
+    type_ == brisbane_fpga   ? "fpga.aocx" : "default.cl");
   char* src = NULL;
   size_t srclen = 0;
   timer_->Start(14);
@@ -94,7 +93,7 @@ void Device::ExecuteBuild(Command* cmd) {
     return;
   }
   _trace("dev[%d][%s] kernels[%s]", dev_no_, name_, path);
-  if (type_ == brisbane_device_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
+  if (type_ == brisbane_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
   else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
   _clerror(clerr_);
   clerr_ = clBuildProgram(clprog_, 1, &cldev_, "", NULL, NULL);
@@ -168,7 +167,7 @@ void Device::ExecuteKernel(Command* cmd) {
   _trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", dev_no_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
   if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
   timer_->Start(11);
-  if (type_ == brisbane_device_fpga) {
+  if (type_ == brisbane_fpga) {
     if (off[0] != 0 || off[1] != 0 || off[2] != 0)
       _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
     clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
@@ -239,7 +238,7 @@ void Device::ExecutePresent(Command* cmd) {
 
 void Device::ExecuteReleaseMem(Command* cmd) {
   Mem* mem = cmd->mem();
-  delete mem; 
+  mem->Release(); 
 }
 
 void Device::Wait() {

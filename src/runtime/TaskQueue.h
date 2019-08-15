@@ -22,6 +22,7 @@ public:
 private:
   std::list<Task*> tasks_;
   pthread_mutex_t mutex_tasks_;
+  Task* last_sync_task_;
 };
 
 } /* namespace rt */

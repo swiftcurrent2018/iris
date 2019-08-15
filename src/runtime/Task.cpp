@@ -19,6 +19,7 @@ Task::Task(Platform* platform, int type, const char* name) {
   parent_ = NULL;
   subtasks_complete_ = 0;
   ndepends_ = 0;
+  sync_ = false;
   time_ = 0.0;
   time_start_ = 0.0;
   time_end_ = 0.0;
@@ -44,11 +45,11 @@ double Task::TimeInc(double t) {
   return time_;
 }
 
-void Task::set_brs_device(int brs_device) {
-  brs_device_ = brs_device == brisbane_default ? platform_->device_default() : brs_device;
+void Task::set_brs_policy(int brs_policy) {
+  brs_policy_ = brs_policy == brisbane_default ? platform_->device_default() : brs_policy;
   if (!HasSubtasks()) return;
   for (std::vector<Task*>::iterator I = subtasks_.begin(), E = subtasks_.end(); I != E; ++I)
-    (*I)->set_brs_device(brs_device);
+    (*I)->set_brs_policy(brs_policy);
 }
 
 void Task::AddCommand(Command* cmd) {
@@ -105,6 +106,7 @@ void Task::Wait() {
 
 void Task::AddSubtask(Task* subtask) {
   subtask->set_parent(this);
+  subtask->set_brs_policy(brs_policy_);
   subtasks_.push_back(subtask);
 }
 
@@ -113,6 +115,7 @@ bool Task::HasSubtasks() {
 }
 
 void Task::AddDepend(Task* task) {
+  for (int i = 0; i < ndepends_; i++) if (task == depends_[i]) return;
   if (ndepends_ == 63) _error("ndepends[%d]", ndepends_);
   depends_[ndepends_++] = task;
 }

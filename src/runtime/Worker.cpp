@@ -34,11 +34,12 @@ void Worker::Execute(Task* task) {
     return;
   }
   busy_ = true;
+  task->set_dev(device_);
   scheduler_->StartTask(task, this);
   consistency_->Resolve(task);
   device_->Execute(task);
-  task->Complete();
   scheduler_->CompleteTask(task, this);
+  task->Complete();
   busy_ = false;
 }
 

@@ -92,7 +92,6 @@ const char* Profiler::policy_str(int policy) {
     case brisbane_fpga:     return "fpga";
     case brisbane_data:     return "data";
     case brisbane_profile:  return "profile";
-    case brisbane_eager:    return "eager";
     case brisbane_random:   return "random";
     case brisbane_any:      return "any";
   }

@@ -14,7 +14,7 @@ PolicyDefault::~PolicyDefault() {
 
 void PolicyDefault::GetDevices(Task* task, Device** devs, int* ndevs) {
   _error("cannot be here [%p]", ndevs);
-  devs[0] = devices_[0];
+  devs[0] = devs_[0];
   *ndevs = 1;
 }
 

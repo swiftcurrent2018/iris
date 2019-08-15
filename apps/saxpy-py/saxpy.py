@@ -33,7 +33,7 @@ brisbane.task_h2d_full(task, mem_x, x)
 brisbane.task_h2d_full(task, mem_y, y)
 brisbane.task_kernel(task, kernel, 1, off, ndr)
 brisbane.task_d2h_full(task, mem_z, z)
-brisbane.task_submit(task, brisbane.brisbane_eager, True)
+brisbane.task_submit(task, brisbane.brisbane_all, True)
 
 print 'Z =', A, '* X + Y', z
 

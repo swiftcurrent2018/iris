@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   size_t kernel_ijk_idx[2] = { SIZE, SIZE };
   brisbane_task_kernel(task, kernel_ijk, 2, kernel_ijk_off, kernel_ijk_idx);
   brisbane_task_d2h_full(task, mem_C, C);
-  brisbane_task_submit(task, brisbane_eager, NULL, true);
+  brisbane_task_submit(task, brisbane_all, NULL, true);
 
   brisbane_timer_now(&t1);
 

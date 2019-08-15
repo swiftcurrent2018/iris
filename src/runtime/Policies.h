@@ -12,17 +12,18 @@ public:
   Policies(Scheduler* scheduler);
   ~Policies();
 
-  Policy* GetPolicy(int brs_device);
+  Policy* GetPolicy(int brs_policy);
 
 private:
   Scheduler* scheduler_;
 
+  Policy* policy_all_;
+  Policy* policy_any_;
   Policy* policy_data_;
   Policy* policy_default_;
-  Policy* policy_eager_;
+  Policy* policy_device_;
   Policy* policy_profile_;
   Policy* policy_random_;
-  Policy* policy_specific_;
 };
 
 } /* namespace rt */

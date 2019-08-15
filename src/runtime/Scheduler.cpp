@@ -18,7 +18,6 @@ Scheduler::Scheduler(Platform* platform) {
   platform_ = platform;
   devices_ = platform_->devices();
   ndevs_ = platform_->ndevs();
-  last_task_ = NULL;
   enable_profiler_ = platform->enable_profiler();
   nprofilers_ = platform->nprofilers();
   profilers_ = platform->profilers();
@@ -85,11 +84,16 @@ size_t Scheduler::NTasksOnDev(int i) {
   return ntasks_on_devs_[i];
 }
 
-void Scheduler::Enqueue(Task* task, bool sync) {
+void Scheduler::Enqueue(Task* task) {
+  /*
   if (sync && !task->is_subtask()) {
-    if (last_task_) task->AddDepend(last_task_);
-    last_task_ = task;
+    if (last_sync_task_) {
+      task->AddDepend(last_sync_task_);
+    }
+    last_sync_task_ = task;
+    last_sync_task_->Retain();
   }
+  */
   while (!queue_->Enqueue(task)) {}
   Invoke();
 }
@@ -121,12 +125,12 @@ void Scheduler::Submit(Task* task) {
 }
 
 void Scheduler::SubmitWorker(Task* task) {
-  int brs_device = task->brs_device();
+  int brs_policy = task->brs_policy();
   int ndevs = 0;
   Device* devs[BRISBANE_MAX_NDEVS];
-  policies_->GetPolicy(brs_device)->GetDevices(task, devs, &ndevs);
+  policies_->GetPolicy(brs_policy)->GetDevices(task, devs, &ndevs);
   if (ndevs == 0) {
-    _error("no device[0x%x]", brs_device);
+    _error("no device for policy[0x%x]", brs_policy);
     task->Complete();
   }
   for (int i = 0; i < ndevs; i++) {

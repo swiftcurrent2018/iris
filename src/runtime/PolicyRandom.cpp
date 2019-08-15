@@ -16,7 +16,7 @@ PolicyRandom::~PolicyRandom() {
 }
 
 void PolicyRandom::GetDevices(Task* task, Device** devs, int* ndevs) {
-  devs[0] = devices_[rand() % ndevs_];
+  devs[0] = devs_[rand() % ndevs_];
   *ndevs = 1;
 }
 

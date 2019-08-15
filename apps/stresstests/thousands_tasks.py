@@ -12,7 +12,7 @@ print 'NTASKS', NTASKS
 
 for i in range(NTASKS):
   task = brisbane.task_create()
-  brisbane.task_submit(task, brisbane.brisbane_eager, False)
+  brisbane.task_submit(task, brisbane.brisbane_any, False)
 
 brisbane.finalize()
 

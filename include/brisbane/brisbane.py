@@ -17,10 +17,9 @@ brisbane_phi        =   (1 << 4)
 brisbane_fpga       =   (1 << 5)
 brisbane_data       =   (1 << 6)
 brisbane_profile    =   (1 << 7)
-brisbane_eager      =   (1 << 8)
-brisbane_random     =   (1 << 9)
-brisbane_any        =   (1 << 10)
-brisbane_all        =   (1 << 11)
+brisbane_random     =   (1 << 8)
+brisbane_any        =   (1 << 9)
+brisbane_all        =   (1 << 10)
 
 class brisbane_kernel(Structure):
     _fields_ = [("class_obj", c_void_p)]

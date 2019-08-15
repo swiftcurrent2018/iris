@@ -1,4 +1,4 @@
-#include "PolicyEager.h"
+#include "PolicyAny.h"
 #include "Debug.h"
 #include "Scheduler.h"
 #include <stdlib.h>
@@ -9,14 +9,14 @@
 namespace brisbane {
 namespace rt {
 
-PolicyEager::PolicyEager(Scheduler* scheduler) {
+PolicyAny::PolicyAny(Scheduler* scheduler) {
   SetScheduler(scheduler);
 }
 
-PolicyEager::~PolicyEager() {
+PolicyAny::~PolicyAny() {
 }
 
-void PolicyEager::GetDevices(Task* task, Device** devs, int* ndevs) {
+void PolicyAny::GetDevices(Task* task, Device** devs, int* ndevs) {
   unsigned long min = ULONG_MAX;
   int min_dev = 0;
   scheduler_->RefreshNTasksOnDevs();
@@ -31,9 +31,10 @@ void PolicyEager::GetDevices(Task* task, Device** devs, int* ndevs) {
       min_dev = i;
     }
   }
-  devs[0] = devices_[min_dev];
+  devs[0] = devs_[min_dev];
   *ndevs = 1;
 }
 
 } /* namespace rt */
 } /* namespace brisbane */
+

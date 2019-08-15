@@ -47,7 +47,7 @@ int ProfilerDOT::CompleteTask(Task* task) {
   unsigned long tid = task->uid();
   Device* dev = task->dev();
   int type = dev->type();
-  int policy = task->brs_device();
+  int policy = task->brs_policy();
   double time = task->time();
   tasks_exit_.insert(tid);
   char s[64];

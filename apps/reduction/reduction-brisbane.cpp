@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   size_t kernel_init_off[1] = { 0 };
   size_t kernel_init_idx[1] = { SIZE };
   brisbane_task_kernel(task0, kernel_init, 1, kernel_init_off, kernel_init_idx);
-  brisbane_task_submit(task0, brisbane_device_cpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_cpu, NULL, true);
   /*
 #pragma omp target teams distribute parallel for map(to:A[0:SIZE]) device(gpu)
   for (int i = 0; i < SIZE; i++) {
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   brisbane_task_create(&task1);
   brisbane_task_kernel(task1, kernel_sum, 1, kernel_sum_off, kernel_sum_idx);
   brisbane_task_d2h(task1, mem_sumA, 0, sizeof(size_t), &sumA);
-  brisbane_task_submit(task1, brisbane_device_data, NULL, true);
+  brisbane_task_submit(task1, brisbane_data, NULL, true);
   /*
 #pragma omp target teams distribute parallel for reduction(+:sumA)
 for (int i = 0; i < SIZE; i++) {
@@ -75,7 +75,7 @@ sumA += A[i];
   size_t kernel_max_idx[1] = { SIZE };
   brisbane_task_kernel(task2, kernel_max, 1, kernel_max_off, kernel_max_idx);
   brisbane_task_d2h(task2, mem_maxA, 0, sizeof(size_t), &maxA);
-  brisbane_task_submit(task2, brisbane_device_data, NULL, true);
+  brisbane_task_submit(task2, brisbane_data, NULL, true);
 /*
 #pragma omp target teams distribute parallel for reduction(max:maxA)
   for (int i = 0; i < SIZE; i++) {

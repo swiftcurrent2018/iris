@@ -1,7 +1,7 @@
 #ifndef BRISBANE_RT_SRC_KERNEL_H
 #define BRISBANE_RT_SRC_KERNEL_H
 
-#include "Object.h"
+#include "Retainable.h"
 #include "Platform.h"
 #include <map>
 
@@ -17,7 +17,7 @@ typedef struct _KernelArg {
   int mode;
 } KernelArg;
 
-class Kernel: public Object<struct _brisbane_kernel, Kernel> {
+class Kernel: public Retainable<struct _brisbane_kernel, Kernel> {
 public:
   Kernel(const char* name, Platform* platform);
   virtual ~Kernel();

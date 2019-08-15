@@ -1,7 +1,7 @@
 #ifndef BRISBANE_RT_SRC_TASK_H
 #define BRISBANE_RT_SRC_TASK_H
 
-#include "Object.h"
+#include "Retainable.h"
 #include "Command.h"
 #include "Platform.h"
 #include <pthread.h>
@@ -21,7 +21,7 @@ namespace rt {
 
 class Scheduler;
 
-class Task: public Object<struct _brisbane_task, Task> {
+class Task: public Retainable<struct _brisbane_task, Task> {
 public:
   Task(Platform* platform, int type = BRISBANE_TASK, const char* name = NULL);
   virtual ~Task();
@@ -59,8 +59,10 @@ public:
   double time_start() { return time_start_; }
   double time_end() { return time_end_; }
   void set_parent(Task* task) { parent_ = task; }
-  void set_brs_device(int brs_device);
-  int brs_device() { return brs_device_; }
+  void set_brs_policy(int brs_policy);
+  int brs_policy() { return brs_policy_; }
+  bool sync() { return sync_; }
+  void set_sync(bool sync) { sync_ = sync; }
   std::vector<Task*>* subtasks() { return &subtasks_; }
   Task* subtask(int i) { return subtasks_[i]; }
   bool is_subtask() { return parent_ != NULL; }
@@ -85,7 +87,8 @@ private:
   Task* depends_[64];
   int ndepends_;
 
-  int brs_device_;
+  int brs_policy_;
+  bool sync_;
 
   int type_;
   int status_;

@@ -20,7 +20,7 @@ protected:
 
 protected:
   Scheduler* scheduler_;
-  Device** devices_;
+  Device** devs_;
   int ndevs_;
 };
 

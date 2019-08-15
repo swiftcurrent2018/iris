@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
   int *A, *B, *C;
   int ERROR = 0;
 
-  brisbane_init(&argc, &argv);
+  brisbane_init(&argc, &argv, true);
 
   SIZE = argc > 1 ? atol(argv[1]) : 16;
   EPOCH = argc > 2 ? atoi(argv[2]) : 4;
@@ -34,16 +34,16 @@ int main(int argc, char** argv) {
 
   brisbane_task task0;
   brisbane_task_create(&task0);
-  brisbane_task_h2d(task0, mem_A, 0, SIZE * sizeof(int), A);
-  brisbane_task_h2d(task0, mem_B, 0, SIZE * sizeof(int), B);
-  brisbane_task_h2d(task0, mem_C, 0, SIZE * sizeof(int), C);
-  brisbane_task_submit(task0, brisbane_device_default, NULL, true);
+  brisbane_task_h2d_full(task0, mem_A, A);
+  brisbane_task_h2d_full(task0, mem_B, B);
+  brisbane_task_h2d_full(task0, mem_C, C);
+  brisbane_task_submit(task0, brisbane_default, NULL, true);
 
   brisbane_kernel kernel_loop0;
   brisbane_kernel_create("loop0", &kernel_loop0);
-  brisbane_kernel_setmem(kernel_loop0, 0, mem_C, brisbane_rdwr);
-  brisbane_kernel_setmem(kernel_loop0, 1, mem_A, brisbane_rd);
-  brisbane_kernel_setmem(kernel_loop0, 2, mem_B, brisbane_rd);
+  brisbane_kernel_setmem(kernel_loop0, 0, mem_C, brisbane_rw);
+  brisbane_kernel_setmem(kernel_loop0, 1, mem_A, brisbane_r);
+  brisbane_kernel_setmem(kernel_loop0, 2, mem_B, brisbane_r);
 
 #pragma brisbane data h2d(A[0:SIZE], B[0:SIZE], C[0:SIZE]) d2h(C[0:SIZE])
   for (int e = 0; e < EPOCH; e++) {
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
     size_t kernel_loop0_off[1] = { 0 };
     size_t kernel_loop0_idx[1] = { SIZE };
     brisbane_task_kernel(task1, kernel_loop0, 1, kernel_loop0_off, kernel_loop0_idx);
-    brisbane_task_submit(task1, brisbane_device_profile, NULL, true);
+    brisbane_task_submit(task1, brisbane_any, NULL, true);
     brisbane_task_release(task1);
     /*
 #pragma brisbane kernel present(C[0:SIZE], A[0:SIZE], B[0:SIZE]) device(gpu)
@@ -67,8 +67,8 @@ C[i] += A[i] + B[i];
 
   brisbane_task task2;
   brisbane_task_create(&task2);
-  brisbane_task_d2h(task2, mem_C, 0, SIZE * sizeof(int), C);
-  brisbane_task_submit(task2, brisbane_device_data, NULL, true);
+  brisbane_task_d2h_full(task2, mem_C, C);
+  brisbane_task_submit(task2, brisbane_data, NULL, true);
 
   for (int i = 0; i < SIZE; i++) {
     printf("[%8d] %8d = (%8d + %8d) * %d\n", i, C[i], A[i], B[i], EPOCH);

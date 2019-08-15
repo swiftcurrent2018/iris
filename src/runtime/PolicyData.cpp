@@ -43,7 +43,7 @@ void PolicyData::GetDevices(Task* task, Device** devs, int* ndevs) {
       target_dev = i;
     }
   }
-  devs[0] = devices_[target_dev];
+  devs[0] = devs_[target_dev];
   *ndevs = 1;
 }
 

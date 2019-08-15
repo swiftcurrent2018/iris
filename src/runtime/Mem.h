@@ -1,7 +1,7 @@
 #ifndef BRISBANE_RT_SRC_MEM_H
 #define BRISBANE_RT_SRC_MEM_H
 
-#include "Object.h"
+#include "Retainable.h"
 #include "Platform.h"
 
 namespace brisbane {
@@ -13,7 +13,7 @@ typedef struct _MemRange {
   struct _MemRange* next;
 } MemRange;
 
-class Mem: public Object<struct _brisbane_mem, Mem> {
+class Mem: public Retainable<struct _brisbane_mem, Mem> {
 public:
   Mem(size_t size, Platform* platform);
   virtual ~Mem();

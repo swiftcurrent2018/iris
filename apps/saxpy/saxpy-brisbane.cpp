@@ -44,18 +44,19 @@ int main(int argc, char** argv) {
 
   brisbane_task task0;
   brisbane_task_create(&task0);
-  brisbane_task_h2d(task0, mem_X, 0, SIZE * sizeof(float), X);
-  brisbane_task_h2d(task0, mem_Y, 0, SIZE * sizeof(float), Y);
+  brisbane_task_h2d_full(task0, mem_X, X);
+  brisbane_task_h2d_full(task0, mem_Y, Y);
   brisbane_task_kernel(task0, kernel_saxpy, 1, kernel_saxpy_off, kernel_saxpy_idx);
-  brisbane_task_d2h(task0, mem_Z, 0, SIZE * sizeof(float), Z);
-  brisbane_task_submit(task0, brisbane_eager, NULL, true);
+  brisbane_task_d2h_full(task0, mem_Z, Z);
+  brisbane_task_submit(task0, brisbane_all, NULL, true);
+
   /*
 #pragma omp target map(from:Z) map(to:X, Y)
 #pragma omp teams num_teams(nteams)
 #pragma omp distribute parallel for dist_schedule(static, chunk_size)
-for (int i = 0; i < SIZE; i++) {
-Z[i] = A * X[i] + Y[i];
-}
+  for (int i = 0; i < SIZE; i++) {
+    Z[i] = A * X[i] + Y[i];
+  }
 */
 
   for (int i = 0; i < SIZE; i++) {
