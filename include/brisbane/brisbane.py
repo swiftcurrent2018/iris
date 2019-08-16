@@ -4,10 +4,6 @@ from ctypes import *
 dll_cl = CDLL("libOpenCL.so",   mode=RTLD_GLOBAL)
 dll    = CDLL("libbrisbane.so", mode=RTLD_GLOBAL)
 
-brisbane_r          =   (1 << 0)
-brisbane_w          =   (1 << 1)
-brisbane_rw         =   (brisbane_r | brisbane_w)
-
 brisbane_default    =   (1 << 0)
 brisbane_cpu        =   (1 << 1)
 brisbane_nvidia     =   (1 << 2)
@@ -20,6 +16,10 @@ brisbane_profile    =   (1 << 7)
 brisbane_random     =   (1 << 8)
 brisbane_any        =   (1 << 9)
 brisbane_all        =   (1 << 10)
+
+brisbane_r          =   (1 << 0)
+brisbane_w          =   (1 << 1)
+brisbane_rw         =   (brisbane_r | brisbane_w)
 
 class brisbane_kernel(Structure):
     _fields_ = [("class_obj", c_void_p)]

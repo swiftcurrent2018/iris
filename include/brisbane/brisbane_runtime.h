@@ -4,9 +4,6 @@
 #include <brisbane/brisbane_errno.h>
 #include <stddef.h>
 
-#define BRISBANE_OK             0
-#define BRISBANE_ERR            -1
-
 #ifdef __cplusplus
 extern "C" {
 #endif
