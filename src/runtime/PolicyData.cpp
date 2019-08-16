@@ -27,12 +27,12 @@ void PolicyData::GetDevices(Task* task, Device** devs, int* ndevs) {
       for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
         Mem* mem = I->second->mem;
         if (!mem || !mem->owner()) continue;
-        total_size[mem->owner()->dev_no()] += mem->size();
+        total_size[mem->owner()->devno()] += mem->size();
       }
     } else if (cmd->type() == BRISBANE_CMD_H2D || cmd->type() == BRISBANE_CMD_D2H) {
       Mem* mem = cmd->mem();
       if (!mem || !mem->owner()) continue;
-      total_size[mem->owner()->dev_no()] += mem->size();
+      total_size[mem->owner()->devno()] += mem->size();
     }
   }
   int target_dev = 0;

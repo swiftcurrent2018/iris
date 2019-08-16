@@ -59,6 +59,15 @@ Command* Command::CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void*
   return cmd;
 }
 
+Command* Command::CreateH2DNP(Task* task, Mem* mem, size_t off, size_t size, void* host) {
+  Command* cmd = Create(task, BRISBANE_CMD_H2DNP);
+  cmd->mem_ = mem;
+  cmd->off_[0] = off;
+  cmd->size_ = size;
+  cmd->host_ = host;
+  return cmd;
+}
+
 Command* Command::CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host) {
   Command* cmd = Create(task, BRISBANE_CMD_D2H);
   cmd->mem_ = mem;

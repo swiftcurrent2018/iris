@@ -47,7 +47,7 @@ int FilterTaskSplit::Execute(Task* task) {
   size_t lws[3] = { 1, 1, 1 };
 
   brisbane_poly_mem* plmems = new brisbane_poly_mem[nmems];
-  Mem* plmems_mem[nmems];
+  Mem** plmems_mem = (Mem**) alloca(sizeof(Mem*) * nmems);
   size_t chunk_size = ndr[dim - 1] / (platform_->ndevs() * 4);
   size_t ndr0 = ndr[dim - 1];
   bool left_ndr = ndr[dim - 1] % chunk_size;
@@ -67,7 +67,7 @@ int FilterTaskSplit::Execute(Task* task) {
       Mem* mem = arg->mem;
       if (mem) {
         polyhedral_->GetMem(idx, plmems + mem_idx);
-        _trace("kernel[%s] idx[%d] mem[%lu] typesz[%lu] read[%lu,%lu] write[%lu,%lu]", kernel->name(), idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].r0, plmems[mem_idx].r1, plmems[mem_idx].w0, plmems[mem_idx].w1);
+        //_trace("kernel[%s] idx[%d] mem[%lu] typesz[%lu] read[%lu,%lu] write[%lu,%lu]", kernel->name(), idx, mem->uid(), plmems[mem_idx].typesz, plmems[mem_idx].r0, plmems[mem_idx].r1, plmems[mem_idx].w0, plmems[mem_idx].w1);
         plmems_mem[mem_idx] = mem;
         mem_idx++;
       }
@@ -80,7 +80,7 @@ int FilterTaskSplit::Execute(Task* task) {
           if (plmems_mem[k] == mem) {
             brisbane_poly_mem* plmem = plmems + k; 
             if (plmem->r0 > plmem->r1) _error("invalid poly_mem r0[%lu] r1[%lu]", plmem->r0, plmem->r1);
-            Command* sub_cmd = Command::CreateH2D(subtasks[i], mem, plmem->typesz * plmem->r0, plmem->typesz * (plmem->r1 - plmem->r0 + 1), (char*) cmd->host() + plmem->typesz * plmem->r0);
+            Command* sub_cmd = Command::CreateH2DNP(subtasks[i], mem, plmem->typesz * plmem->r0, plmem->typesz * (plmem->r1 - plmem->r0 + 1), (char*) cmd->host() + plmem->typesz * plmem->r0);
             subtasks[i]->AddCommand(sub_cmd);
           }
         }
@@ -94,7 +94,6 @@ int FilterTaskSplit::Execute(Task* task) {
             subtasks[i]->AddCommand(sub_cmd);
           }
         }
-
       } else if (cmd->type_kernel()) {
         Kernel* kernel = cmd->kernel();
         Command* sub_cmd = Command::CreateKernel(subtasks[i], kernel, cmd->dim(), off, ndr);
@@ -111,3 +110,4 @@ int FilterTaskSplit::Execute(Task* task) {
 
 } /* namespace rt */
 } /* namespace brisbane */
+

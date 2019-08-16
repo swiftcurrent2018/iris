@@ -70,7 +70,7 @@ public:
   int ndevs() { return ndevs_; }
   int device_default() { return device_default_; }
   Device** devices() { return devices_; }
-  Device* device(int dev_no) { return devices_[dev_no]; }
+  Device* device(int devno) { return devices_[devno]; }
   Polyhedral* polyhedral() { return polyhedral_; }
   Scheduler* scheduler() { return scheduler_; }
   Timer* timer() { return timer_; }

@@ -60,8 +60,8 @@ void Scheduler::StartTask(Task* task, Worker* worker) {
 
 void Scheduler::CompleteTask(Task* task, Worker* worker) {
   Device* dev = worker->device();
-  int dev_no = dev->dev_no();
-  if (hub_available_) hub_client_->TaskDec(dev_no, 1);
+  int devno = dev->devno();
+  if (hub_available_) hub_client_->TaskDec(devno, 1);
   if (enable_profiler_ & !task->system()) {
     task->set_time_end(timer_->Now());
     pthread_mutex_lock(&mutex_); //TODO: no lock
@@ -125,7 +125,7 @@ void Scheduler::SubmitWorker(Task* task) {
   }
   for (int i = 0; i < ndevs; i++) {
     devs[i]->worker()->Enqueue(task);
-    if (hub_available_) hub_client_->TaskInc(devs[i]->dev_no(), 1);
+    if (hub_available_) hub_client_->TaskInc(devs[i]->devno(), 1);
   }
 }
 

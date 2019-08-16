@@ -3,7 +3,6 @@
 #include "Device.h"
 #include "Platform.h"
 #include "Task.h"
-#include <set>
 
 #define PROFILER_DOT_HEADER "digraph {\n" \
                             "start[shape=Mdiamond, label=\"main\"]\n"

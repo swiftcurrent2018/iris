@@ -9,4 +9,4 @@ saxpy-brisbane: saxpy-brisbane.cpp
 	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib64 -lbrisbane -lOpenCL -lpthread -ldl
 
 clean:
-	rm -f saxpy saxpy-brisbane
+	rm -f saxpy saxpy-brisbane libbrisbane-poly.so

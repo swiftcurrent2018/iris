@@ -9,10 +9,10 @@
 namespace brisbane {
 namespace rt {
 
-Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no) {
+Device::Device(cl_device_id cldev, cl_context clctx, int devno, int platform_no) {
   cldev_ = cldev;
   clctx_ = clctx;
-  dev_no_ = dev_no;
+  devno_ = devno;
   platform_no_ = platform_no;
 
   busy_ = false;
@@ -39,7 +39,7 @@ Device::Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no
   }
   else type_ = brisbane_cpu;
 
-  _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu] compiler_available[%d]", dev_no_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], compiler_available_);
+  _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu] compiler_available[%d]", devno_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], compiler_available_);
 
   clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
   _clerror(clerr_);
@@ -59,13 +59,14 @@ void Device::Execute(Task* task) {
       case BRISBANE_CMD_BUILD:        ExecuteBuild(cmd);      break;
       case BRISBANE_CMD_KERNEL:       ExecuteKernel(cmd);     break;
       case BRISBANE_CMD_H2D:          ExecuteH2D(cmd);        break;
+      case BRISBANE_CMD_H2DNP:        ExecuteH2DNP(cmd);        break;
       case BRISBANE_CMD_D2H:          ExecuteD2H(cmd);        break;
       case BRISBANE_CMD_PRESENT:      ExecutePresent(cmd);    break;
       case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
       default: _error("cmd type[0x%x]", cmd->type());
     }
   }
-  _info("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), dev_no(), name(), task->time());
+  _info("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), devno(), name(), task->time());
   busy_ = false;
 }
 
@@ -89,10 +90,10 @@ void Device::ExecuteBuild(Command* cmd) {
     Utils::ReadFile(path, &src, &srclen);
   }
   if (srclen == 0) {
-    _error("dev[%d][%s] has no kernel file", dev_no_, name_);
+    _error("dev[%d][%s] has no kernel file", devno_, name_);
     return;
   }
-  _trace("dev[%d][%s] kernels[%s]", dev_no_, name_, path);
+  _trace("dev[%d][%s] kernels[%s]", devno_, name_, path);
   if (type_ == brisbane_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
   else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
   _clerror(clerr_);
@@ -120,7 +121,7 @@ void Device::ExecuteBuild(Command* cmd) {
 
 void Device::ExecuteKernel(Command* cmd) {
   Kernel* kernel = cmd->kernel();
-  cl_kernel clkernel = kernel->clkernel(dev_no_, clprog_);
+  cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
   int dim = cmd->dim();
   size_t* off = cmd->off();
   size_t* gws = cmd->ndr();
@@ -164,7 +165,7 @@ void Device::ExecuteKernel(Command* cmd) {
     clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
     _clerror(clerr_);
   }
-  //_trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", dev_no_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
+  //_trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", devno_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
   if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
   timer_->Start(11);
   if (type_ == brisbane_fpga) {
@@ -179,7 +180,7 @@ void Device::ExecuteKernel(Command* cmd) {
   _clerror(clerr_);
   double time = timer_->Stop(11);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu] time[%lf]", dev_no_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0, time);
+  _trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu] time[%lf]", devno_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0, time);
   kernel->history()->AddKernel(cmd, this, time);
 }
 
@@ -189,17 +190,25 @@ void Device::ExecuteH2D(Command* cmd) {
   size_t off = cmd->off(0);
   size_t size = cmd->size();
   void* host = cmd->host();
-  //_trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", dev_no_, name_, mem->uid(), clmem, off, size, host);
+  //_trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", devno_, name_, mem->uid(), clmem, off, size, host);
   mem->AddOwner(off, size, this);
   timer_->Start(12);
   clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
   _clerror(clerr_);
   double time = timer_->Stop(12);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] time[%lf]", dev_no_, name_, mem->uid(), clmem, off, size, host, time);
+  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] time[%lf]", devno_, name_, mem->uid(), clmem, off, size, host, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddH2D(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddH2D(cmd, this, time);
+}
+
+void Device::ExecuteH2DNP(Command* cmd) {
+  Mem* mem = cmd->mem();
+  size_t off = cmd->off(0);
+  size_t size = cmd->size();
+  if (mem->IsOwner(off, size, this)) return;
+  return ExecuteH2D(cmd);
 }
 
 void Device::ExecuteD2H(Command* cmd) {
@@ -210,7 +219,7 @@ void Device::ExecuteD2H(Command* cmd) {
   size_t size = cmd->size();
   int expansion = mem->expansion();
   void* host = cmd->host();
-  //_trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", dev_no_, name_, mem->uid(), off, size, expansion, host);
+  //_trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", devno_, name_, mem->uid(), off, size, expansion, host);
   timer_->Start(13);
   if (mode & brisbane_reduction) {
     clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, mem->size() * expansion, mem->host_inter(), 0, NULL, NULL);
@@ -219,7 +228,7 @@ void Device::ExecuteD2H(Command* cmd) {
   _clerror(clerr_);
   double time = timer_->Stop(13);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p] time[%lf]", dev_no_, name_, mem->uid(), off, size, expansion, host, time);
+  _trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p] time[%lf]", devno_, name_, mem->uid(), off, size, expansion, host, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddD2H(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddD2H(cmd, this, time);
@@ -231,7 +240,7 @@ void Device::ExecutePresent(Command* cmd) {
   size_t off = cmd->off(0);
   size_t size = cmd->size();
   void* host = cmd->host();
-  _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", dev_no_, mem->uid(), off, size, host);
+  _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", devno_, mem->uid(), off, size, host);
   if (mem->IsOwner(off, size, this)) return;
   ExecuteH2D(cmd);
 }

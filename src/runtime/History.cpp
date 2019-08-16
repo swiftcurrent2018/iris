@@ -42,11 +42,11 @@ void History::AddD2H(Command* cmd, Device* dev, double time) {
 
 void History::Add(Command* cmd, Device* dev, double time, double* t, double *ta, size_t* c) {
   Kernel* kernel = cmd->kernel();
-  int dev_no = dev->dev_no();
-  size_t cnt = c[dev_no];
-  t[dev_no] += time;
-  c[dev_no]++;
-  ta[dev_no] = (ta[dev_no] * cnt + time) / (cnt + 1);
+  int devno = dev->devno();
+  size_t cnt = c[devno];
+  t[devno] += time;
+  c[devno]++;
+  ta[devno] = (ta[devno] * cnt + time) / (cnt + 1);
 }
 
 Device* History::OptimalDevice(Task* task) {

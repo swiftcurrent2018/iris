@@ -1,5 +1,5 @@
-#ifndef POLY_BRISBANE_H
-#define POLY_BRISBANE_H
+#ifndef BRISBANE_SRC_CC_LLVM_BRISBANELLVM_H
+#define BRISBANE_SRC_CC_LLVM_BRISBANELLVM_H
 
 #include "polly/ScopInfo.h"
 #include "llvm/Pass.h"
@@ -52,5 +52,5 @@ private:
 
 }
 
-#endif /* POLY_BRISBANE_H */
+#endif /* BRISBANE_SRC_CC_LLVM_BRISBANELLVM_H */
 

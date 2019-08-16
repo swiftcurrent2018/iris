@@ -12,20 +12,21 @@ class Worker;
 
 class Device {
 public:
-  Device(cl_device_id cldev, cl_context clctx, int dev_no, int platform_no);
+  Device(cl_device_id cldev, cl_context clctx, int devno, int platform_no);
   ~Device();
 
   void Execute(Task* task);
   void ExecuteBuild(Command* cmd);
   void ExecuteKernel(Command* cmd);
   void ExecuteH2D(Command* cmd);
+  void ExecuteH2DNP(Command* cmd);
   void ExecuteD2H(Command* cmd);
   void ExecutePresent(Command* cmd);
   void ExecuteReleaseMem(Command* cmd);
 
   void Wait();
 
-  int dev_no() { return dev_no_; }
+  int devno() { return devno_; }
   int type() { return type_; }
   char* name() { return name_; }
   bool busy() { return busy_; }
@@ -43,7 +44,7 @@ private:
   cl_device_type cltype_;
   cl_int clerr_;
 
-  int dev_no_;
+  int devno_;
   int platform_no_;
   int type_;
   char vendor_[64];

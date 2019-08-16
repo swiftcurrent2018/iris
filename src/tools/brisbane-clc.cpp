@@ -23,7 +23,7 @@ int compile(char* file, int keep) {
   if (system(cmd) == -1) perror(cmd);
   sprintf(cmd, "%s opt -load libLLVMBrisbane.so -basicaa -brisbane -analyze %s.llvm.preopt.ll -polly-process-unprofitable -polly-use-llvm-names", cd, file);
   if (system(cmd) == -1) perror(cmd);
-  sprintf(cmd, "%s c++ -fPIC -shared -rdynamic -o ../libbrisbane_poly.so %s.poly.c", cd, file);
+  sprintf(cmd, "%s c++ -fPIC -shared -rdynamic -o ../libbrisbane-poly.so %s.poly.c", cd, file);
   if (system(cmd) == -1) perror(cmd);
   if (!keep) {
     sprintf(cmd, "rm -rf brisbane");

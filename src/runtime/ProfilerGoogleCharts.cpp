@@ -58,7 +58,7 @@ int ProfilerGoogleCharts::CompleteTask(Task* task) {
   Device* dev = task->dev();
   int policy = task->brs_policy();
   char s[256];
-  sprintf(s, "[ '%s %d', '%s (%s)', %lf, %lf ],\n", dev->name(), dev->dev_no(), task->name(), policy_str(policy), (task->time_start() * 1.e+3) - first_task_, (task->time_end() * 1.e+3) - first_task_);
+  sprintf(s, "[ '%s %d', '%s (%s)', %lf, %lf ],\n", dev->name(), dev->devno(), task->name(), policy_str(policy), (task->time_start() * 1.e+3) - first_task_, (task->time_end() * 1.e+3) - first_task_);
   Write(s);
   return BRISBANE_OK;
 }
