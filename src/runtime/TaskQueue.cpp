@@ -1,9 +1,12 @@
 #include "TaskQueue.h"
+#include "Scheduler.h"
 
 namespace brisbane {
 namespace rt {
 
-TaskQueue::TaskQueue() {
+TaskQueue::TaskQueue(Scheduler* scheduler) {
+  scheduler_ = scheduler;
+  enable_profiler_ = scheduler->enable_profiler();
   last_sync_task_ = NULL;
   pthread_mutex_init(&mutex_tasks_, NULL);
 }
@@ -33,11 +36,13 @@ bool TaskQueue::Peek(Task** task) {
 bool TaskQueue::Enqueue(Task* task) {
   pthread_mutex_lock(&mutex_tasks_);
   tasks_.push_back(task);
-  if (last_sync_task_) task->AddDepend(last_sync_task_);
-  if (last_sync_task_ && task->sync()) last_sync_task_->Release();
-  if (task->sync()) {
-    last_sync_task_ = task;
-    last_sync_task_->Retain();
+  if (enable_profiler_) {
+    if (last_sync_task_) task->AddDepend(last_sync_task_);
+    if (last_sync_task_ && task->sync()) last_sync_task_->Release();
+    if (task->sync()) {
+      last_sync_task_ = task;
+      last_sync_task_->Retain();
+    }
   }
   pthread_mutex_unlock(&mutex_tasks_);
   return true;

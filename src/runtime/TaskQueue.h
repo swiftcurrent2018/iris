@@ -9,9 +9,11 @@
 namespace brisbane {
 namespace rt {
 
+class Scheduler;
+
 class TaskQueue {
 public:
-  TaskQueue();
+  TaskQueue(Scheduler* scheduler);
   ~TaskQueue();
 
   bool Peek(Task** task);
@@ -20,9 +22,11 @@ public:
   bool Empty();
 
 private:
+  Scheduler* scheduler_;
   std::list<Task*> tasks_;
   pthread_mutex_t mutex_tasks_;
   Task* last_sync_task_;
+  bool enable_profiler_;
 };
 
 } /* namespace rt */

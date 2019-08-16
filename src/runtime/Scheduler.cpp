@@ -25,7 +25,7 @@ Scheduler::Scheduler(Platform* platform) {
   timer_ = new Timer();
   policies_ = new Policies(this);
   //queue_ = new LockFreeQueue<Task*>(1024);
-  queue_ = new TaskQueue();
+  queue_ = new TaskQueue(this);
   hub_client_ = new HubClient(this);
   InitWorkers();
   InitHubClient();
@@ -52,7 +52,6 @@ void Scheduler::DestroyWorkers() {
 
 void Scheduler::InitHubClient() {
   hub_available_ = hub_client_->Init() == BRISBANE_OK;
-  _info("hub_available[%d]", hub_available_);
 }
 
 void Scheduler::StartTask(Task* task, Worker* worker) {
@@ -85,15 +84,6 @@ size_t Scheduler::NTasksOnDev(int i) {
 }
 
 void Scheduler::Enqueue(Task* task) {
-  /*
-  if (sync && !task->is_subtask()) {
-    if (last_sync_task_) {
-      task->AddDepend(last_sync_task_);
-    }
-    last_sync_task_ = task;
-    last_sync_task_->Retain();
-  }
-  */
   while (!queue_->Enqueue(task)) {}
   Invoke();
 }

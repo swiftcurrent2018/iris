@@ -78,10 +78,10 @@ int Platform::Init(int* argc, char*** argv, int sync) {
     profilers_[nprofilers_++] = new ProfilerGoogleCharts(this);
   }
 
-  _info("available: polyhedral[%d] profile[%d]", polyhedral_available_, enable_profiler_);
-
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
+
+  _info("available: hub[%d] polyhedral[%d] profile[%d]", scheduler_->hub_available(), polyhedral_available_, enable_profiler_);
 
   BuildPrograms(sync);
 
@@ -106,17 +106,23 @@ int Platform::InitCLPlatforms() {
 
   clerr_ = clGetPlatformIDs((cl_uint) nplatforms_, cl_platforms_, (cl_uint*) &nplatforms_);
   _info("nplatforms[%u]", nplatforms_);
-  cl_uint num_devices;
+  cl_uint ndevs = 0;
   char platform_vendor[64];
   char platform_name[64];
   for (int i = 0; i < nplatforms_; i++) {
     clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(platform_vendor), platform_vendor, NULL);
-    clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
-    clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-    clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, num_devices, cl_devices_ + ndevs_, NULL);
-    cl_contexts_[i] = clCreateContext(NULL, num_devices, cl_devices_ + ndevs_, NULL, NULL, &clerr_);
     _clerror(clerr_);
-    for (cl_uint j = 0; j < num_devices; j++) {
+    clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+    _clerror(clerr_);
+    clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
+    _info("platform[%d] [%s %s] ndevs[%u]", i, platform_vendor, platform_name, ndevs);
+    if (ndevs) {
+      clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
+      _clerror(clerr_);
+      cl_contexts_[i] = clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &clerr_);
+      _clerror(clerr_);
+    }
+    for (cl_uint j = 0; j < ndevs; j++) {
       devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
       //enable &= devices_[ndevs_]->enable();
       ndevs_++;

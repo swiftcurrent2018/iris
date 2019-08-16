@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 
     brisbane_kernel kernel_reduce_sum;
     brisbane_kernel_create("reduce_sum", &kernel_reduce_sum);
-    brisbane_kernel_setmem(kernel_reduce_sum, 0, mem_A, brisbane_rd);
+    brisbane_kernel_setmem(kernel_reduce_sum, 0, mem_A, brisbane_r);
 
     brisbane_task task0;
     brisbane_task_create(&task0);
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
         brisbane_mem mem_sumA;
         brisbane_mem_create(sizeof(unsigned long), &mem_sumA);
         brisbane_mem_reduce(mem_sumA, brisbane_sum, brisbane_long);
-        brisbane_kernel_setmem(kernel_reduce_sum, 1, mem_sumA, brisbane_wr);
+        brisbane_kernel_setmem(kernel_reduce_sum, 1, mem_sumA, brisbane_w);
 
         brisbane_task_h2d(subtask, mem_A, i * sizeof(int), chunk_size * sizeof(int), A + i);
         size_t kernel_reduce_sum_off[1] = { i };

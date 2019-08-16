@@ -15,7 +15,7 @@ void Utils::Logo(bool color) {
   if (color) {
     srand(time(NULL));
     char str[12];
-    sprintf(str, "\033[22;3%dm", rand() % 9 + 1);
+    sprintf(str, "\x1b[%d;3%dm", rand() & 1, rand() % 8 + 1);
     printf("%s", str);
   }
   printf("██████╗ ██████╗ ██╗███████╗██████╗  █████╗ ███╗   ██╗███████╗\n");

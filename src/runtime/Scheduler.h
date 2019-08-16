@@ -34,6 +34,8 @@ public:
   int nworkers() { return ndevs_; }
   void StartTask(Task* task, Worker* worker);
   void CompleteTask(Task* task, Worker* worker);
+  bool hub_available() { return hub_available_; }
+  bool enable_profiler() { return enable_profiler_; }
   int RefreshNTasksOnDevs();
   size_t NTasksOnDev(int i);
 

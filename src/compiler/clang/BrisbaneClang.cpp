@@ -101,7 +101,7 @@ public:
       llvm::errs() << EC.message() << "\n";
       return;
     }
-    OS << "#include <brisbane/brisbane.h>\n";
+    OS << "#include <brisbane/brisbane_errno.h>\n";
     OS << "#include <brisbane/brisbane_poly.h>\n\n";
     OS << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n";
 

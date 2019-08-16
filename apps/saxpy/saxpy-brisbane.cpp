@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
   size_t kernel_saxpy_idx[1] = { SIZE };
   brisbane_kernel kernel_saxpy;
   brisbane_kernel_create("saxpy", &kernel_saxpy);
-  brisbane_kernel_setmem(kernel_saxpy, 0, mem_Z, brisbane_wr);
+  brisbane_kernel_setmem(kernel_saxpy, 0, mem_Z, brisbane_w);
   brisbane_kernel_setarg(kernel_saxpy, 1, sizeof(A), &A);
-  brisbane_kernel_setmem(kernel_saxpy, 2, mem_X, brisbane_rd);
-  brisbane_kernel_setmem(kernel_saxpy, 3, mem_Y, brisbane_rd);
+  brisbane_kernel_setmem(kernel_saxpy, 2, mem_X, brisbane_r);
+  brisbane_kernel_setmem(kernel_saxpy, 3, mem_Y, brisbane_r);
 
   brisbane_task task0;
   brisbane_task_create(&task0);

@@ -46,3 +46,4 @@ private:
 } /* namespace brisbane */
 
 #endif /* BRISBANE_RT_RETAINABLE_H */
+

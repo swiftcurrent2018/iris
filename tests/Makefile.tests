@@ -1,7 +1,7 @@
 BRISBANE 	:= $(HOME)/.local/
 CC				:= g++
 C_FLAGS		:= -I$(BRISBANE)/include -g
-LD_INC		:= -L$(BRISBANE)/lib64
+LD_INC		:= -L$(BRISBANE)/lib64 -L$(HOME)/install/lib
 LD_FLAGS	:= -lbrisbane -lOpenCL -lpthread -ldl
 
 $(TEST):$(TEST).c

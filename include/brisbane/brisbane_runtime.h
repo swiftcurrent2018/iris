@@ -1,6 +1,7 @@
-#ifndef BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H
-#define BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H
+#ifndef BRINSBANE_INCLUDE_BRISBANE_BRISBANE_RUNTIME_H
+#define BRINSBANE_INCLUDE_BRISBANE_BRISBANE_RUNTIME_H
 
+#include <brisbane/brisbane_errno.h>
 #include <stddef.h>
 
 #define BRISBANE_OK             0
@@ -23,12 +24,9 @@ extern "C" {
 #define brisbane_any                (1 << 9)
 #define brisbane_all                (1 << 10)
 
-#define brisbane_rd                 (1 << 0)
-#define brisbane_wr                 (1 << 1)
-#define brisbane_rdwr               (brisbane_rd | brisbane_wr)
-#define brisbane_r                  brisbane_rd
-#define brisbane_w                  brisbane_wr
-#define brisbane_rw                 brisbane_rdwr
+#define brisbane_r                  (1 << 0)
+#define brisbane_w                  (1 << 1)
+#define brisbane_rw                 (brisbane_r | brisbane_w)
 
 #define brisbane_int                (1 << 0)
 #define brisbane_long               (1 << 1)
@@ -86,5 +84,5 @@ extern int brisbane_timer_now(double* time);
 } /* end of extern "C" */
 #endif
 
-#endif /* BRINSBANE_INCLUDE_BRISBANE_BRISBANE_H */
+#endif /* BRINSBANE_INCLUDE_BRISBANE_BRISBANE_RUNTIME_H */
 

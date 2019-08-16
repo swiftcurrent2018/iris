@@ -36,7 +36,7 @@
 #define _PURPLE "\033[22;45m"
 #define _CYAN   "\033[22;46m"
 #define _GRAY   "\033[22;47m"
-#define RESET   "\e[m"
+#define RESET   "\x1b[m"
 #else
 #define RED
 #define GREEN

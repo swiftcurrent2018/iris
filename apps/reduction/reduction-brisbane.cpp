@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 
   brisbane_kernel kernel_init;
   brisbane_kernel_create("init", &kernel_init);
-  brisbane_kernel_setmem(kernel_init, 0, mem_A, brisbane_wr);
+  brisbane_kernel_setmem(kernel_init, 0, mem_A, brisbane_w);
 
   brisbane_task task0;
   brisbane_task_create(&task0);
@@ -46,8 +46,8 @@ int main(int argc, char** argv) {
   brisbane_kernel_create("reduce_sum", &kernel_sum);
   size_t kernel_sum_off[1] = { 0 };
   size_t kernel_sum_idx[1] = { SIZE };
-  brisbane_kernel_setmem(kernel_sum, 0, mem_A, brisbane_rd);
-  brisbane_kernel_setmem(kernel_sum, 1, mem_sumA, brisbane_wr);
+  brisbane_kernel_setmem(kernel_sum, 0, mem_A, brisbane_r);
+  brisbane_kernel_setmem(kernel_sum, 1, mem_sumA, brisbane_w);
 
   brisbane_task task1;
   brisbane_task_create(&task1);
@@ -66,8 +66,8 @@ sumA += A[i];
 
   brisbane_kernel kernel_max;
   brisbane_kernel_create("reduce_max", &kernel_max);
-  brisbane_kernel_setmem(kernel_max, 0, mem_A, brisbane_rd);
-  brisbane_kernel_setmem(kernel_max, 1, mem_maxA, brisbane_wr);
+  brisbane_kernel_setmem(kernel_max, 0, mem_A, brisbane_r);
+  brisbane_kernel_setmem(kernel_max, 1, mem_maxA, brisbane_w);
 
   brisbane_task task2;
   brisbane_task_create(&task2);
