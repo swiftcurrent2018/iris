@@ -12,10 +12,8 @@ Mem::Mem(size_t size, Platform* platform) {
   expansion_ = 1;
   platform_ = platform;
   ndevs_ = platform->ndevs();
-  nowners_ = 0;
   host_inter_ = NULL;
   for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
-  for (int i = 0; i < ndevs_; i++) ranges_[i] = new MemRangeSet();
 }
 
 Mem::~Mem() {
@@ -24,7 +22,6 @@ Mem::~Mem() {
     clerr_ = clReleaseMemObject(clmems_[i]);
     _clerror(clerr_);
   }
-  for (int i = 0; i < ndevs_; i++) delete ranges_[i];
   if (!host_inter_) free(host_inter_);
 }
 
@@ -43,35 +40,60 @@ void* Mem::host_inter() {
   return host_inter_;
 }
 
+void Mem::SetOwner(size_t off, size_t size, Device* dev) {
+  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E;) {
+    MemRange* r = *I;
+    if (r->Overlap(off, size)) {
+      _todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
+      ranges_.erase(I);
+      I = ranges_.begin();
+    } else ++I;
+  }
+  ranges_.insert(new MemRange(off, size, dev));
+}
+
 void Mem::SetOwner(Device* dev) {
-  if (nowners_ == 1 && IsOwner(dev)) return;
-  for (int i = 0; i < ndevs_; i++) ranges_[i]->Clear();
-  nowners_ = 0;
-  AddOwner(0, size_, dev);
+  return SetOwner(0, size_, dev);
 }
 
 bool Mem::EmptyOwner() {
-  return nowners_ == 0;
+  return ranges_.empty();
 }
 
-Device* Mem::owner() {
-  for (int i = 0; i < ndevs_; i++) {
-    if (!ranges_[i]->Empty()) return platform_->device(i);
+Device* Mem::Owner(size_t off, size_t size) {
+  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
+    MemRange* r = *I;
+    if (r->Contain(off, size)) {
+      _debug("dev[%d]", r->dev()->devno());
+      return r->dev();
+    }
   }
   return NULL;
 }
 
+Device* Mem::Owner() {
+  return Owner(0, size_);
+}
+
 void Mem::AddOwner(size_t off, size_t size, Device* dev) {
-  int devno = dev->devno();    
-  MemRangeSet* range = ranges_[devno];
-  if (range->Empty()) nowners_++;
-  range->Add(off, size);
+  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
+    MemRange* r = *I;
+    if (r->Overlap(off, size)) {
+      _todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
+    }
+  }
+  ranges_.insert(new MemRange(off, size, dev));
 }
 
 bool Mem::IsOwner(size_t off, size_t size, Device* dev) {
-  int devno = dev->devno();    
-  MemRangeSet* range = ranges_[devno];
-  return range->Contain(off, size);
+  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
+    MemRange* r = *I;
+    if (r->Contain(off, size) && r->dev() == dev) {
+      _check();
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Mem::IsOwner(Device* dev) {

@@ -3,7 +3,8 @@
 
 #include "Retainable.h"
 #include "Platform.h"
-#include "MemRangeSet.h"
+#include "MemRange.h"
+#include <set>
 
 namespace brisbane {
 namespace rt {
@@ -13,12 +14,14 @@ public:
   Mem(size_t size, Platform* platform);
   virtual ~Mem();
 
-  void SetOwner(Device* dev);
   bool EmptyOwner();
+  void SetOwner(size_t off, size_t size, Device* dev);
+  void SetOwner(Device* dev);
   void AddOwner(size_t off, size_t size, Device* dev);
   bool IsOwner(size_t off, size_t size, Device* dev);
   bool IsOwner(Device* dev);
-  Device* owner();
+  Device* Owner(size_t off, size_t size);
+  Device* Owner();
   void Reduce(int mode, int type);
   void Expand(int expansion);
 
@@ -36,8 +39,7 @@ private:
   int mode_;
   Platform* platform_;
   cl_mem clmems_[BRISBANE_MAX_NDEVS];
-  MemRangeSet* ranges_[BRISBANE_MAX_NDEVS];
-  int nowners_;
+  std::set<MemRange*> ranges_;
   cl_int clerr_;
   void* host_inter_;
   int ndevs_;

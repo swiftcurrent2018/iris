@@ -190,14 +190,16 @@ void Device::ExecuteH2D(Command* cmd) {
   size_t off = cmd->off(0);
   size_t size = cmd->size();
   void* host = cmd->host();
+  bool exclusive = cmd->exclusive();
   //_trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", devno_, name_, mem->uid(), clmem, off, size, host);
-  mem->AddOwner(off, size, this);
+  if (exclusive) mem->SetOwner(off, size, this);
+  else mem->AddOwner(off, size, this);
   timer_->Start(12);
   clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
   _clerror(clerr_);
   double time = timer_->Stop(12);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] time[%lf]", devno_, name_, mem->uid(), clmem, off, size, host, time);
+  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] exclusive[%d] time[%lf]", devno_, name_, mem->uid(), clmem, off, size, host, exclusive, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddH2D(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddH2D(cmd, this, time);

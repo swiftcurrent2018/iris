@@ -31,10 +31,13 @@ void Consistency::Resolve(Task* task, Command* cmd) {
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
     KernelArg* arg = I->second;
     Mem* mem = I->second->mem;
-    if (!mem || mem->EmptyOwner() || mem->IsOwner(dev)) continue;
+    if (!mem || mem->EmptyOwner() || mem->IsOwner(dev)) {
+      _check();
+      continue;
+    }
 
-    Device* owner = mem->owner();
-    _debug("mem[%lu] owner[%p] dev[%d]", mem->uid(), owner, dev->devno());
+    Device* owner = mem->Owner();
+    _debug("mem[%lu] owner[%d] dev[%d]", mem->uid(), owner->devno(), dev->devno());
     Command* d2h = Command::CreateD2H(task, mem, 0, mem->size(), mem->host_inter());
     owner->ExecuteD2H(d2h);
 

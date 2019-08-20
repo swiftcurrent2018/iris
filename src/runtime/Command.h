@@ -41,6 +41,7 @@ public:
   std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
   Mem* mem() { return mem_; }
   Task* task() { return task_; }
+  bool exclusive() { return exclusive_; }
   double time() { return time_; }
   double SetTime(double t);
 
@@ -55,6 +56,7 @@ private:
   Mem* mem_;
   Task* task_;
   double time_;
+  bool exclusive_;
   std::map<int, KernelArg*>* kernel_args_;
 
 public:

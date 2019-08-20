@@ -21,7 +21,7 @@ set(BRISBANE_RUNTIME_SOURCES
   Kernel.cpp
   Message.cpp
   Mem.cpp
-  MemRangeSet.cpp
+  MemRange.cpp
   Platform.cpp
   Policies.cpp
   Policy.cpp
