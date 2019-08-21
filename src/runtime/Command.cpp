@@ -9,6 +9,8 @@ Command::Command(Task* task, int type) {
   type_ = type;
   time_ = 0.0;
   kernel_args_ = NULL;
+  polymems_ = NULL;
+  npolymems_ = 0;
 }
 
 Command::~Command() {
@@ -17,6 +19,7 @@ Command::~Command() {
       delete I->second;
     delete kernel_args_;
   }
+  if (npolymems_ && polymems_) delete polymems_;
 }
 
 double Command::SetTime(double t) {
@@ -47,6 +50,14 @@ Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off,
     cmd->off_[i] = 0;
     cmd->ndr_[i] = 1;
   }
+  return cmd;
+}
+
+Command* Command::CreateKernelPolyMem(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, brisbane_poly_mem* polymems, int npolymems) {
+  Command* cmd = CreateKernel(task, kernel, dim, off, ndr);
+  cmd->npolymems_ = npolymems;
+  cmd->polymems_ = new brisbane_poly_mem[npolymems];
+  memcpy(cmd->polymems_, polymems, sizeof(brisbane_poly_mem) * npolymems);
   return cmd;
 }
 

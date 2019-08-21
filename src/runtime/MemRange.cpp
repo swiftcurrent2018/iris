@@ -15,7 +15,7 @@ MemRange::~MemRange() {
 }
 
 bool MemRange::Distinct(size_t off, size_t size) {
-  return (off_ > off + size) || (off_ + size_ < off);
+  return (off_ > off + size - 1) || (off_ + size_ - 1 < off);
 }
 
 bool MemRange::Overlap(size_t off, size_t size) {

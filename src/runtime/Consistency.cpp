@@ -19,36 +19,81 @@ void Consistency::Resolve(Task* task) {
   for (int i = 0; i < task->ncmds(); i++) {
     Command* cmd = task->cmd(i);
     if (cmd->type() != BRISBANE_CMD_KERNEL) continue;
+    //TODO: handle others cmds
     Resolve(task, cmd);
   }
 }
 
 void Consistency::Resolve(Task* task, Command* cmd) {
-  if (task->parent()) return;
+//  if (task->parent()) return;
   Device* dev = task->dev();
   Kernel* kernel = cmd->kernel();
+  brisbane_poly_mem* polymems = cmd->polymems();
+  int npolymems = cmd->npolymems();
   std::map<int, KernelArg*>* args = kernel->args();
+  int mem_idx = 0;
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
     KernelArg* arg = I->second;
     Mem* mem = I->second->mem;
-    if (!mem || mem->EmptyOwner() || mem->IsOwner(dev)) {
-      _check();
-      continue;
-    }
+    if (!mem) continue;
 
-    Device* owner = mem->Owner();
-    _debug("mem[%lu] owner[%d] dev[%d]", mem->uid(), owner->devno(), dev->devno());
-    Command* d2h = Command::CreateD2H(task, mem, 0, mem->size(), mem->host_inter());
-    owner->ExecuteD2H(d2h);
+    if (npolymems) ResolveWithPolymem(task, cmd, mem, arg, polymems + mem_idx);
+    else ResolveWithoutPolymem(task, cmd, mem);
 
-    Command* h2d = Command::CreateH2D(task, mem, 0, mem->size(), mem->host_inter());
-    dev->ExecuteH2D(h2d);
-
-    _trace("kernel[%s] memcpy[%lu] [%s] -> [%s]", kernel->name(), mem->uid(), owner->name(), dev->name());
-
-    Command::Release(d2h);
-    Command::Release(h2d);
+    mem_idx++;
   }
+}
+
+void Consistency::ResolveWithPolymem(Task* task, Command* cmd, Mem* mem, KernelArg* arg, brisbane_poly_mem* polymem) {
+  Device* dev = task->dev();
+  Kernel* kernel = cmd->kernel();
+  size_t off = 0UL;
+  size_t size = 0UL;
+  if (arg->mode == brisbane_r) {
+    off = polymem->typesz * polymem->r0;
+    size = polymem->typesz * (polymem->r1 - polymem->r0 + 1);
+  } else if (arg->mode == brisbane_w) {
+    off = polymem->typesz * polymem->w0;
+    size = polymem->typesz * (polymem->w1 - polymem->w0 + 1);
+  } else if (arg->mode == brisbane_rw) {
+    off = polymem->r0 < polymem->w0 ? polymem->r0 : polymem->w0;
+    size = polymem->typesz * (polymem->r1 > polymem->w1 ? polymem->r1 - off + 1 : polymem->w1 - off + 1);
+    off *= polymem->typesz;
+  } else _error("not supprt mode[0x%x]", arg->mode);
+
+  if (mem->IsOwner(off, size, dev)) return;
+  Device* owner = mem->Owner(off, size);
+  if (!owner) return;
+
+  Command* d2h = Command::CreateD2H(task, mem, off, size, (char*) mem->host_inter() + off);
+  owner->ExecuteD2H(d2h);
+
+  Command* h2d = arg->mode == brisbane_r ?
+    Command::CreateH2DNP(task, mem, off, size, (char*) mem->host_inter() + off) :
+    Command::CreateH2D(task, mem, off, size, (char*) mem->host_inter() + off);
+  dev->ExecuteH2D(h2d);
+
+  _trace("kernel[%s] memcpy[%lu] [%s] -> [%s]", kernel->name(), mem->uid(), owner->name(), dev->name());
+
+  Command::Release(d2h);
+  Command::Release(h2d);
+}
+
+void Consistency::ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem) {
+  Device* dev = task->dev();
+  Kernel* kernel = cmd->kernel();
+  Device* owner = mem->Owner();
+  if (!owner) return;
+  Command* d2h = Command::CreateD2H(task, mem, 0, mem->size(), mem->host_inter());
+  owner->ExecuteD2H(d2h);
+
+  Command* h2d = Command::CreateH2D(task, mem, 0, mem->size(), mem->host_inter());
+  dev->ExecuteH2D(h2d);
+
+  _trace("kernel[%s] memcpy[%lu] [%s] -> [%s]", kernel->name(), mem->uid(), owner->name(), dev->name());
+
+  Command::Release(d2h);
+  Command::Release(h2d);
 }
 
 } /* namespace rt */

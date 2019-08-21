@@ -14,6 +14,7 @@ Mem::Mem(size_t size, Platform* platform) {
   ndevs_ = platform->ndevs();
   host_inter_ = NULL;
   for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
+  pthread_mutex_init(&mutex_, NULL);
 }
 
 Mem::~Mem() {
@@ -23,6 +24,7 @@ Mem::~Mem() {
     _clerror(clerr_);
   }
   if (!host_inter_) free(host_inter_);
+  pthread_mutex_destroy(&mutex_);
 }
 
 cl_mem Mem::clmem(int i, cl_context clctx) {
@@ -40,7 +42,22 @@ void* Mem::host_inter() {
   return host_inter_;
 }
 
+void Mem::AddOwner(size_t off, size_t size, Device* dev) {
+  pthread_mutex_lock(&mutex_);
+  _trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
+  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
+    MemRange* r = *I;
+    if (r->Overlap(off, size)) {
+      _trace("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
+    }
+  }
+  ranges_.insert(new MemRange(off, size, dev));
+  pthread_mutex_unlock(&mutex_);
+}
+
 void Mem::SetOwner(size_t off, size_t size, Device* dev) {
+  pthread_mutex_lock(&mutex_);
+  _trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E;) {
     MemRange* r = *I;
     if (r->Overlap(off, size)) {
@@ -50,6 +67,7 @@ void Mem::SetOwner(size_t off, size_t size, Device* dev) {
     } else ++I;
   }
   ranges_.insert(new MemRange(off, size, dev));
+  pthread_mutex_unlock(&mutex_);
 }
 
 void Mem::SetOwner(Device* dev) {
@@ -57,17 +75,23 @@ void Mem::SetOwner(Device* dev) {
 }
 
 bool Mem::EmptyOwner() {
-  return ranges_.empty();
+  bool bret = true;
+  pthread_mutex_lock(&mutex_);
+  bret = ranges_.empty();
+  pthread_mutex_unlock(&mutex_);
+  return bret;
 }
 
 Device* Mem::Owner(size_t off, size_t size) {
+  pthread_mutex_lock(&mutex_);
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
     MemRange* r = *I;
     if (r->Contain(off, size)) {
-      _debug("dev[%d]", r->dev()->devno());
+      pthread_mutex_unlock(&mutex_);
       return r->dev();
     }
   }
+  pthread_mutex_unlock(&mutex_);
   return NULL;
 }
 
@@ -75,24 +99,16 @@ Device* Mem::Owner() {
   return Owner(0, size_);
 }
 
-void Mem::AddOwner(size_t off, size_t size, Device* dev) {
-  for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
-    MemRange* r = *I;
-    if (r->Overlap(off, size)) {
-      _todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
-    }
-  }
-  ranges_.insert(new MemRange(off, size, dev));
-}
-
 bool Mem::IsOwner(size_t off, size_t size, Device* dev) {
+  pthread_mutex_lock(&mutex_);
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
     MemRange* r = *I;
     if (r->Contain(off, size) && r->dev() == dev) {
-      _check();
+      pthread_mutex_unlock(&mutex_);
       return true;
     }
   }
+  pthread_mutex_unlock(&mutex_);
   return false;
 }
 

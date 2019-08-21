@@ -65,3 +65,4 @@ cl_kernel Kernel::clkernel(int i, cl_program clprog) {
 
 } /* namespace rt */
 } /* namespace brisbane */
+

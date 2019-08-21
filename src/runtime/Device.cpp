@@ -118,7 +118,6 @@ void Device::ExecuteBuild(Command* cmd) {
   enable_ = true;
 }
 
-
 void Device::ExecuteKernel(Command* cmd) {
   Kernel* kernel = cmd->kernel();
   cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
@@ -128,7 +127,10 @@ void Device::ExecuteKernel(Command* cmd) {
   size_t gws0 = gws[0];
   size_t* lws = NULL;
   bool reduction = false;
+  brisbane_poly_mem* polymems = cmd->polymems();
+  int npolymems = cmd->npolymems();
   int max_idx = 0;
+  int mem_idx = 0;
   std::map<int, KernelArg*>* args = cmd->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
     int idx = I->first;
@@ -136,7 +138,12 @@ void Device::ExecuteKernel(Command* cmd) {
     KernelArg* arg = I->second;
     Mem* mem = arg->mem;
     if (mem) {
-      if (arg->mode & brisbane_w) mem->SetOwner(this);
+      if (arg->mode & brisbane_w) {
+        if (npolymems) {
+          brisbane_poly_mem* pm = polymems + mem_idx;
+          mem->SetOwner(pm->typesz * pm->w0, pm->typesz * (pm->w1 - pm->w0 + 1), this);
+        } else mem->SetOwner(this);
+      }
       if (mem->mode() & brisbane_reduction) {
         lws = (size_t*) alloca(3 * sizeof(size_t));
         lws[0] = 1;
@@ -155,6 +162,7 @@ void Device::ExecuteKernel(Command* cmd) {
       cl_mem clmem = mem->clmem(platform_no_, clctx_);
       clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
       _clerror(clerr_);
+      mem_idx++;
     } else {
       clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
       _clerror(clerr_);
@@ -191,7 +199,7 @@ void Device::ExecuteH2D(Command* cmd) {
   size_t size = cmd->size();
   void* host = cmd->host();
   bool exclusive = cmd->exclusive();
-  //_trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p]", devno_, name_, mem->uid(), clmem, off, size, host);
+  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] exclusive[%d]", devno_, name_, mem->uid(), clmem, off, size, host, exclusive);
   if (exclusive) mem->SetOwner(off, size, this);
   else mem->AddOwner(off, size, this);
   timer_->Start(12);

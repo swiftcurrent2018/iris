@@ -4,6 +4,7 @@
 #include "Retainable.h"
 #include "Platform.h"
 #include "MemRange.h"
+#include <pthread.h>
 #include <set>
 
 namespace brisbane {
@@ -15,9 +16,9 @@ public:
   virtual ~Mem();
 
   bool EmptyOwner();
+  void AddOwner(size_t off, size_t size, Device* dev);
   void SetOwner(size_t off, size_t size, Device* dev);
   void SetOwner(Device* dev);
-  void AddOwner(size_t off, size_t size, Device* dev);
   bool IsOwner(size_t off, size_t size, Device* dev);
   bool IsOwner(Device* dev);
   Device* Owner(size_t off, size_t size);
@@ -46,6 +47,8 @@ private:
   int type_;
   int type_size_;
   int expansion_;
+
+  pthread_mutex_t mutex_;
 };
 
 } /* namespace rt */

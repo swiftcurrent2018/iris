@@ -1,8 +1,9 @@
 #ifndef BRISBANE_RT_SRC_COMMAND_H
 #define BRISBANE_RT_SRC_COMMAND_H
 
-#include <stddef.h>
+#include <brisbane/brisbane_poly_types.h>
 #include "Kernel.h"
+#include <stddef.h>
 
 #define BRISBANE_CMD_NOP            0x1000
 #define BRISBANE_CMD_BUILD          0x1001
@@ -42,6 +43,8 @@ public:
   Mem* mem() { return mem_; }
   Task* task() { return task_; }
   bool exclusive() { return exclusive_; }
+  brisbane_poly_mem* polymems() { return polymems_; }
+  int npolymems() { return npolymems_; }
   double time() { return time_; }
   double SetTime(double t);
 
@@ -58,11 +61,14 @@ private:
   double time_;
   bool exclusive_;
   std::map<int, KernelArg*>* kernel_args_;
+  brisbane_poly_mem* polymems_;
+  int npolymems_;
 
 public:
   static Command* Create(Task* task, int type);
   static Command* CreateBuild(Task* task);
   static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
+  static Command* CreateKernelPolyMem(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, brisbane_poly_mem* polymems, int npolymems);
   static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
   static Command* CreateH2DNP(Task* task, Mem* mem, size_t off, size_t size, void* host);
   static Command* CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host);

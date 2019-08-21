@@ -96,7 +96,7 @@ int FilterTaskSplit::Execute(Task* task) {
         }
       } else if (cmd->type_kernel()) {
         Kernel* kernel = cmd->kernel();
-        Command* sub_cmd = Command::CreateKernel(subtasks[i], kernel, cmd->dim(), off, ndr);
+        Command* sub_cmd = Command::CreateKernelPolyMem(subtasks[i], kernel, cmd->dim(), off, ndr, plmems, nmems);
         subtasks[i]->AddCommand(sub_cmd);
       }
     }
