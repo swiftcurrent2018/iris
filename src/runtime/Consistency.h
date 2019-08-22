@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_CONSISTENCY_H
-#define BRISBANE_RT_SRC_CONSISTENCY_H
+#ifndef BRISBANE_SRC_RT_CONSISTENCY_H
+#define BRISBANE_SRC_RT_CONSISTENCY_H
 
 #include <brisbane/brisbane_poly_types.h>
 #include "Kernel.h"
@@ -27,4 +27,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_CONSISTENCY_H */
+#endif /* BRISBANE_SRC_RT_CONSISTENCY_H */

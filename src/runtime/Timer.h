@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_TIMER_H
-#define BRISBANE_RT_SRC_TIMER_H
+#ifndef BRISBANE_SRC_RT_TIMER_H
+#define BRISBANE_SRC_RT_TIMER_H
 
 #define BRISBANE_TIMER_MAX      128
 #define BRISBANE_TIMER_APP      1
@@ -36,4 +36,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_TIMER_H */
+#endif /* BRISBANE_SRC_RT_TIMER_H */

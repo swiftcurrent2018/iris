@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_DEBUG_H
-#define BRISBANE_RT_SRC_DEBUG_H
+#ifndef BRISBANE_SRC_RT_DEBUG_H
+#define BRISBANE_SRC_RT_DEBUG_H
 
 #include <stdio.h>
 #include <string.h>
@@ -131,4 +131,4 @@ extern char brisbane_log_prefix_[];
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_DEBUG_H */
+#endif /* BRISBANE_SRC_RT_DEBUG_H */

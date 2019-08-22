@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_WORKER_H
-#define BRISBANE_RT_SRC_WORKER_H
+#ifndef BRISBANE_SRC_RT_WORKER_H
+#define BRISBANE_SRC_RT_WORKER_H
 
 #include "Thread.h"
 #include "Queue.h"
@@ -37,4 +37,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_WORKER_H */
+#endif /* BRISBANE_SRC_RT_WORKER_H */

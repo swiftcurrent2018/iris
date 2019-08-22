@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_POLICIES_H
-#define BRISBANE_RT_SRC_POLICIES_H
+#ifndef BRISBANE_SRC_RT_POLICIES_H
+#define BRISBANE_SRC_RT_POLICIES_H
 
 namespace brisbane {
 namespace rt {
@@ -29,5 +29,5 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_POLICIES_H */
+#endif /* BRISBANE_SRC_RT_POLICIES_H */
 

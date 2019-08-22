@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_HUB_H
-#define BRISBANE_RT_SRC_HUB_H
+#ifndef BRISBANE_SRC_RT_HUB_H
+#define BRISBANE_SRC_RT_HUB_H
 
 #define BRISBANE_HUB_MQ_PATH         "/tmp/brisbane_hub.mq"
 #define BRISBANE_HUB_MQ_PID         52
@@ -65,4 +65,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_HUB_H */
+#endif /* BRISBANE_SRC_RT_HUB_H */

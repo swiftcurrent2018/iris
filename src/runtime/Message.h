@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_MESSAGE_H
-#define BRISBANE_RT_SRC_MESSAGE_H
+#ifndef BRISBANE_SRC_RT_MESSAGE_H
+#define BRISBANE_SRC_RT_MESSAGE_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -55,4 +55,4 @@ private:
 } /* namespace brisbane */
 
 
-#endif /*BRISBANE_RT_SRC_MESSAGE_H */
+#endif /*BRISBANE_SRC_RT_MESSAGE_H */

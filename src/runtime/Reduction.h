@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_REDUCTION_H
-#define BRISBANE_RT_SRC_REDUCTION_H
+#ifndef BRISBANE_SRC_RT_REDUCTION_H
+#define BRISBANE_SRC_RT_REDUCTION_H
 
 #include <stdlib.h>
 #include <pthread.h>
@@ -33,4 +33,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_REDUCTION_H */
+#endif /* BRISBANE_SRC_RT_REDUCTION_H */

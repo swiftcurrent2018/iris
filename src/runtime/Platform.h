@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_PLATFORM_H
-#define BRISBANE_RT_SRC_PLATFORM_H
+#ifndef BRISBANE_SRC_RT_PLATFORM_H
+#define BRISBANE_SRC_RT_PLATFORM_H
 
 #define CL_TARGET_OPENCL_VERSION 120
 
@@ -130,4 +130,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_PLATFORM_H */
+#endif /* BRISBANE_SRC_RT_PLATFORM_H */

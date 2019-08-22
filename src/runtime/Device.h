@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_DEVICE_H
-#define BRISBANE_RT_SRC_DEVICE_H
+#ifndef BRISBANE_SRC_RT_DEVICE_H
+#define BRISBANE_SRC_RT_DEVICE_H
 
 #include "Platform.h"
 #include "Task.h"
@@ -64,4 +64,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_DEVICE_H */
+#endif /* BRISBANE_SRC_RT_DEVICE_H */

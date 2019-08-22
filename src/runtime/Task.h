@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_TASK_H
-#define BRISBANE_RT_SRC_TASK_H
+#ifndef BRISBANE_SRC_RT_TASK_H
+#define BRISBANE_SRC_RT_TASK_H
 
 #include "Retainable.h"
 #include "Command.h"
@@ -106,4 +106,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_TASK_H */
+#endif /* BRISBANE_SRC_RT_TASK_H */

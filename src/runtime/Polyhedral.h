@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_POLYHEDRAL_H
-#define BRISBANE_RT_SRC_POLYHEDRAL_H
+#ifndef BRISBANE_SRC_RT_POLYHEDRAL_H
+#define BRISBANE_SRC_RT_POLYHEDRAL_H
 
 #include <brisbane/brisbane.h>
 #include <brisbane/brisbane_poly_types.h>
@@ -36,4 +36,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_POLYHEDRAL_H */
+#endif /* BRISBANE_SRC_RT_POLYHEDRAL_H */

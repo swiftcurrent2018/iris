@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_MEM_RANGE_H
-#define BRISBANE_RT_SRC_MEM_RANGE_H
+#ifndef BRISBANE_SRC_RT_MEM_RANGE_H
+#define BRISBANE_SRC_RT_MEM_RANGE_H
 
 #include <stddef.h>
 #include <set>
@@ -34,5 +34,5 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_MEM_RANGE_H */
+#endif /* BRISBANE_SRC_RT_MEM_RANGE_H */
 

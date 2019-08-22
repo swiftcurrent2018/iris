@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_QUEUE_H
-#define BRISBANE_RT_SRC_QUEUE_H
+#ifndef BRISBANE_SRC_RT_QUEUE_H
+#define BRISBANE_SRC_RT_QUEUE_H
 
 namespace brisbane {
 namespace rt {
@@ -88,4 +88,4 @@ class LockFreeQueueMS: public LockFreeQueue<T> {
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_QUEUE_H */
+#endif /* BRISBANE_SRC_RT_QUEUE_H */

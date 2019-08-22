@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_COMMAND_H
-#define BRISBANE_RT_SRC_COMMAND_H
+#ifndef BRISBANE_SRC_RT_COMMAND_H
+#define BRISBANE_SRC_RT_COMMAND_H
 
 #include <brisbane/brisbane_poly_types.h>
 #include "Kernel.h"
@@ -81,5 +81,5 @@ public:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_COMMAND_H */
+#endif /* BRISBANE_SRC_RT_COMMAND_H */
 

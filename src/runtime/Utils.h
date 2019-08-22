@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_UTILS_H
-#define BRISBANE_RT_SRC_UTILS_H
+#ifndef BRISBANE_SRC_RT_UTILS_H
+#define BRISBANE_SRC_RT_UTILS_H
 
 #include <stdlib.h>
 
@@ -15,4 +15,4 @@ static int ReadFile(char* path, char** string, size_t* len);
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_UTILS_H */
+#endif /* BRISBANE_SRC_RT_UTILS_H */

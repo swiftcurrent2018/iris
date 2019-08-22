@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_POLICY_RANDOM_H
-#define BRISBANE_RT_SRC_POLICY_RANDOM_H
+#ifndef BRISBANE_SRC_RT_POLICY_RANDOM_H
+#define BRISBANE_SRC_RT_POLICY_RANDOM_H
 
 #include "Policy.h"
 
@@ -18,4 +18,4 @@ public:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_POLICY_RANDOM_H */
+#endif /* BRISBANE_SRC_RT_POLICY_RANDOM_H */

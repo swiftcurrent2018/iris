@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_PROFILER_DOT_H
-#define BRISBANE_RT_SRC_PROFILER_DOT_H
+#ifndef BRISBANE_SRC_RT_PROFILER_DOT_H
+#define BRISBANE_SRC_RT_PROFILER_DOT_H
 
 #include "Profiler.h"
 #include <set>
@@ -28,5 +28,5 @@ private:
 } /* namespace brisbane */
 
 
-#endif /*BRISBANE_RT_SRC_PROFILER_DOT_H */
+#endif /*BRISBANE_SRC_RT_PROFILER_DOT_H */
 

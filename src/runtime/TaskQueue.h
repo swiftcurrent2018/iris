@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_TASK_QUEUE_H
-#define BRISBANE_RT_SRC_TASK_QUEUE_H
+#ifndef BRISBANE_SRC_RT_TASK_QUEUE_H
+#define BRISBANE_SRC_RT_TASK_QUEUE_H
 
 #include "Task.h"
 #include "Queue.h"
@@ -32,4 +32,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_TASK_QUEUE_H */
+#endif /* BRISBANE_SRC_RT_TASK_QUEUE_H */

@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_HUB_CLIENT_H
-#define BRISBANE_RT_SRC_HUB_CLIENT_H
+#ifndef BRISBANE_SRC_RT_HUB_CLIENT_H
+#define BRISBANE_SRC_RT_HUB_CLIENT_H
 
 #include <sys/msg.h>
 
@@ -50,5 +50,5 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_HUB_CLIENT_H */
+#endif /* BRISBANE_SRC_RT_HUB_CLIENT_H */
 

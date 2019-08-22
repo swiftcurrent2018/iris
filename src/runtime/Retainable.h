@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_RETAINABLE_H
-#define BRISBANE_RT_RETAINABLE_H
+#ifndef BRISBANE_SRC_RT_RETAINABLE_H
+#define BRISBANE_SRC_RT_RETAINABLE_H
 
 #include <brisbane/brisbane.h>
 #include "Structs.h"
@@ -45,5 +45,5 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_RETAINABLE_H */
+#endif /* BRISBANE_SRC_RT_RETAINABLE_H */
 

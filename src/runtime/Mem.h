@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_MEM_H
-#define BRISBANE_RT_SRC_MEM_H
+#ifndef BRISBANE_SRC_RT_MEM_H
+#define BRISBANE_SRC_RT_MEM_H
 
 #include "Retainable.h"
 #include "Platform.h"
@@ -54,4 +54,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_MEM_H */
+#endif /* BRISBANE_SRC_RT_MEM_H */

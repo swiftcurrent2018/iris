@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_HISTORY_H
-#define BRISBANE_RT_SRC_HISTORY_H
+#ifndef BRISBANE_SRC_RT_HISTORY_H
+#define BRISBANE_SRC_RT_HISTORY_H
 
 #include "Config.h"
 #include <map>
@@ -57,4 +57,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_HISTORY_H */
+#endif /* BRISBANE_SRC_RT_HISTORY_H */

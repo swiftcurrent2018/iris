@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_FILTER_TASK_SPLIT_H
-#define BRISBANE_RT_SRC_FILTER_TASK_SPLIT_H
+#ifndef BRISBANE_SRC_RT_FILTER_TASK_SPLIT_H
+#define BRISBANE_SRC_RT_FILTER_TASK_SPLIT_H
 
 #include "Filter.h"
 
@@ -25,5 +25,5 @@ private:
 } /* namespace brisbane */
 
 
-#endif /* BRISBANE_RT_SRC_FILTER_TASK_SPLIT_H */
+#endif /* BRISBANE_SRC_RT_FILTER_TASK_SPLIT_H */
 

@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_THREAD_H
-#define BRISBANE_RT_SRC_THREAD_H
+#ifndef BRISBANE_SRC_RT_THREAD_H
+#define BRISBANE_SRC_RT_THREAD_H
 
 #include <semaphore.h>
 #include <pthread.h>
@@ -32,4 +32,4 @@ protected:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_THREAD_H */
+#endif /* BRISBANE_SRC_RT_THREAD_H */

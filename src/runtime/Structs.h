@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_STRUCTS_H
-#define BRISBANE_RT_SRC_STRUCTS_H
+#ifndef BRISBANE_SRC_RT_STRUCTS_H
+#define BRISBANE_SRC_RT_STRUCTS_H
 
 namespace brisbane {
 namespace rt {
@@ -21,4 +21,4 @@ struct _brisbane_mem {
   brisbane::rt::Mem* class_obj;
 };
 
-#endif /* BRISBANE_RT_SRC_STRUCTS_H */
+#endif /* BRISBANE_SRC_RT_STRUCTS_H */

@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_FILTER_H
-#define BRISBANE_RT_SRC_FILTER_H
+#ifndef BRISBANE_SRC_RT_FILTER_H
+#define BRISBANE_SRC_RT_FILTER_H
 
 namespace brisbane {
 namespace rt {
@@ -17,4 +17,4 @@ public:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_FILTER_H */
+#endif /* BRISBANE_SRC_RT_FILTER_H */

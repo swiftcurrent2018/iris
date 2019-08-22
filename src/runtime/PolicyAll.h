@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_POLICY_ALL_H
-#define BRISBANE_RT_SRC_POLICY_ALL_H
+#ifndef BRISBANE_SRC_RT_POLICY_ALL_H
+#define BRISBANE_SRC_RT_POLICY_ALL_H
 
 #include "Policy.h"
 
@@ -17,5 +17,5 @@ public:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_POLICY_ALL_H */
+#endif /* BRISBANE_SRC_RT_POLICY_ALL_H */
 

@@ -1,5 +1,5 @@
-#ifndef BRISBANE_RT_SRC_SCHEDULER_H
-#define BRISBANE_RT_SRC_SCHEDULER_H
+#ifndef BRISBANE_SRC_RT_SCHEDULER_H
+#define BRISBANE_SRC_RT_SCHEDULER_H
 
 #include "Config.h"
 #include "Thread.h"
@@ -71,4 +71,4 @@ private:
 } /* namespace rt */
 } /* namespace brisbane */
 
-#endif /* BRISBANE_RT_SRC_SCHEDULER_H */
+#endif /* BRISBANE_SRC_RT_SCHEDULER_H */
