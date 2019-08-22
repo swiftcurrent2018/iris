@@ -60,10 +60,6 @@ int brisbane_task_depend(brisbane_task task, int ntasks, brisbane_task* tasks) {
   return Platform::GetPlatform()->TaskDepend(task, ntasks, tasks);
 }
 
-int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {
-  return Platform::GetPlatform()->TaskPresent(task, mem, off, size, host);
-}
-
 int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host) {
   return Platform::GetPlatform()->TaskH2D(task, mem, off, size, host);
 }

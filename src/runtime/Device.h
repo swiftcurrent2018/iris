@@ -1,30 +1,37 @@
 #ifndef BRISBANE_SRC_RT_DEVICE_H
 #define BRISBANE_SRC_RT_DEVICE_H
 
-#include "Platform.h"
-#include "Task.h"
+#include "Headers.h"
 
 namespace brisbane {
 namespace rt {
 
+class Command;
+class Kernel;
+class Mem;
+class Task;
 class Timer;
 class Worker;
 
 class Device {
 public:
-  Device(cl_device_id cldev, cl_context clctx, int devno, int platform_no);
-  ~Device();
+  Device(int devno, int platform);
+  virtual ~Device();
 
   void Execute(Task* task);
-  void ExecuteBuild(Command* cmd);
+  void ExecuteInit(Command* cmd);
   void ExecuteKernel(Command* cmd);
   void ExecuteH2D(Command* cmd);
   void ExecuteH2DNP(Command* cmd);
   void ExecuteD2H(Command* cmd);
-  void ExecutePresent(Command* cmd);
   void ExecuteReleaseMem(Command* cmd);
 
-  void Wait();
+  virtual int Init() = 0;
+  virtual int H2D(Mem* mem, size_t off, size_t size, void* host) = 0;
+  virtual int D2H(Mem* mem, size_t off, size_t size, void* host) = 0;
+  virtual int KernelSetArg(Kernel* kernel, int idx, size_t arg_size, void* arg_value) = 0;
+  virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;
+  virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
 
   int devno() { return devno_; }
   int type() { return type_; }
@@ -36,23 +43,15 @@ public:
   void set_worker(Worker* worker) { worker_ = worker; }
   Worker* worker() { return worker_; }
 
-private:
-  cl_device_id cldev_;
-  cl_context clctx_;
-  cl_command_queue clcmdq_;
-  cl_program clprog_;
-  cl_device_type cltype_;
-  cl_int clerr_;
-
+protected:
   int devno_;
-  int platform_no_;
+  int platform_;
   int type_;
   char vendor_[64];
   char name_[64];
   char version_[64];
   int max_compute_units_;
   size_t max_work_item_sizes_[3];
-  cl_bool compiler_available_;
 
   bool busy_;
   bool enable_;

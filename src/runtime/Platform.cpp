@@ -1,7 +1,8 @@
 #include "Platform.h"
 #include "Utils.h"
 #include "Command.h"
-#include "Device.h"
+#include "DeviceCUDA.h"
+#include "DeviceOpenCL.h"
 #include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
@@ -24,7 +25,7 @@ char brisbane_log_prefix_[256];
 
 Platform::Platform() {
   init_ = false;
-  nplatforms_ = BRISBANE_MAX_NDEVS;
+  nplatforms_ = 0;
   ndevs_ = 0;
 
   scheduler_ = NULL;
@@ -62,8 +63,9 @@ int Platform::Init(int* argc, char*** argv, int sync) {
   timer_ = new Timer();
   timer_->Start(BRISBANE_TIMER_APP);
 
-  timer_->Start(BRISBANE_TIMER_INIT);
-  InitCLPlatforms();
+  timer_->Start(BRISBANE_TIMER_PLATFORM);
+  InitCUDA();
+  InitOpenCL();
   polyhedral_ = new Polyhedral(this);
   polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
   if (polyhedral_available_)
@@ -83,11 +85,11 @@ int Platform::Init(int* argc, char*** argv, int sync) {
 
   _info("available: hub[%d] polyhedral[%d] profile[%d]", scheduler_->hub_available(), polyhedral_available_, enable_profiler_);
 
-  BuildPrograms(sync);
+  InitDevices(sync);
 
   init_ = true;
 
-  timer_->Stop(BRISBANE_TIMER_INIT);
+  timer_->Stop(BRISBANE_TIMER_PLATFORM);
 
   return BRISBANE_OK;
 }
@@ -101,44 +103,80 @@ int Platform::Synchronize() {
   return BRISBANE_OK;
 }
 
-int Platform::InitCLPlatforms() {
-  bool enable = true;
-
-  clerr_ = clGetPlatformIDs((cl_uint) nplatforms_, cl_platforms_, (cl_uint*) &nplatforms_);
-  _info("nplatforms[%u]", nplatforms_);
-  cl_uint ndevs = 0;
-  char platform_vendor[64];
-  char platform_name[64];
-  for (int i = 0; i < nplatforms_; i++) {
-    clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(platform_vendor), platform_vendor, NULL);
-    _clerror(clerr_);
-    clerr_ = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
-    _clerror(clerr_);
-    clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
-    _info("platform[%d] [%s %s] ndevs[%u]", i, platform_vendor, platform_name, ndevs);
-    if (ndevs) {
-      clerr_ = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
-      _clerror(clerr_);
-      cl_contexts_[i] = clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &clerr_);
-      _clerror(clerr_);
-    }
-    for (cl_uint j = 0; j < ndevs; j++) {
-      devices_[ndevs_] = new Device(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, i);
-      //enable &= devices_[ndevs_]->enable();
-      ndevs_++;
-    }
+int Platform::InitCUDA() {
+#ifdef USE_CUDA
+  CUresult err = CUDA_SUCCESS;
+  err = cuInit(0);
+  _cuerror(err);
+  int ndevs = 0;
+  err = cuDeviceGetCount(&ndevs);
+  _cuerror(err);
+  _info("ndevs[%d]", ndevs);
+  for (int i = 0; i < ndevs; i++) {
+    CUdevice dev;
+    err = cuDeviceGet(&dev, i);
+    _cuerror(err);
+    devices_[ndevs_] = new DeviceCUDA(dev, ndevs_, nplatforms_);
+    ndevs_++;
   }
-  if (ndevs_) device_default_ = devices_[0]->type();
-  if (!enable) exit(-1);
+  if (ndevs) nplatforms_++;
+#endif
   return BRISBANE_OK;
 }
 
-int Platform::BuildPrograms(bool sync) {
+int Platform::InitOpenCL() {
+#ifdef USE_OPENCL
+  cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
+  cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
+  cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
+  cl_int err;
+
+  bool enable = true;
+  cl_uint nplatforms = BRISBANE_MAX_NDEVS;
+
+  err = clGetPlatformIDs(nplatforms, cl_platforms_, &nplatforms);
+  _info("nplatforms[%u]", nplatforms);
+  cl_uint ndevs = 0;
+  char vendor[64];
+  char platform_name[64];
+  for (int i = 0; i < nplatforms; i++) {
+    err = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+    _clerror(err);
+    err = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+    _clerror(err);
+    err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
+#ifdef USE_CUDA
+    if (strstr(vendor, "NVIDIA") != NULL) {
+      _info("skipping platform[%d] [%s %s] ndevs[%u]", i, vendor, platform_name, ndevs);
+      continue;
+    }
+#endif
+    _info("adding platform[%d] [%s %s] ndevs[%u]", i, vendor, platform_name, ndevs);
+    if (ndevs) {
+      err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
+      _clerror(err);
+      cl_contexts_[i] = clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
+      _clerror(err);
+    }
+    for (cl_uint j = 0; j < ndevs; j++) {
+      devices_[ndevs_] = new DeviceOpenCL(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
+      //enable &= devices_[ndevs_]->enable();
+      ndevs_++;
+    }
+    nplatforms_++;
+  }
+  if (ndevs_) device_default_ = devices_[0]->type();
+  if (!enable) exit(-1);
+#endif
+  return BRISBANE_OK;
+}
+
+int Platform::InitDevices(bool sync) {
   Task** tasks = new Task*[ndevs_];
   for (int i = 0; i < ndevs_; i++) {
     tasks[i] = new Task(this);
     tasks[i]->set_system();
-    Command* cmd = Command::CreateBuild(tasks[i]);
+    Command* cmd = Command::CreateInit(tasks[i]);
     tasks[i]->AddCommand(cmd);
     scheduler_->worker(i)->Enqueue(tasks[i]);
   }
@@ -249,14 +287,6 @@ int Platform::TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* ho
   return TaskD2H(brs_task, brs_mem, 0ULL, brs_mem->class_obj->size(), host);
 }
 
-int Platform::TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host) {
-  Task* task = brs_task->class_obj;
-  Mem* mem = brs_mem->class_obj;
-  Command* cmd = Command::CreatePresent(task, mem, off, size, host);
-  task->AddCommand(cmd);
-  return BRISBANE_OK;
-}
-
 int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, char* opt, int sync) {
   Task* task = brs_task->class_obj;
   task->set_brs_policy(brs_policy);
@@ -364,7 +394,7 @@ int Platform::Finalize() {
   singleton_->Synchronize();
   singleton_->ShowKernelHistory();
   singleton_->time_app_ = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
-  singleton_->time_init_ = singleton_->timer()->Total(BRISBANE_TIMER_INIT);
+  singleton_->time_init_ = singleton_->timer()->Total(BRISBANE_TIMER_PLATFORM);
   double time_app = singleton_->time_app();
   double time_init = singleton_->time_init();
   if (singleton_ == NULL) return BRISBANE_ERR;

@@ -1,9 +1,13 @@
 #ifndef BRISBANE_SRC_RT_TIMER_H
 #define BRISBANE_SRC_RT_TIMER_H
 
-#define BRISBANE_TIMER_MAX      128
-#define BRISBANE_TIMER_APP      1
-#define BRISBANE_TIMER_INIT     2
+#define BRISBANE_TIMER_MAX        128
+#define BRISBANE_TIMER_APP        1
+#define BRISBANE_TIMER_PLATFORM   2
+#define BRISBANE_TIMER_INIT       3
+#define BRISBANE_TIMER_KERNEL     4
+#define BRISBANE_TIMER_H2D        5
+#define BRISBANE_TIMER_D2H        6
 
 #include <stddef.h>
 
@@ -37,3 +41,4 @@ private:
 } /* namespace brisbane */
 
 #endif /* BRISBANE_SRC_RT_TIMER_H */
+

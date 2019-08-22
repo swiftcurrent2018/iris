@@ -10,6 +10,7 @@
 #define _INFO_ENABLE
 #define _ERROR_ENABLE
 #define _CLERROR_ENABLE
+#define _CUERROR_ENABLE
 #define _TODO_ENABLE
 
 #define _COLOR_DEBUG
@@ -113,11 +114,19 @@ extern char brisbane_log_prefix_[];
 #endif
 
 #ifdef _CLERROR_ENABLE
-#define  _clerror(clerr) { if (clerr != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
-#define __clerror(clerr) { if (clerr != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] clerr[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, clerr); fflush(stdout); } }
+#define  _clerror(err) { if (err != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
+#define __clerror(err) { if (err != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
 #else
-#define  _clerror(clerr)
-#define __clerror(clerr)
+#define  _clerror(err)
+#define __clerror(err)
+#endif
+
+#ifdef _CUERROR_ENABLE
+#define  _cuerror(err) { if (err != CUDA_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
+#define __cuerror(err) { if (err != CUDA_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
+#else
+#define  _clerror(err)
+#define __clerror(err)
 #endif
 
 #ifdef _TODO_ENABLE

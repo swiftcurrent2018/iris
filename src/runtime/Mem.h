@@ -1,14 +1,16 @@
 #ifndef BRISBANE_SRC_RT_MEM_H
 #define BRISBANE_SRC_RT_MEM_H
 
+#include "Headers.h"
 #include "Retainable.h"
-#include "Platform.h"
 #include "MemRange.h"
 #include <pthread.h>
 #include <set>
 
 namespace brisbane {
 namespace rt {
+
+class Platform;
 
 class Mem: public Retainable<struct _brisbane_mem, Mem> {
 public:
@@ -26,8 +28,12 @@ public:
   void Reduce(int mode, int type);
   void Expand(int expansion);
 
-  cl_mem clmem(int i, cl_context clctx);
-
+#ifdef USE_CUDA
+  CUdeviceptr cumem(int devno);
+#endif
+#ifdef USE_OPENCL
+  cl_mem clmem(int platform, cl_context clctx);
+#endif
   size_t size() { return size_; }
   int mode() { return mode_; }
   int type() { return type_; }
@@ -39,9 +45,15 @@ private:
   size_t size_;
   int mode_;
   Platform* platform_;
+#ifdef USE_CUDA
+  CUdeviceptr cumems_[BRISBANE_MAX_NDEVS];
+  CUresult cuerr_;
+#endif
+#ifdef USE_OPENCL
   cl_mem clmems_[BRISBANE_MAX_NDEVS];
-  std::set<MemRange*> ranges_;
   cl_int clerr_;
+#endif
+  std::set<MemRange*> ranges_;
   void* host_inter_;
   int ndevs_;
   int type_;

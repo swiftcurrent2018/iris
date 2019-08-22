@@ -33,8 +33,8 @@ Command* Command::Create(Task* task, int type) {
   return new Command(task, type);
 }
 
-Command* Command::CreateBuild(Task* task) {
-  return Create(task, BRISBANE_CMD_BUILD);
+Command* Command::CreateInit(Task* task) {
+  return Create(task, BRISBANE_CMD_INIT);
 }
 
 Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr) {
@@ -83,15 +83,6 @@ Command* Command::CreateH2DNP(Task* task, Mem* mem, size_t off, size_t size, voi
 
 Command* Command::CreateD2H(Task* task, Mem* mem, size_t off, size_t size, void* host) {
   Command* cmd = Create(task, BRISBANE_CMD_D2H);
-  cmd->mem_ = mem;
-  cmd->off_[0] = off;
-  cmd->size_ = size;
-  cmd->host_ = host;
-  return cmd;
-}
-
-Command* Command::CreatePresent(Task* task, Mem* mem, size_t off, size_t size, void* host) {
-  Command* cmd = Create(task, BRISBANE_CMD_PRESENT);
   cmd->mem_ = mem;
   cmd->off_[0] = off;
   cmd->size_ = size;

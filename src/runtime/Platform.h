@@ -4,10 +4,9 @@
 #define CL_TARGET_OPENCL_VERSION 120
 
 #include <brisbane/brisbane.h>
-#include <CL/cl.h>
 #include <stddef.h>
 #include <set>
-#include "Config.h"
+#include "Headers.h"
 #include "Debug.h"
 
 namespace brisbane {
@@ -32,8 +31,9 @@ public:
   int Init(int* argc, char*** argv, int sync);
   int Synchronize();
 
-  int InitCLPlatforms();
-  int BuildPrograms(bool sync);
+  int InitCUDA();
+  int InitOpenCL();
+  int InitDevices(bool sync);
 
   int InfoNumPlatforms(int* nplatforms);
   int InfoNumDevices(int* ndevs);
@@ -53,7 +53,6 @@ public:
   int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
   int TaskH2DFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
   int TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
-  int TaskPresent(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
   int TaskSubmit(brisbane_task brs_task, int brs_policy, char* opt, int wait);
   int TaskWait(brisbane_task brs_task);
   int TaskWaitAll(int ntasks, brisbane_task* brs_tasks);
@@ -98,11 +97,6 @@ private:
   int nplatforms_;
   int ndevs_;
   int device_default_;
-
-  cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
-  cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
-  cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
-  cl_int clerr_;
 
   std::set<Kernel*> kernels_;
   std::set<Mem*> mems_;

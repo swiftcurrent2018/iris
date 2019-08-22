@@ -1,5 +1,6 @@
 #include "Mem.h"
 #include "Debug.h"
+#include "Platform.h"
 #include "Device.h"
 #include <stdlib.h>
 
@@ -13,27 +14,51 @@ Mem::Mem(size_t size, Platform* platform) {
   platform_ = platform;
   ndevs_ = platform->ndevs();
   host_inter_ = NULL;
+#ifdef USE_CUDA
+  for (int i = 0; i < ndevs_; i++) cumems_[i] = 0;
+#endif
+#ifdef USE_OPENCL
   for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
+#endif
   pthread_mutex_init(&mutex_, NULL);
 }
 
 Mem::~Mem() {
   for (int i = 0; i < ndevs_; i++) {
+#ifdef USE_CUDA
+    if (!cumems_[i]) continue;
+    cuerr_ = cuMemFree(cumems_[i]);
+    _cuerror(cuerr_);
+#endif
+#ifdef USE_OPENCL
     if (!clmems_[i]) continue;
     clerr_ = clReleaseMemObject(clmems_[i]);
     _clerror(clerr_);
+#endif
   }
   if (!host_inter_) free(host_inter_);
   pthread_mutex_destroy(&mutex_);
 }
 
-cl_mem Mem::clmem(int i, cl_context clctx) {
-  if (clmems_[i] == NULL) {
-    clmems_[i] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
+#ifdef USE_CUDA
+CUdeviceptr Mem::cumem(int devno) {
+  if (cumems_[devno] == 0) {
+    cuerr_ = cuMemAlloc(cumems_ + devno, expansion_ * size_);
+    _cuerror(cuerr_);
+  }
+  return cumems_[devno];
+}
+#endif
+
+#ifdef USE_OPENCL
+cl_mem Mem::clmem(int platform, cl_context clctx) {
+  if (clmems_[platform] == NULL) {
+    clmems_[platform] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
     _clerror(clerr_);
   }
-  return clmems_[i];
+  return clmems_[platform];
 }
+#endif
 
 void* Mem::host_inter() {
   if (!host_inter_) {
@@ -134,3 +159,4 @@ void Mem::Expand(int expansion) {
 
 } /* namespace rt */
 } /* namespace brisbane */
+

@@ -63,7 +63,6 @@ extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, s
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host);
-extern int brisbane_task_present(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_submit(brisbane_task task, int device, char* opt, int sync);
 extern int brisbane_task_wait(brisbane_task task);
 extern int brisbane_task_wait_all(int ntasks, brisbane_task* tasks);

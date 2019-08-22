@@ -1,7 +1,7 @@
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
-include_directories(${BRISBANE_INC_DIR})
-include_directories(${BRISBANE_BIN_DIR}/runtime)
+#include_directories(${BRISBANE_INC_DIR})
+#include_directories(${BRISBANE_BIN_DIR}/runtime)
 
 configure_file(Config.h.in Config.h)
 
@@ -10,6 +10,7 @@ set(BRISBANE_RUNTIME_SOURCES
   Command.cpp
   Consistency.cpp
   Device.cpp
+  DeviceOpenCL.cpp
   FilterTaskSplit.cpp
   History.cpp
   HubClient.cpp
@@ -44,6 +45,13 @@ set(BRISBANE_RUNTIME_SOURCES
 if(USE_CUDA)
   MESSAGE(STATUS "USE_CUDA")
   enable_language(CUDA)
+  include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceCUDA.cpp)
+
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  foreach(dir ${dirs})
+    message(STATUS "dir='${dir}'")
+  endforeach()
 endif()
 
 if(USE_HIP)

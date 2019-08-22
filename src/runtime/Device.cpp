@@ -1,50 +1,22 @@
 #include "Device.h"
+#include "Command.h"
 #include "History.h"
 #include "Kernel.h"
 #include "Mem.h"
 #include "Reduction.h"
+#include "Task.h"
 #include "Timer.h"
 #include "Utils.h"
 
 namespace brisbane {
 namespace rt {
 
-Device::Device(cl_device_id cldev, cl_context clctx, int devno, int platform_no) {
-  cldev_ = cldev;
-  clctx_ = clctx;
+Device::Device(int devno, int platform) {
   devno_ = devno;
-  platform_no_ = platform_no;
-
+  platform_ = platform;
   busy_ = false;
-
-  timer_ = new Timer();
-
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_VENDOR, sizeof(vendor_), vendor_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_NAME, sizeof(name_), name_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_TYPE, sizeof(cltype_), &cltype_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_VERSION, sizeof(version_), version_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(max_compute_units_), &max_compute_units_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(max_work_item_sizes_), max_work_item_sizes_, NULL);
-  clerr_ = clGetDeviceInfo(cldev_, CL_DEVICE_COMPILER_AVAILABLE, sizeof(compiler_available_), &compiler_available_, NULL);
-
-  if (cltype_ == CL_DEVICE_TYPE_CPU) type_ = brisbane_cpu;
-  else if (cltype_ == CL_DEVICE_TYPE_GPU) {
-    type_ = brisbane_gpu;
-    if (strcasestr(vendor_, "NVIDIA")) type_ = brisbane_nvidia;
-    else if (strcasestr(vendor_, "AMD")) type_ = brisbane_amd;
-  }
-  else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) {
-    if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_fpga;
-    else type_ = brisbane_phi;
-  }
-  else type_ = brisbane_cpu;
-
-  _info("device[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu] compiler_available[%d]", devno_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], compiler_available_);
-
-  clcmdq_ = clCreateCommandQueue(clctx_, cldev_, 0, &clerr_);
-  _clerror(clerr_);
-
   enable_ = false;
+  timer_ = new Timer();
 }
 
 Device::~Device() {
@@ -56,12 +28,11 @@ void Device::Execute(Task* task) {
   for (int i = 0; i < task->ncmds(); i++) {
     Command* cmd = task->cmd(i);
     switch (cmd->type()) {
-      case BRISBANE_CMD_BUILD:        ExecuteBuild(cmd);      break;
+      case BRISBANE_CMD_INIT:         ExecuteInit(cmd);       break;
       case BRISBANE_CMD_KERNEL:       ExecuteKernel(cmd);     break;
       case BRISBANE_CMD_H2D:          ExecuteH2D(cmd);        break;
-      case BRISBANE_CMD_H2DNP:        ExecuteH2DNP(cmd);        break;
+      case BRISBANE_CMD_H2DNP:        ExecuteH2DNP(cmd);      break;
       case BRISBANE_CMD_D2H:          ExecuteD2H(cmd);        break;
-      case BRISBANE_CMD_PRESENT:      ExecutePresent(cmd);    break;
       case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
       default: _error("cmd type[0x%x]", cmd->type());
     }
@@ -70,57 +41,19 @@ void Device::Execute(Task* task) {
   busy_ = false;
 }
 
-void Device::ExecuteBuild(Command* cmd) {
-  cl_int status;
-  char path[256];
-  memset(path, 0, 256);
-  sprintf(path, "kernel-%s",
-    type_ == brisbane_cpu    ? "cpu.cl"  :
-    type_ == brisbane_nvidia ? "nvidia.cl"  :
-    type_ == brisbane_amd    ? "amd.cl"  :
-    type_ == brisbane_gpu    ? "gpu.cl"  :
-    type_ == brisbane_phi    ? "phi.cl"  :
-    type_ == brisbane_fpga   ? "fpga.aocx" : "default.cl");
-  char* src = NULL;
-  size_t srclen = 0;
-  timer_->Start(14);
-  if (Utils::ReadFile(path, &src, &srclen) == BRISBANE_ERR) {
-    memset(path, 0, 256);
-    sprintf(path, "kernel.cl");
-    Utils::ReadFile(path, &src, &srclen);
-  }
-  if (srclen == 0) {
-    _error("dev[%d][%s] has no kernel file", devno_, name_);
-    return;
-  }
-  _trace("dev[%d][%s] kernels[%s]", devno_, name_, path);
-  if (type_ == brisbane_fpga) clprog_ = clCreateProgramWithBinary(clctx_, 1, &cldev_, (const size_t*) &srclen, (const unsigned char**) &src, &status, &clerr_);
-  else clprog_ = clCreateProgramWithSource(clctx_, 1, (const char**) &src, (const size_t*) &srclen, &clerr_);
-  _clerror(clerr_);
-  clerr_ = clBuildProgram(clprog_, 1, &cldev_, "", NULL, NULL);
-  _clerror(clerr_);
-  if (clerr_ != CL_SUCCESS) {
-    cl_build_status s;
-    clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_STATUS, sizeof(s), &s, NULL);
-    _clerror(clerr_);
-    char log[1024];
-    size_t log_size;
-    clerr_ = clGetProgramBuildInfo(clprog_, cldev_, CL_PROGRAM_BUILD_LOG, 1024, log, &log_size);
-    _clerror(clerr_);
-    _error("status[%d] log_size[%lu] log:%s", s, log_size, log);
-    _error("srclen[%lu] src\n%s", srclen, src);
-    free(src);
-    return;
-  }
-  free(src);
-  double time = timer_->Stop(14);
+void Device::ExecuteInit(Command* cmd) {
+  timer_->Start(BRISBANE_TIMER_INIT);
+  int iret = Init();
+  if (iret != BRISBANE_OK) _error("iret[%d]", iret);
+  double time = timer_->Stop(BRISBANE_TIMER_INIT);
   cmd->SetTime(time);
   enable_ = true;
 }
 
 void Device::ExecuteKernel(Command* cmd) {
+  timer_->Start(BRISBANE_TIMER_KERNEL);
+
   Kernel* kernel = cmd->kernel();
-  cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
   int dim = cmd->dim();
   size_t* off = cmd->off();
   size_t* gws = cmd->ndr();
@@ -131,6 +64,7 @@ void Device::ExecuteKernel(Command* cmd) {
   int npolymems = cmd->npolymems();
   int max_idx = 0;
   int mem_idx = 0;
+//  cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
   std::map<int, KernelArg*>* args = cmd->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
     int idx = I->first;
@@ -154,60 +88,73 @@ void Device::ExecuteKernel(Command* cmd) {
         size_t expansion = (gws[0] + lws[0] - 1) / lws[0];
         gws[0] = lws[0] * expansion;
         mem->Expand(expansion);
-        clerr_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
-        _clerror(clerr_);
+        KernelSetArg(kernel, idx + 1, lws[0] * mem->type_size(), NULL);
+        /*
+        err_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
+        _clerror(err_);
+        */
         reduction = true;
         if (idx + 1 > max_idx) max_idx = idx + 1;
       }
-      cl_mem clmem = mem->clmem(platform_no_, clctx_);
-      clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
-      _clerror(clerr_);
+      KernelSetMem(kernel, idx, mem);
+      /*
+      cl_mem clmem = mem->clmem(platform_, clctx_);
+      err_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
+      _clerror(err_);
+      */
       mem_idx++;
     } else {
-      clerr_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
-      _clerror(clerr_);
+      KernelSetArg(kernel, idx, arg->size, arg->value);
+      /*
+      err_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
+      _clerror(err_);
+      */
     }
   }
   if (reduction) {
     _trace("max_idx+1[%d] gws[%lu]", max_idx + 1, gws0);
-    clerr_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
-    _clerror(clerr_);
+    KernelSetArg(kernel, max_idx + 1, sizeof(size_t), &gws0);
+    /*
+    err_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
+    _clerror(err_);
+    */
   }
+
+  KernelLaunch(kernel, dim, off, gws, lws);
+
   //_trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", devno_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
+  /*
   if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
-  timer_->Start(11);
   if (type_ == brisbane_fpga) {
     if (off[0] != 0 || off[1] != 0 || off[2] != 0)
       _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
-    clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
+    err_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
   } else {
-    clerr_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
+    err_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
   }
-  _clerror(clerr_);
-  clerr_ = clFinish(clcmdq_);
-  _clerror(clerr_);
-  double time = timer_->Stop(11);
+  _clerror(err_);
+  err_ = clFinish(clcmdq_);
+  _clerror(err_);
+  */
+
+  double time = timer_->Stop(BRISBANE_TIMER_KERNEL);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu] time[%lf]", devno_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0, time);
-  kernel->history()->AddKernel(cmd, this, time);
+  cmd->kernel()->history()->AddKernel(cmd, this, time);
 }
 
 void Device::ExecuteH2D(Command* cmd) {
   Mem* mem = cmd->mem();
-  cl_mem clmem = mem->clmem(platform_no_, clctx_);
   size_t off = cmd->off(0);
   size_t size = cmd->size();
-  void* host = cmd->host();
   bool exclusive = cmd->exclusive();
-  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] exclusive[%d]", devno_, name_, mem->uid(), clmem, off, size, host, exclusive);
+  void* host = cmd->host();
   if (exclusive) mem->SetOwner(off, size, this);
   else mem->AddOwner(off, size, this);
-  timer_->Start(12);
-  clerr_ = clEnqueueWriteBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-  _clerror(clerr_);
-  double time = timer_->Stop(12);
+  timer_->Start(BRISBANE_TIMER_H2D);
+  int iret = H2D(mem, off, size, host);
+  if (iret != BRISBANE_OK) _error("iret[%d]", iret);
+  double time = timer_->Stop(BRISBANE_TIMER_H2D);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] mem[%lu] clmcm[%p] off[%lu] size[%lu] host[%p] exclusive[%d] time[%lf]", devno_, name_, mem->uid(), clmem, off, size, host, exclusive, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddH2D(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddH2D(cmd, this, time);
@@ -223,46 +170,28 @@ void Device::ExecuteH2DNP(Command* cmd) {
 
 void Device::ExecuteD2H(Command* cmd) {
   Mem* mem = cmd->mem();
-  int mode = mem->mode();
-  cl_mem clmem = mem->clmem(platform_no_, clctx_);
   size_t off = cmd->off(0);
   size_t size = cmd->size();
-  int expansion = mem->expansion();
   void* host = cmd->host();
-  //_trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p]", devno_, name_, mem->uid(), off, size, expansion, host);
-  timer_->Start(13);
+  int mode = mem->mode();
+  int expansion = mem->expansion();
+  timer_->Start(BRISBANE_TIMER_D2H);
+  int iret = BRISBANE_OK;
   if (mode & brisbane_reduction) {
-    clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, mem->size() * expansion, mem->host_inter(), 0, NULL, NULL);
+    iret = D2H(mem, off, mem->size() * expansion, mem->host_inter());
     Reduction::GetInstance()->Reduce(mem, host, size);
-  } else clerr_ = clEnqueueReadBuffer(clcmdq_, clmem, CL_TRUE, off, size, host, 0, NULL, NULL);
-  _clerror(clerr_);
-  double time = timer_->Stop(13);
+  } else iret = D2H(mem, off, size, host);
+  if (iret != BRISBANE_OK) _error("iret[%d]", iret);
+  double time = timer_->Stop(BRISBANE_TIMER_D2H);
   cmd->SetTime(time);
-  _trace("devno[%d][%s] mem[%lu] off[%lu] size[%lu] expansion[%d] host[%p] time[%lf]", devno_, name_, mem->uid(), off, size, expansion, host, time);
   Command* cmd_kernel = cmd->task()->cmd_kernel();
   if (cmd_kernel) cmd_kernel->kernel()->history()->AddD2H(cmd, this, time);
   else Platform::GetPlatform()->null_kernel()->history()->AddD2H(cmd, this, time);
 }
 
-void Device::ExecutePresent(Command* cmd) {
-  Mem* mem = cmd->mem();
-  cl_mem clmem = mem->clmem(platform_no_, clctx_);
-  size_t off = cmd->off(0);
-  size_t size = cmd->size();
-  void* host = cmd->host();
-  _trace("devno[%d] mem[%lu] off[%lu] size[%lu] host[%p]", devno_, mem->uid(), off, size, host);
-  if (mem->IsOwner(off, size, this)) return;
-  ExecuteH2D(cmd);
-}
-
 void Device::ExecuteReleaseMem(Command* cmd) {
   Mem* mem = cmd->mem();
   mem->Release(); 
-}
-
-void Device::Wait() {
-  clerr_ = clFinish(clcmdq_);
-  _clerror(clerr_);
 }
 
 } /* namespace rt */

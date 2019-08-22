@@ -7,7 +7,10 @@
 
 #define BRISBANE_MAX_NDEVS      16
 
+#cmakedefine USE_CUDA
 #cmakedefine USE_HIP
+#cmakedefine USE_OPENCL
+#cmakedefine USE_OPENMP
 
 #include <brisbane/brisbane.h>
 
