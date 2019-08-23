@@ -1,8 +1,6 @@
 #include "Platform.h"
 #include "Utils.h"
 #include "Command.h"
-#include "DeviceCUDA.h"
-#include "DeviceOpenCL.h"
 #include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
@@ -17,6 +15,16 @@
 #include "Worker.h"
 #include <unistd.h>
 #include <algorithm>
+
+#ifdef USE_CUDA
+#include "DeviceCUDA.h"
+#endif
+#ifdef USE_HIP
+#include "DeviceHIP.h"
+#endif
+#ifdef USE_OPENCL
+#include "DeviceOpenCL.h"
+#endif
 
 namespace brisbane {
 namespace rt {
@@ -65,6 +73,7 @@ int Platform::Init(int* argc, char*** argv, int sync) {
 
   timer_->Start(BRISBANE_TIMER_PLATFORM);
   InitCUDA();
+  InitHIP();
   InitOpenCL();
   polyhedral_ = new Polyhedral(this);
   polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
@@ -100,6 +109,27 @@ int Platform::Synchronize() {
     task->AddSubtask(new Task(this, BRISBANE_MARKER));
   scheduler_->Enqueue(task);
   task->Wait();
+  return BRISBANE_OK;
+}
+
+int Platform::InitHIP() {
+#ifdef USE_HIP
+  hipError_t err = hipSuccess;
+  err = hipInit(0);
+  _hiperror(err);
+  int ndevs = 0;
+  err = hipGetDeviceCount(&ndevs);
+  _hiperror(err);
+  _info("ndevs[%d]", ndevs);
+  for (int i = 0; i < ndevs; i++) {
+    hipDevice_t dev;
+    err = hipDeviceGet(&dev, i);
+    _hiperror(err);
+    devices_[ndevs_] = new DeviceHIP(dev, ndevs_, nplatforms_);
+    ndevs_++;
+  }
+  if (ndevs) nplatforms_++;
+#endif
   return BRISBANE_OK;
 }
 
@@ -147,23 +177,29 @@ int Platform::InitOpenCL() {
     err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
 #ifdef USE_CUDA
     if (strstr(vendor, "NVIDIA") != NULL) {
-      _info("skipping platform[%d] [%s %s] ndevs[%u]", i, vendor, platform_name, ndevs);
+      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
 #endif
-    _info("adding platform[%d] [%s %s] ndevs[%u]", i, vendor, platform_name, ndevs);
     if (ndevs) {
       err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
       _clerror(err);
       cl_contexts_[i] = clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
       _clerror(err);
+      if (err != CL_SUCCESS) {
+        _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+        continue;
+      }
     }
     for (cl_uint j = 0; j < ndevs; j++) {
       devices_[ndevs_] = new DeviceOpenCL(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
       //enable &= devices_[ndevs_]->enable();
       ndevs_++;
     }
-    nplatforms_++;
+    if (ndevs) {
+      _info("adding platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+      nplatforms_++;
+    }
   }
   if (ndevs_) device_default_ = devices_[0]->type();
   if (!enable) exit(-1);

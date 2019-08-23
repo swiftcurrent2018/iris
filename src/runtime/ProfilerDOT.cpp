@@ -35,7 +35,7 @@ int ProfilerDOT::Exit() {
     Write(s);
   }
   if (no_task_) Write("start -> end\n");
-  sprintf(s, "end[shape=Msquare, label=\"exit\\n%lf\"]\n", platform_->app(), platform_->time_app());
+  sprintf(s, "end[shape=Msquare, label=\"exit\\n%lf\"]\n", platform_->time_app());
   Write(s);
   Write(PROFILER_DOT_FOOTER);
   return BRISBANE_OK;

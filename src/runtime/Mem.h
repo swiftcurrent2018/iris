@@ -28,12 +28,6 @@ public:
   void Reduce(int mode, int type);
   void Expand(int expansion);
 
-#ifdef USE_CUDA
-  CUdeviceptr cumem(int devno);
-#endif
-#ifdef USE_OPENCL
-  cl_mem clmem(int platform, cl_context clctx);
-#endif
   size_t size() { return size_; }
   int mode() { return mode_; }
   int type() { return type_; }
@@ -45,14 +39,6 @@ private:
   size_t size_;
   int mode_;
   Platform* platform_;
-#ifdef USE_CUDA
-  CUdeviceptr cumems_[BRISBANE_MAX_NDEVS];
-  CUresult cuerr_;
-#endif
-#ifdef USE_OPENCL
-  cl_mem clmems_[BRISBANE_MAX_NDEVS];
-  cl_int clerr_;
-#endif
   std::set<MemRange*> ranges_;
   void* host_inter_;
   int ndevs_;
@@ -61,6 +47,32 @@ private:
   int expansion_;
 
   pthread_mutex_t mutex_;
+
+#ifdef USE_CUDA
+public:
+  CUdeviceptr* cumems() { return cumems_; }
+  CUdeviceptr cumem(int devno);
+private:
+  CUdeviceptr cumems_[BRISBANE_MAX_NDEVS];
+  CUresult cuerr_;
+#endif
+
+#ifdef USE_HIP
+public:
+  void** hipmems() { return hipmems_; }
+  void* hipmem(int devno);
+private:
+  void* hipmems_[BRISBANE_MAX_NDEVS];
+  hipError_t hiperr_;
+#endif
+
+#ifdef USE_OPENCL
+public:
+  cl_mem clmem(int platform, cl_context clctx);
+private:
+  cl_mem clmems_[BRISBANE_MAX_NDEVS];
+  cl_int clerr_;
+#endif
 };
 
 } /* namespace rt */

@@ -10,7 +10,6 @@ set(BRISBANE_RUNTIME_SOURCES
   Command.cpp
   Consistency.cpp
   Device.cpp
-  DeviceOpenCL.cpp
   FilterTaskSplit.cpp
   History.cpp
   HubClient.cpp
@@ -56,11 +55,16 @@ endif()
 
 if(USE_HIP)
   MESSAGE(STATUS "USE_HIP")
+  add_definitions(-D__HIP_PLATFORM_HCC__)
+  include_directories(/opt/rocm/hip/include)
+  include_directories(/opt/rocm/hsa/include)
+  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceHIP.cpp)
 endif()
 
 if(USE_OPENCL)
   MESSAGE(STATUS "USE_OPENCL")
-  find_package(OpenCL REQUIRED)
+  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenCL.cpp)
+  #find_package(OpenCL REQUIRED)
 endif()
 
 if(USE_OPENMP)

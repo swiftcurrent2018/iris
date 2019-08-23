@@ -32,6 +32,7 @@ public:
   int Synchronize();
 
   int InitCUDA();
+  int InitHIP();
   int InitOpenCL();
   int InitDevices(bool sync);
 

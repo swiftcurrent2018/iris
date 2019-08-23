@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   int chunk_size = SIZE / nteams;
 
   SIZE = argc > 1 ? atol(argv[1]) : 16;
-  printf("SIZE[%d]\n", SIZE);
+  printf("SIZE[%lu]\n", SIZE);
 
   X = (float*) malloc(SIZE * sizeof(float));
   Y = (float*) malloc(SIZE * sizeof(float));

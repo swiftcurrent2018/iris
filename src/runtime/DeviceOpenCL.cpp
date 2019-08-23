@@ -25,7 +25,7 @@ DeviceOpenCL::DeviceOpenCL(cl_device_id cldev, cl_context clctx, int devno, int 
   else if (cltype_ == CL_DEVICE_TYPE_GPU) {
     type_ = brisbane_gpu;
     if (strcasestr(vendor_, "NVIDIA")) type_ = brisbane_nvidia;
-    else if (strcasestr(vendor_, "AMD")) type_ = brisbane_amd;
+    else if (strcasestr(vendor_, "Advanced Micro Devices")) type_ = brisbane_amd;
   }
   else if (cltype_ == CL_DEVICE_TYPE_ACCELERATOR) {
     if (strstr(name_, "FPGA") != NULL || strstr(version_, "FPGA") != NULL) type_ = brisbane_fpga;

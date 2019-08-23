@@ -50,6 +50,7 @@ protected:
   char vendor_[64];
   char name_[64];
   char version_[64];
+  int driver_version_;
   int max_compute_units_;
   size_t max_work_item_sizes_[3];
 

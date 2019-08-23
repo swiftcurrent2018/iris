@@ -9,9 +9,10 @@
 #define _DEBUG_ENABLE
 #define _INFO_ENABLE
 #define _ERROR_ENABLE
+#define _TODO_ENABLE
 #define _CLERROR_ENABLE
 #define _CUERROR_ENABLE
-#define _TODO_ENABLE
+#define _HIPERROR_ENABLE
 
 #define _COLOR_DEBUG
 
@@ -113,6 +114,14 @@ extern char brisbane_log_prefix_[];
 #define __error(fmt, ...)
 #endif
 
+#ifdef _TODO_ENABLE
+#define  _todo(fmt, ...) { printf( GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#define __todo(fmt, ...) { printf(_GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#else
+#define  _todo(fmt, ...)
+#define __todo(fmt, ...)
+#endif
+
 #ifdef _CLERROR_ENABLE
 #define  _clerror(err) { if (err != CL_SUCCESS) { printf( RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
 #define __clerror(err) { if (err != CL_SUCCESS) { printf(_RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
@@ -129,12 +138,12 @@ extern char brisbane_log_prefix_[];
 #define __clerror(err)
 #endif
 
-#ifdef _TODO_ENABLE
-#define  _todo(fmt, ...) { printf( GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
-#define __todo(fmt, ...) { printf(_GREEN "[TODO] %s [%s:%d:%s] " fmt RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, __VA_ARGS__); fflush(stdout); }
+#ifdef _HIPERROR_ENABLE
+#define  _hiperror(err) { if (err != hipSuccess) { printf( RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
+#define __hiperror(err) { if (err != hipSuccess) { printf(_RED "[E] %s [%s:%d:%s] err[%d]" RESET "\n", brisbane_log_prefix_, __SHORT_FILE__, __LINE__, __func__, err); fflush(stdout); } }
 #else
-#define  _todo(fmt, ...)
-#define __todo(fmt, ...)
+#define  _hiperror(err)
+#define __hiperror(err)
 #endif
 
 } /* namespace rt */
