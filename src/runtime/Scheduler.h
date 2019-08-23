@@ -9,6 +9,7 @@
 namespace brisbane {
 namespace rt {
 
+class Consistency;
 class Device;
 class HubClient;
 class Task;
@@ -25,11 +26,13 @@ public:
   virtual ~Scheduler();
 
   void Enqueue(Task* task);
+  void SubmitTaskDirect(Task* task, Device* dev);
 
   Platform* platform() { return platform_; }
   Device** devices() { return devices_; }
   Worker** workers() { return workers_; }
   Worker* worker(int i) { return workers_[i]; }
+  Consistency* consistency() { return consistency_; }
   int ndevs() { return ndevs_; }
   int nworkers() { return ndevs_; }
   void StartTask(Task* task, Worker* worker);
@@ -41,7 +44,7 @@ public:
 
 private:
   void Submit(Task* task);
-  void SubmitWorker(Task* task);
+  void SubmitTask(Task* task);
   virtual void Run();
 
   void InitWorkers();
@@ -57,6 +60,7 @@ private:
   Policies* policies_;
   Device** devices_;
   Worker* workers_[BRISBANE_MAX_NDEVS];
+  Consistency* consistency_;
   size_t ntasks_on_devs_[BRISBANE_MAX_NDEVS];
   int ndevs_;
   HubClient* hub_client_;

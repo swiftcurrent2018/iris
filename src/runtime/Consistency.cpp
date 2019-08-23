@@ -4,12 +4,14 @@
 #include "Command.h"
 #include "Kernel.h"
 #include "Mem.h"
+#include "Scheduler.h"
 #include "Task.h"
 
 namespace brisbane {
 namespace rt {
 
-Consistency::Consistency() {
+Consistency::Consistency(Scheduler* scheduler) {
+  scheduler_ = scheduler;
 }
 
 Consistency::~Consistency() {
@@ -61,12 +63,15 @@ void Consistency::ResolveWithPolymem(Task* task, Command* cmd, Mem* mem, KernelA
     off *= polymem->typesz;
   } else _error("not supprt mode[0x%x]", arg->mode);
 
-  if (mem->IsOwner(off, size, dev)) return;
   Device* owner = mem->Owner(off, size);
-  if (!owner) return;
+  if (!owner || mem->IsOwner(off, size, dev)) return;
 
+  Task* task_d2h = new Task(scheduler_->platform());
+  task_d2h->set_system();
   Command* d2h = Command::CreateD2H(task, mem, off, size, (char*) mem->host_inter() + off);
-  owner->ExecuteD2H(d2h);
+  task_d2h->AddCommand(d2h);
+  scheduler_->SubmitTaskDirect(task_d2h, owner);
+  task_d2h->Wait();
 
   Command* h2d = arg->mode == brisbane_r ?
     Command::CreateH2DNP(task, mem, off, size, (char*) mem->host_inter() + off) :
@@ -75,7 +80,7 @@ void Consistency::ResolveWithPolymem(Task* task, Command* cmd, Mem* mem, KernelA
 
   _trace("kernel[%s] memcpy[%lu] [%s] -> [%s]", kernel->name(), mem->uid(), owner->name(), dev->name());
 
-  Command::Release(d2h);
+  task_d2h->Release();
   Command::Release(h2d);
 }
 
@@ -83,18 +88,24 @@ void Consistency::ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem) {
   Device* dev = task->dev();
   Kernel* kernel = cmd->kernel();
   Device* owner = mem->Owner();
-  if (!owner) return;
-  Command* d2h = Command::CreateD2H(task, mem, 0, mem->size(), mem->host_inter());
-  owner->ExecuteD2H(d2h);
+  if (!owner || mem->IsOwner(0, mem->size(), dev)) return;
+
+  Task* task_d2h = new Task(scheduler_->platform());
+  task_d2h->set_system();
+  Command* d2h = Command::CreateD2H(task_d2h, mem, 0, mem->size(), mem->host_inter());
+  task_d2h->AddCommand(d2h);
+  scheduler_->SubmitTaskDirect(task_d2h, owner);
+  task_d2h->Wait();
 
   Command* h2d = Command::CreateH2D(task, mem, 0, mem->size(), mem->host_inter());
   dev->ExecuteH2D(h2d);
 
   _trace("kernel[%s] memcpy[%lu] [%s] -> [%s]", kernel->name(), mem->uid(), owner->name(), dev->name());
 
-  Command::Release(d2h);
+  task_d2h->Release();
   Command::Release(h2d);
 }
 
 } /* namespace rt */
 } /* namespace brisbane */
+

@@ -4,7 +4,7 @@
 #include "Config.h"
 
 #ifdef USE_CUDA
-#include <cuda.h>
+#include <cuda/cuda.h>
 #endif
 
 #ifdef USE_HIP
@@ -12,6 +12,7 @@
 #endif
 
 #ifdef USE_OPENCL
+#define CL_TARGET_OPENCL_VERSION 120
 #include <CL/cl.h>
 #endif
 

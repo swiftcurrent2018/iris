@@ -1,7 +1,7 @@
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
-#include_directories(${BRISBANE_INC_DIR})
-#include_directories(${BRISBANE_BIN_DIR}/runtime)
+include_directories(${BRISBANE_INC_DIR})
+include_directories(${BRISBANE_BIN_DIR}/runtime)
 
 configure_file(Config.h.in Config.h)
 
@@ -43,28 +43,26 @@ set(BRISBANE_RUNTIME_SOURCES
 
 if(USE_CUDA)
   MESSAGE(STATUS "USE_CUDA")
-  enable_language(CUDA)
-  include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+  #enable_language(CUDA)
+  #include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
   list(APPEND BRISBANE_RUNTIME_SOURCES DeviceCUDA.cpp)
-
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-  foreach(dir ${dirs})
-    message(STATUS "dir='${dir}'")
-  endforeach()
 endif()
 
 if(USE_HIP)
-  MESSAGE(STATUS "USE_HIP")
+  MESSAGE(STATUS "USE_HIP: ROCM_DIR: ${ROCM_DIR}")
+  if(NOT DEFINED ROCM_DIR)
+    MESSAGE(STATUS "DEFINE ROCM_DIR")
+  endif()
   add_definitions(-D__HIP_PLATFORM_HCC__)
-  include_directories(/opt/rocm/hip/include)
-  include_directories(/opt/rocm/hsa/include)
+  include_directories(${ROCM_DIR}/hip/include)
+  include_directories(${ROCM_DIR}/hsa/include)
   list(APPEND BRISBANE_RUNTIME_SOURCES DeviceHIP.cpp)
 endif()
 
 if(USE_OPENCL)
   MESSAGE(STATUS "USE_OPENCL")
-  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenCL.cpp)
   #find_package(OpenCL REQUIRED)
+  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenCL.cpp)
 endif()
 
 if(USE_OPENMP)

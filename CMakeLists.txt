@@ -15,8 +15,8 @@ option(USE_CUDA     "Enable support for NVIDIA CUDA"    OFF)
 option(USE_HIP      "Enable support for AMD HIP"        OFF)
 option(USE_OPENCL   "Enable support for Khronos OpenCL" OFF)
 option(USE_OPENMP   "Enable support for OpenMP"         OFF)
-
 option(USE_FORTRAN  "Enable support for Fortran 90"     OFF)
+option(USE_PYTHON   "Enable support for Python"         ON )
 
 add_subdirectory(include)
 add_subdirectory(src)

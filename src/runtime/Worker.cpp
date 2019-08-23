@@ -8,17 +8,16 @@
 namespace brisbane {
 namespace rt {
 
-Worker::Worker(Device* device, Scheduler* scheduler) {
-  device_ = device;
+Worker::Worker(Device* dev, Scheduler* scheduler) {
+  dev_ = dev;
   scheduler_ = scheduler;
-  device_->set_worker(this);
-  consistency_ = new Consistency();
+  dev_->set_worker(this);
+  consistency_ = scheduler_->consistency();
   queue_ = new LockFreeQueue<Task*>(1024);
   busy_ = false;
 }
 
 Worker::~Worker() {
-  delete consistency_;
   delete queue_;
 }
 
@@ -34,10 +33,10 @@ void Worker::Execute(Task* task) {
     return;
   }
   busy_ = true;
-  task->set_dev(device_);
+  task->set_dev(dev_);
   scheduler_->StartTask(task, this);
   consistency_->Resolve(task);
-  device_->Execute(task);
+  dev_->Execute(task);
   scheduler_->CompleteTask(task, this);
   task->Complete();
   busy_ = false;

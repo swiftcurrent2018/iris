@@ -6,6 +6,7 @@
 #include "Mem.h"
 #include "Polyhedral.h"
 #include "Task.h"
+#include <alloca.h>
 
 namespace brisbane {
 namespace rt {

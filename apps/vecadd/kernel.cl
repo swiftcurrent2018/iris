@@ -12,3 +12,4 @@ __kernel void loop2(__global int* restrict E, __global int* restrict D) {
   size_t id = get_global_id(0);
   E[id] = D[id] * 2;
 }
+

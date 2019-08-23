@@ -1,5 +1,6 @@
 #include "Scheduler.h"
 #include "Debug.h"
+#include "Consistency.h"
 #include "Device.h"
 #include "HubClient.h"
 #include "Platform.h"
@@ -22,11 +23,12 @@ Scheduler::Scheduler(Platform* platform) {
   nprofilers_ = platform->nprofilers();
   profilers_ = platform->profilers();
   pthread_mutex_init(&mutex_, NULL);
-  timer_ = new Timer();
+  consistency_ = new Consistency(this);
   policies_ = new Policies(this);
   //queue_ = new LockFreeQueue<Task*>(1024);
   queue_ = new TaskQueue(this);
   hub_client_ = new HubClient(this);
+  timer_ = new Timer();
   InitWorkers();
   InitHubClient();
 }
@@ -34,6 +36,7 @@ Scheduler::Scheduler(Platform* platform) {
 Scheduler::~Scheduler() {
   DestroyWorkers();
   delete queue_;
+  delete consistency_;
   delete policies_;
   delete hub_client_;
   pthread_mutex_destroy(&mutex_);
@@ -100,21 +103,26 @@ void Scheduler::Run() {
   }
 }
 
+void Scheduler::SubmitTaskDirect(Task* task, Device* dev) {
+  dev->worker()->Enqueue(task);
+  if (hub_available_) hub_client_->TaskInc(dev->devno(), 1);
+}
+
 void Scheduler::Submit(Task* task) {
   if (task->marker()) {
     for (int i = 0; i < ndevs_; i++) workers_[i]->Enqueue(task->subtask(i));
     return;
   }
   if (!task->HasSubtasks()) {
-    SubmitWorker(task);
+    SubmitTask(task);
     return;
   }
   std::vector<Task*>* subtasks = task->subtasks();
   for (std::vector<Task*>::iterator I = subtasks->begin(), E = subtasks->end(); I != E; ++I)
-    SubmitWorker(*I);
+    SubmitTask(*I);
 }
 
-void Scheduler::SubmitWorker(Task* task) {
+void Scheduler::SubmitTask(Task* task) {
   int brs_policy = task->brs_policy();
   int ndevs = 0;
   Device* devs[BRISBANE_MAX_NDEVS];

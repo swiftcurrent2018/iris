@@ -92,7 +92,7 @@ int Platform::Init(int* argc, char*** argv, int sync) {
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
 
-  _info("available: hub[%d] polyhedral[%d] profile[%d]", scheduler_->hub_available(), polyhedral_available_, enable_profiler_);
+  _info("available: hub[%d] polyhedral[%d] profile[%d] nplatforms[%d] ndevs[%d]", scheduler_->hub_available(), polyhedral_available_, enable_profiler_, nplatforms_, ndevs_);
 
   InitDevices(sync);
 
@@ -177,6 +177,12 @@ int Platform::InitOpenCL() {
     err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
 #ifdef USE_CUDA
     if (strstr(vendor, "NVIDIA") != NULL) {
+      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+      continue;
+    }
+#endif
+#ifdef USE_HIP
+    if (strstr(vendor, "Advanced Micro Devices") != NULL) {
       _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }

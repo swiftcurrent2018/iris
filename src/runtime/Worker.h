@@ -14,13 +14,13 @@ class Task;
 
 class Worker : public Thread {
 public:
-  Worker(Device* device, Scheduler* scheduler);
+  Worker(Device* dev, Scheduler* scheduler);
   virtual ~Worker();
 
   void Enqueue(Task* task);
   bool busy() { return busy_; }
   unsigned long ntasks();
-  Device* device() { return device_; }
+  Device* device() { return dev_; }
 
 private:
   void Execute(Task* task);
@@ -29,7 +29,7 @@ private:
 private:
   LockFreeQueue<Task*>* queue_;
   Consistency* consistency_;
-  Device* device_;
+  Device* dev_;
   Scheduler* scheduler_;
   bool busy_;
 };
