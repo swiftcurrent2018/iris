@@ -87,9 +87,10 @@ cl_mem Mem::clmem(int platform, cl_context clctx) {
 
 #ifdef USE_OPENMP
 void* Mem::mpmem(int devno) {
-  if (!mpmems_[devno]) {
-    mpmems_[devno] = valloc(expansion_ * size_);
-  }
+  if (!mpmems_[devno])
+    if (posix_memalign(mpmems_ + devno, 0x1000, expansion_ * size_) != 0) {
+      _error("%s", "posix_memalign");
+    }
   return mpmems_[devno];
 }
 #endif

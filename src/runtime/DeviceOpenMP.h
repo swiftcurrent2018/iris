@@ -27,6 +27,9 @@ private:
   int (*setarg_)(int idx, size_t size, void* value);
   int (*setmem_)(int idx, void* mem);
   int (*launch_)(int dim, size_t off, size_t ndr);
+
+  int GetProcessorNameIntel(char* cpuinfo);
+  int GetProcessorNameARM(char* cpuinfo);
 };
 
 } /* namespace rt */

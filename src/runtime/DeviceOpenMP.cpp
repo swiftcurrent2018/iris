@@ -15,14 +15,9 @@ DeviceOpenMP::DeviceOpenMP(int devno, int platform) : Device(devno, platform) {
   char* arg = 0;
   size_t size = 0;
   while (getdelim(&arg, &size, 0, fd) != -1) {
-    char* c1 = strstr(arg, "model name\t: ");
-    char* c2 = c1 + strlen("model name\t: ");
-    char* c3 = strstr(c2, "GHz");
-    _debug("%p", c3);
-    if (c1 != 0) {
-      strncpy(name_, c2, c3 - c2 + 3);
-      break;
-    }
+    if (GetProcessorNameIntel(arg) == BRISBANE_OK) break;
+    if (GetProcessorNameARM(arg) == BRISBANE_OK) break;
+    strcpy(name_, "Unknown CPU"); break;
   }
   free(arg);
   fclose(fd);
@@ -33,6 +28,26 @@ DeviceOpenMP::~DeviceOpenMP() {
     dlerr_ = dlclose(handle_);
     if (dlerr_ != 0) _error("%s", dlerror());
   }
+}
+
+int DeviceOpenMP::GetProcessorNameIntel(char* cpuinfo) {
+  char* c1 = strstr(cpuinfo, "model name\t: ");
+  if (!c1) return BRISBANE_ERR;
+  char* c2 = c1 + strlen("model name\t: ");
+  char* c3 = strstr(c2, "GHz");
+  if (!c3) return BRISBANE_ERR;
+  strncpy(name_, c2, c3 - c2 + 3);
+  return BRISBANE_OK;
+}
+
+int DeviceOpenMP::GetProcessorNameARM(char* cpuinfo) {
+  char* c1 = strstr(cpuinfo, "model name\t: ");
+  if (!c1) return BRISBANE_ERR;
+  char* c2 = c1 + strlen("model name\t: ");
+  char* c3 = strstr(c2, ")");
+  if (!c3) return BRISBANE_ERR;
+  strncpy(name_, c2, c3 - c2 + 1);
+  return BRISBANE_OK;
 }
 
 int DeviceOpenMP::Init() {
