@@ -25,6 +25,7 @@ DeviceOpenMP::DeviceOpenMP(int devno, int platform) : Device(devno, platform) {
 
 DeviceOpenMP::~DeviceOpenMP() {
   if (handle_) {
+    finalize_();
     dlerr_ = dlclose(handle_);
     if (dlerr_ != 0) _error("%s", dlerror());
   }
@@ -51,19 +52,27 @@ int DeviceOpenMP::GetProcessorNameARM(char* cpuinfo) {
 }
 
 int DeviceOpenMP::Init() {
-  handle_ = dlopen("kernel.omp.so", RTLD_LAZY);
+  handle_ = dlopen("kernel.openmp.so", RTLD_LAZY);
   if (!handle_) {
     _error("%s", dlerror());
     return BRISBANE_ERR;
   }
-  *(void**) (&kernel_) = dlsym(handle_, "brisbane_omp_kernel");
+  *(void**) (&kernel_) = dlsym(handle_, "brisbane_openmp_kernel");
   if (!kernel_) _error("%s", dlerror());
-  *(void**) (&setarg_) = dlsym(handle_, "brisbane_omp_setarg");
+  *(void**) (&setarg_) = dlsym(handle_, "brisbane_openmp_setarg");
   if (!kernel_) _error("%s", dlerror());
-  *(void**) (&setmem_) = dlsym(handle_, "brisbane_omp_setmem");
+  *(void**) (&setmem_) = dlsym(handle_, "brisbane_openmp_setmem");
   if (!kernel_) _error("%s", dlerror());
-  *(void**) (&launch_) = dlsym(handle_, "brisbane_omp_launch");
+  *(void**) (&launch_) = dlsym(handle_, "brisbane_openmp_launch");
   if (!kernel_) _error("%s", dlerror());
+
+  *(void**) (&init_) = dlsym(handle_, "brisbane_openmp_init");
+  if (!init_) _error("%s", dlerror());
+  *(void**) (&finalize_) = dlsym(handle_, "brisbane_openmp_finalize");
+  if (!finalize_) _error("%s", dlerror());
+
+  init_();
+
   return BRISBANE_OK;
 }
 
@@ -96,7 +105,6 @@ int DeviceOpenMP::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
 }
 
 int DeviceOpenMP::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) {
-  _debug("off[%lu] gws[%lu]", off[0], gws[0]);
   if (!launch_) return BRISBANE_ERR;
   return launch_(dim, off[0], gws[0]);
 }

@@ -63,7 +63,7 @@ public:
     }
     OS << "  return BRISBANE_OK;\n}\n\n";
 
-    OS << "int brisbane_poly_" << Fname << "_setarg(int idx, size_t size, void* value) {\n";
+    OS << "static int brisbane_poly_" << Fname << "_setarg(int idx, size_t size, void* value) {\n";
     OS << "  switch (idx) {\n";
     for (unsigned i = 0; i < nparams; i++) {
       const ParmVarDecl* P = F->getParamDecl(i);
@@ -73,7 +73,7 @@ public:
     }
     OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}\n\n";
 
-    OS << "int brisbane_poly_" << Fname << "_getmem(int idx, brisbane_poly_mem* mem) {\n";
+    OS << "static int brisbane_poly_" << Fname << "_getmem(int idx, brisbane_poly_mem* mem) {\n";
     OS << "  switch (idx) {\n";
     for (unsigned i = 0; i < nparams; i++) {
       const ParmVarDecl* P = F->getParamDecl(i);
@@ -101,7 +101,6 @@ public:
       llvm::errs() << EC.message() << "\n";
       return;
     }
-    OS << "#include <brisbane/brisbane_errno.h>\n";
     OS << "#include <brisbane/brisbane_poly.h>\n\n";
     OS << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n";
 
@@ -157,6 +156,122 @@ private:
   std::string S;
 };
 
+class BrisbaneOpenMPCallback : public MatchFinder::MatchCallback {
+public:
+  BrisbaneOpenMPCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
+
+  void run(const MatchFinder::MatchResult &Result) override {
+    const FunctionDecl *F = Result.Nodes.getNodeAs<FunctionDecl>("kernel");
+    Loc = F->getBody()->getBeginLoc();
+    StringRef Fname = F->getName();
+    const unsigned nparams = F->getNumParams();
+
+    llvm::raw_string_ostream OS(S);
+    OS << "typedef struct {\n";
+    for (const ParmVarDecl *P : F->parameters()) {
+      const QualType T = P->getType();
+      OS << "  " << T.getAsString();
+      OS << " " << P->getName() << ";\n";
+    }
+    OS << "} brisbane_openmp_" << Fname << "_args;\n";
+    OS << "brisbane_openmp_" << Fname << "_args " << Fname << "_args;\n\n";
+
+    OS << "static int brisbane_openmp_" << Fname << "_setarg(int idx, size_t size, void* value) {\n";
+    OS << "  switch (idx) {\n";
+    for (unsigned i = 0; i < nparams; i++) {
+      const ParmVarDecl* P = F->getParamDecl(i);
+      const QualType T = P->getType();
+      if (T->isPointerType()) continue;
+      OS << "    case " << i << ": memcpy(&" << Fname << "_args." << P->getName() << ", value, size); break;\n";
+    }
+    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}\n\n";
+
+    OS << "static int brisbane_openmp_" << Fname << "_setmem(int idx, void* mem) {\n";
+    OS << "  switch (idx) {\n";
+    for (unsigned i = 0; i < nparams; i++) {
+      const ParmVarDecl* P = F->getParamDecl(i);
+      const QualType T = P->getType();
+      if (!T->isPointerType()) continue;
+      OS << "    case " << i << ": " << Fname << "_args." << P->getName() << " = (" << T.getAsString() << ") mem; break;\n";
+    }
+    OS << "    default: return BRISBANE_ERR;\n  }\n  return BRISBANE_OK;\n}\n";
+
+    Kernels.push_back(F);
+  }
+
+  void onStartOfTranslationUnit() override {
+  }
+
+  void onEndOfTranslationUnit() override {
+    SourceManager& SM = Rewrite.getSourceMgr();
+    llvm::SmallString<128> Filepath(SM.getFilename(Loc));
+    StringRef Filename = llvm::sys::path::filename(Filepath.str());
+    Filepath.append(".openmp.c");
+    llvm::outs() << BBLUE CHECK_O "BrisbaneClang Pass generates [" << Filepath << "]" RESET "\n";
+    std::error_code EC;
+    llvm::raw_fd_ostream OS(Filepath, EC, llvm::sys::fs::OF_None);
+    if (EC) {
+      llvm::errs() << EC.message() << "\n";
+      return;
+    }
+    OS << "#include <brisbane/brisbane_openmp.h>\n\n";
+    OS << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n";
+
+    OS << S;
+
+    OS << "\n#include \"" << Filename << ".openmp.h\"\n\n";
+
+    OS << "int brisbane_openmp_kernel(const char* name) {\n";
+    OS << "  brisbane_openmp_lock();\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "  if (strcmp(name, \"" << Fname << "\") == 0) {\n";
+      OS << "    brisbane_openmp_kernel_idx = " << i << ";\n";
+      OS << "    return BRISBANE_OK;\n  }\n";
+    }
+    OS << "  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "int brisbane_openmp_setarg(int idx, size_t size, void* value) {\n";
+    OS << "  switch (brisbane_openmp_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "    case " << i << ": return brisbane_openmp_" << Fname << "_setarg(idx, size, value);\n";
+    }
+    OS << "  }\n  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "int brisbane_openmp_setmem(int idx, void* mem) {\n";
+    OS << "  switch (brisbane_openmp_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      StringRef Fname = Kernels[i]->getName();
+      OS << "    case " << i << ": return brisbane_openmp_" << Fname << "_setmem(idx, mem);\n";
+    }
+    OS << "  }\n  return BRISBANE_ERR;\n}\n\n";
+
+    OS << "int brisbane_openmp_launch(int dim, size_t off, size_t ndr) {\n";
+    OS << "  switch (brisbane_openmp_kernel_idx) {\n";
+    for (unsigned i = 0; i < Kernels.size(); i++) {
+      const FunctionDecl* F = Kernels[i];
+      StringRef Fname = F->getName();
+      OS << "    case " << i << ": " << Fname << "(";
+      for (const ParmVarDecl *P : F->parameters()) {
+        OS << Fname << "_args." << P->getName() << ", ";
+      }
+      OS << "off, ndr); break;\n";
+    }
+    OS << "  }\n  brisbane_openmp_unlock();\n";
+    OS << "  return BRISBANE_OK;\n}\n\n";
+
+    OS << "#ifdef __cplusplus\n} /* end of extern \"C\" */\n#endif\n\n";
+    OS.close();
+  }
+
+private:
+  Rewriter &Rewrite;
+  SourceLocation Loc;
+  SmallVector<const FunctionDecl*, 32> Kernels;
+  std::string S;
+};
+
 class BrisbaneLLVMCallback : public MatchFinder::MatchCallback {
 public:
   BrisbaneLLVMCallback(Rewriter &Rewrite) : Rewrite(Rewrite) {}
@@ -200,9 +315,10 @@ private:
 
 class BrisbaneASTConsumer : public ASTConsumer {
 public:
-  BrisbaneASTConsumer(Rewriter &RWLLVM, Rewriter &RWPOLY) : CallbackLLVM(RWLLVM), CallbackPOLY(RWPOLY) {
+  BrisbaneASTConsumer(Rewriter &RWLLVM, Rewriter &RWPOLY, Rewriter &RWOpenMP) : CallbackLLVM(RWLLVM), CallbackPOLY(RWPOLY), CallbackOpenMP(RWOpenMP) {
     Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackLLVM);
     Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackPOLY);
+    Finder.addMatcher(functionDecl(hasAttr(attr::OpenCLKernel)).bind("kernel"), &CallbackOpenMP);
   }
 
   void HandleTranslationUnit(ASTContext &Context) override {
@@ -212,6 +328,7 @@ public:
 private:
   BrisbaneLLVMCallback CallbackLLVM;
   BrisbanePOLYCallback CallbackPOLY;
+  BrisbaneOpenMPCallback CallbackOpenMP;
   MatchFinder Finder;
 };
 
@@ -234,12 +351,14 @@ public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef file) override {
     RWLLVM.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
     RWPOLY.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-    return llvm::make_unique<BrisbaneASTConsumer>(RWLLVM, RWPOLY);
+    RWOpenMP.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
+    return llvm::make_unique<BrisbaneASTConsumer>(RWLLVM, RWPOLY, RWOpenMP);
   }
 
 private:
   Rewriter RWLLVM;
   Rewriter RWPOLY;
+  Rewriter RWOpenMP;
 };
 
 int main(int argc, const char **argv) {

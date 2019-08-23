@@ -13,7 +13,6 @@ Polyhedral::Polyhedral(Platform* platform) {
 Polyhedral::~Polyhedral() {
   if (handle_) {
     finalize_();
-
     dlerr_ = dlclose(handle_);
     if (dlerr_ != 0) _error("%s", dlerror());
   }
