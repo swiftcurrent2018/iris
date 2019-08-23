@@ -68,6 +68,7 @@ endif()
 if(USE_OPENMP)
   MESSAGE(STATUS "USE_OPENMP")
   find_package(OpenMP REQUIRED)
+  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenMP.cpp)
 endif()
 
 if(USE_FORTRAN)

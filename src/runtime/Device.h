@@ -29,7 +29,8 @@ public:
   virtual int Init() = 0;
   virtual int H2D(Mem* mem, size_t off, size_t size, void* host) = 0;
   virtual int D2H(Mem* mem, size_t off, size_t size, void* host) = 0;
-  virtual int KernelSetArg(Kernel* kernel, int idx, size_t arg_size, void* arg_value) = 0;
+  virtual int KernelLaunchInit(Kernel* kernel) { }
+  virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
 

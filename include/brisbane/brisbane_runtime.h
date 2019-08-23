@@ -51,7 +51,7 @@ extern int brisbane_device_set_default(int device);
 extern int brisbane_device_get_default(int* device);
 
 extern int brisbane_kernel_create(const char* name, brisbane_kernel* kernel);
-extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
+extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* value);
 extern int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
 extern int brisbane_kernel_release(brisbane_kernel kernel);
 

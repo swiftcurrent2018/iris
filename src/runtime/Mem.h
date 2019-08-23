@@ -73,6 +73,14 @@ private:
   cl_mem clmems_[BRISBANE_MAX_NDEVS];
   cl_int clerr_;
 #endif
+
+#ifdef USE_OPENMP
+public:
+  void* mpmem(int devno);
+private:
+  void* mpmems_[BRISBANE_MAX_NDEVS];
+#endif
+
 };
 
 } /* namespace rt */

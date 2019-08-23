@@ -36,8 +36,8 @@ int brisbane_kernel_create(const char* name, brisbane_kernel* kernel) {
   return Platform::GetPlatform()->KernelCreate(name, kernel);
 }
 
-int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value) {
-  return Platform::GetPlatform()->KernelSetArg(kernel, idx, arg_size, arg_value);
+int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* value) {
+  return Platform::GetPlatform()->KernelSetArg(kernel, idx, size, value);
 }
 
 int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode) {

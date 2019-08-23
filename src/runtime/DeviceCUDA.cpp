@@ -79,9 +79,9 @@ int DeviceCUDA::D2H(Mem* mem, size_t off, size_t size, void* host) {
   return BRISBANE_OK;
 }
 
-int DeviceCUDA::KernelSetArg(Kernel* kernel, int idx, size_t arg_size, void* arg_value) {
-  params_[idx] = arg_value;
-  if (!arg_value) shared_mem_bytes_ += arg_size;
+int DeviceCUDA::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) {
+  params_[idx] = value;
+  if (!value) shared_mem_bytes_ += size;
   return BRISBANE_OK;
 }
 

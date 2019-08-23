@@ -24,6 +24,9 @@ Mem::Mem(size_t size, Platform* platform) {
 #ifdef USE_OPENCL
   for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
 #endif
+#ifdef USE_OPENMP
+  for (int i = 0; i < ndevs_; i++) mpmems_[i] = NULL;
+#endif
 }
 
 Mem::~Mem() {
@@ -42,6 +45,10 @@ Mem::~Mem() {
     if (!clmems_[i]) continue;
     clerr_ = clReleaseMemObject(clmems_[i]);
     _clerror(clerr_);
+#endif
+#ifdef USE_OPENMP
+    if (!mpmems_[i]) continue;
+    free(mpmems_[i]);
 #endif
   }
   if (!host_inter_) free(host_inter_);
@@ -75,6 +82,15 @@ cl_mem Mem::clmem(int platform, cl_context clctx) {
     _clerror(clerr_);
   }
   return clmems_[platform];
+}
+#endif
+
+#ifdef USE_OPENMP
+void* Mem::mpmem(int devno) {
+  if (!mpmems_[devno]) {
+    mpmems_[devno] = valloc(expansion_ * size_);
+  }
+  return mpmems_[devno];
 }
 #endif
 

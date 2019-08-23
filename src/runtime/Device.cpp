@@ -64,6 +64,7 @@ void Device::ExecuteKernel(Command* cmd) {
   int npolymems = cmd->npolymems();
   int max_idx = 0;
   int mem_idx = 0;
+  KernelLaunchInit(kernel);
 //  cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
   std::map<int, KernelArg*>* args = cmd->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {

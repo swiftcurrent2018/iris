@@ -14,7 +14,7 @@ public:
   int Init();
   int H2D(Mem* mem, size_t off, size_t size, void* host);
   int D2H(Mem* mem, size_t off, size_t size, void* host);
-  int KernelSetArg(Kernel* kernel, int idx, size_t arg_size, void* arg_value);
+  int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value);
   int KernelSetMem(Kernel* kernel, int idx, Mem* mem);
   int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws);
 

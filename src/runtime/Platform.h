@@ -32,6 +32,7 @@ public:
   int InitCUDA();
   int InitHIP();
   int InitOpenCL();
+  int InitOpenMP();
   int InitDevices(bool sync);
 
   int InfoNumPlatforms(int* nplatforms);
@@ -41,7 +42,7 @@ public:
   int DeviceGetDefault(int* device);
 
   int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
-  int KernelSetArg(brisbane_kernel kernel, int idx, size_t arg_size, void* arg_value);
+  int KernelSetArg(brisbane_kernel kernel, int idx, size_t size, void* value);
   int KernelSetMem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
   int KernelRelease(brisbane_kernel kernel);
 

@@ -100,9 +100,9 @@ int DeviceOpenCL::D2H(Mem* mem, size_t off, size_t size, void* host) {
   return BRISBANE_OK;
 }
 
-int DeviceOpenCL::KernelSetArg(Kernel* kernel, int idx, size_t arg_size, void* arg_value) {
+int DeviceOpenCL::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) {
   cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
-  err_ = clSetKernelArg(clkernel, (cl_uint) idx, arg_size, arg_value);
+  err_ = clSetKernelArg(clkernel, (cl_uint) idx, size, value);
   _clerror(err_);
   return BRISBANE_OK;
 }
