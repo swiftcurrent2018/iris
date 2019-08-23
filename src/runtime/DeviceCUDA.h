@@ -26,6 +26,7 @@ private:
   CUresult err_;
   unsigned int shared_mem_bytes_;
   void* params_[BRISBANE_MAX_KERNEL_NARGS];
+  int max_arg_idx_;
 };
 
 } /* namespace rt */

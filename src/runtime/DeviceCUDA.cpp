@@ -11,6 +11,7 @@ namespace brisbane {
 namespace rt {
 
 DeviceCUDA::DeviceCUDA(CUdevice cudev, int devno, int platform) : Device(devno, platform) {
+  max_arg_idx_ = 0;
   shared_mem_bytes_ = 0;
   dev_ = cudev;
   strcpy(vendor_, "NVIDIA Corporation");
@@ -82,12 +83,14 @@ int DeviceCUDA::D2H(Mem* mem, size_t off, size_t size, void* host) {
 int DeviceCUDA::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) {
   params_[idx] = value;
   if (!value) shared_mem_bytes_ += size;
+  if (max_arg_idx_ < idx) max_arg_idx_ = idx;
   return BRISBANE_OK;
 }
 
 int DeviceCUDA::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
   mem->cumem(devno_);
   params_[idx] = mem->cumems() + devno_;
+  if (max_arg_idx_ < idx) max_arg_idx_ = idx;
   return BRISBANE_OK;
 }
 
@@ -95,7 +98,9 @@ int DeviceCUDA::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, 
   CUfunction func = kernel->cukernel(devno_, module_);
   int block[3] = { lws ? lws[0] : 1, lws ? lws[1] : 1, lws ? lws[2] : 1 };
   int grid[3] = { gws[0] / block[0], gws[1] / block[1], gws[2] / block[2] };
-  _debug("grid[%d,%d,%d] block[%d,%d,%d]", grid[0], grid[1], grid[2], block[0], block[1], block[2]);
+  size_t blockOff_x = off[0] / (lws ? lws[0] : 1);
+  params_[max_arg_idx_ + 1] = &blockOff_x;
+  _debug("grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
   err_ = cuLaunchKernel(func, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
   _cuerror(err_);
   err_ = cuStreamSynchronize(stream_);
