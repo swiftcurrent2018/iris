@@ -1,9 +1,18 @@
 #include "Platform.h"
+#include "Debug.h"
 #include "Utils.h"
 #include "Command.h"
+#include "DeviceCUDA.h"
+#include "DeviceHIP.h"
+#include "DeviceOpenCL.h"
+#include "DeviceOpenMP.h"
 #include "FilterTaskSplit.h"
 #include "History.h"
 #include "Kernel.h"
+#include "LoaderCUDA.h"
+#include "LoaderHIP.h"
+#include "LoaderOpenCL.h"
+#include "LoaderOpenMP.h"
 #include "Mem.h"
 #include "Polyhedral.h"
 #include "Profiler.h"
@@ -15,19 +24,6 @@
 #include "Worker.h"
 #include <unistd.h>
 #include <algorithm>
-
-#ifdef USE_CUDA
-#include "DeviceCUDA.h"
-#endif
-#ifdef USE_HIP
-#include "DeviceHIP.h"
-#endif
-#ifdef USE_OPENCL
-#include "DeviceOpenCL.h"
-#endif
-#ifdef USE_OPENMP
-#include "DeviceOpenMP.h"
-#endif
 
 namespace brisbane {
 namespace rt {
@@ -117,61 +113,74 @@ int Platform::Synchronize() {
 }
 
 int Platform::InitCUDA() {
-#ifdef USE_CUDA
+  loaderCUDA_ = new LoaderCUDA();
+  if (loaderCUDA_->Load() != BRISBANE_OK) {
+    _error("%s", "cannot load CUDA");
+    return BRISBANE_ERR;
+  }
   CUresult err = CUDA_SUCCESS;
-  err = cuInit(0);
+  err = loaderCUDA_->cuInit(0);
   _cuerror(err);
   int ndevs = 0;
-  err = cuDeviceGetCount(&ndevs);
+  err = loaderCUDA_->cuDeviceGetCount(&ndevs);
   _cuerror(err);
   _info("CUDA platform[%d] ndevs[%d]", nplatforms_, ndevs);
   for (int i = 0; i < ndevs; i++) {
     CUdevice dev;
-    err = cuDeviceGet(&dev, i);
+    err = loaderCUDA_->cuDeviceGet(&dev, i);
     _cuerror(err);
-    devices_[ndevs_] = new DeviceCUDA(dev, ndevs_, nplatforms_);
+    devices_[ndevs_] = new DeviceCUDA(loaderCUDA_, dev, ndevs_, nplatforms_);
     ndevs_++;
   }
   if (ndevs) nplatforms_++;
-#endif
   return BRISBANE_OK;
 }
 
 int Platform::InitHIP() {
-#ifdef USE_HIP
+  loaderHIP_ = new LoaderHIP();
+  if (loaderHIP_->Load() != BRISBANE_OK) {
+    _error("%s", "cannot load HIP");
+    return BRISBANE_ERR;
+  }
   hipError_t err = hipSuccess;
-  err = hipInit(0);
+  err = loaderHIP_->hipInit(0);
   _hiperror(err);
   int ndevs = 0;
-  err = hipGetDeviceCount(&ndevs);
+  err = loaderHIP_->hipGetDeviceCount(&ndevs);
   _hiperror(err);
   _info("HIP platform[%d] ndevs[%d]", nplatforms_, ndevs);
   for (int i = 0; i < ndevs; i++) {
     hipDevice_t dev;
-    err = hipDeviceGet(&dev, i);
+    err = loaderHIP_->hipDeviceGet(&dev, i);
     _hiperror(err);
-    devices_[ndevs_] = new DeviceHIP(dev, ndevs_, nplatforms_);
+    devices_[ndevs_] = new DeviceHIP(loaderHIP_, dev, ndevs_, nplatforms_);
     ndevs_++;
   }
   if (ndevs) nplatforms_++;
-#endif
   return BRISBANE_OK;
 }
 
 int Platform::InitOpenMP() {
-#ifdef USE_OPENMP
-  int max_threads = omp_get_max_threads();
-  int nprocs = omp_get_num_procs();
-  devices_[ndevs_] = new DeviceOpenMP(ndevs_, nplatforms_);
+  loaderOpenMP_ = new LoaderOpenMP();
+  if (loaderOpenMP_->Load() != BRISBANE_OK) {
+    _error("%s", "cannot load OpenMP");
+    return BRISBANE_ERR;
+  }
+  int max_threads = loaderOpenMP_->omp_get_max_threads();
+  int nprocs = loaderOpenMP_->omp_get_num_procs();
   _info("OpenMP platform[%d] ndevs[%d]", nplatforms_, 1);
+  devices_[ndevs_] = new DeviceOpenMP(loaderOpenMP_, ndevs_, nplatforms_);
   ndevs_++;
   nplatforms_++;
-#endif
   return BRISBANE_OK;
 }
 
 int Platform::InitOpenCL() {
-#ifdef USE_OPENCL
+  loaderOpenCL_ = new LoaderOpenCL();
+  if (loaderOpenCL_->Load() != BRISBANE_OK) {
+    _error("%s", "cannot load OpenCL");
+    return BRISBANE_ERR;
+  }
   cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
   cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
   cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
@@ -179,54 +188,53 @@ int Platform::InitOpenCL() {
 
   cl_uint nplatforms = BRISBANE_MAX_NDEVS;
 
-  err = clGetPlatformIDs(nplatforms, cl_platforms_, &nplatforms);
+  err = loaderOpenCL_->clGetPlatformIDs(nplatforms, cl_platforms_, &nplatforms);
   _info("OpenCL nplatforms[%u]", nplatforms);
   cl_uint ndevs = 0;
   char vendor[64];
   char platform_name[64];
   for (int i = 0; i < nplatforms; i++) {
-    err = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
     _clerror(err);
-    err = clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
     _clerror(err);
-#ifdef USE_CUDA
+#if 0
     if (strstr(vendor, "NVIDIA") != NULL) {
       _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
 #endif
-#ifdef USE_HIP
+#if 0
     if (strstr(vendor, "Advanced Micro Devices") != NULL) {
       _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
 #endif
-#ifdef USE_OPENMP
-    err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR | CL_DEVICE_TYPE_CUSTOM, 0, NULL, &ndevs);
+#if 0
+    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR | CL_DEVICE_TYPE_CUSTOM, 0, NULL, &ndevs);
 #else
-    err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
+    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
 #endif
     if (!ndevs) {
       _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
-    err = clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
+    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
     _clerror(err);
-    cl_contexts_[i] = clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
+    cl_contexts_[i] = loaderOpenCL_->clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
     _clerror(err);
     if (err != CL_SUCCESS) {
       _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
     for (cl_uint j = 0; j < ndevs; j++) {
-      devices_[ndevs_] = new DeviceOpenCL(cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
+      devices_[ndevs_] = new DeviceOpenCL(loaderOpenCL_, cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
       ndevs_++;
     }
     _info("adding platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
     nplatforms_++;
   }
   if (ndevs_) device_default_ = devices_[0]->type();
-#endif
   return BRISBANE_OK;
 }
 

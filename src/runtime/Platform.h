@@ -4,8 +4,7 @@
 #include <brisbane/brisbane.h>
 #include <stddef.h>
 #include <set>
-#include "Headers.h"
-#include "Debug.h"
+#include "Config.h"
 
 namespace brisbane {
 namespace rt {
@@ -13,6 +12,10 @@ namespace rt {
 class Device;
 class Filter;
 class Kernel;
+class LoaderCUDA;
+class LoaderHIP;
+class LoaderOpenCL;
+class LoaderOpenMP;
 class Mem;
 class Polyhedral;
 class Profiler;
@@ -97,6 +100,11 @@ private:
   int nplatforms_;
   int ndevs_;
   int device_default_;
+
+  LoaderCUDA* loaderCUDA_;
+  LoaderHIP* loaderHIP_;
+  LoaderOpenCL* loaderOpenCL_;
+  LoaderOpenMP* loaderOpenMP_;
 
   std::set<Kernel*> kernels_;
   std::set<Mem*> mems_;

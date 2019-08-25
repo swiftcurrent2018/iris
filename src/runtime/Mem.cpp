@@ -15,85 +15,25 @@ Mem::Mem(size_t size, Platform* platform) {
   ndevs_ = platform->ndevs();
   host_inter_ = NULL;
   pthread_mutex_init(&mutex_, NULL);
-#ifdef USE_CUDA
-  for (int i = 0; i < ndevs_; i++) cumems_[i] = 0;
-#endif
-#ifdef USE_HIP
-  for (int i = 0; i < ndevs_; i++) hipmems_[i] = NULL;
-#endif
-#ifdef USE_OPENCL
-  for (int i = 0; i < ndevs_; i++) clmems_[i] = NULL;
-#endif
-#ifdef USE_OPENMP
-  for (int i = 0; i < ndevs_; i++) mpmems_[i] = NULL;
-#endif
+  for (int i = 0; i < ndevs_; i++) {
+    archs_[i] = NULL;
+    archs_devs_[i] = NULL;
+  }
 }
 
 Mem::~Mem() {
   for (int i = 0; i < ndevs_; i++) {
-#ifdef USE_CUDA
-    if (!cumems_[i]) continue;
-    cuerr_ = cuMemFree(cumems_[i]);
-    _cuerror(cuerr_);
-#endif
-#ifdef USE_HIP
-    if (!hipmems_[i]) continue;
-    hiperr_ = hipFree(hipmems_[i]);
-    _hiperror(hiperr_);
-#endif
-#ifdef USE_OPENCL
-    if (!clmems_[i]) continue;
-    clerr_ = clReleaseMemObject(clmems_[i]);
-    _clerror(clerr_);
-#endif
-#ifdef USE_OPENMP
-    if (!mpmems_[i]) continue;
-    free(mpmems_[i]);
-#endif
+    if (archs_devs_[i]) archs_devs_[i]->MemFree(archs_[i]);
   }
   if (!host_inter_) free(host_inter_);
   pthread_mutex_destroy(&mutex_);
 }
 
-#ifdef USE_CUDA
-CUdeviceptr Mem::cumem(int devno) {
-  if (cumems_[devno] == 0) {
-    cuerr_ = cuMemAlloc(cumems_ + devno, expansion_ * size_);
-    _cuerror(cuerr_);
-  }
-  return cumems_[devno];
+void* Mem::arch(Device* dev) {
+  int devno = dev->devno();
+  if (archs_[devno] == NULL) dev->MemAlloc(archs_ + devno, expansion_ * size_);
+  return archs_[devno];
 }
-#endif
-
-#ifdef USE_HIP
-void* Mem::hipmem(int devno) {
-  if (!hipmems_[devno]) {
-    hiperr_ = hipMalloc(hipmems_ + devno, expansion_ * size_);
-    _hiperror(hiperr_);
-  }
-  return hipmems_[devno];
-}
-#endif
-
-#ifdef USE_OPENCL
-cl_mem Mem::clmem(int platform, cl_context clctx) {
-  if (!clmems_[platform]) {
-    clmems_[platform] = clCreateBuffer(clctx, CL_MEM_READ_WRITE, expansion_ * size_, NULL, &clerr_);
-    _clerror(clerr_);
-  }
-  return clmems_[platform];
-}
-#endif
-
-#ifdef USE_OPENMP
-void* Mem::mpmem(int devno) {
-  if (!mpmems_[devno])
-    if (posix_memalign(mpmems_ + devno, 0x1000, expansion_ * size_) != 0) {
-      _error("%s", "posix_memalign");
-    }
-  return mpmems_[devno];
-}
-#endif
 
 void* Mem::host_inter() {
   if (!host_inter_) {

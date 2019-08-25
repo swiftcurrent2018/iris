@@ -1,7 +1,7 @@
 #ifndef BRISBANE_SRC_RT_DEVICE_H
 #define BRISBANE_SRC_RT_DEVICE_H
 
-#include "Headers.h"
+#include "Config.h"
 
 namespace brisbane {
 namespace rt {
@@ -27,8 +27,11 @@ public:
   void ExecuteReleaseMem(Command* cmd);
 
   virtual int Init() = 0;
-  virtual int H2D(Mem* mem, size_t off, size_t size, void* host) = 0;
-  virtual int D2H(Mem* mem, size_t off, size_t size, void* host) = 0;
+  virtual int MemAlloc(void** mem, size_t size) = 0;
+  virtual int MemFree(void* mem) = 0;
+  virtual int MemH2D(Mem* mem, size_t off, size_t size, void* host) = 0;
+  virtual int MemD2H(Mem* mem, size_t off, size_t size, void* host) = 0;
+  virtual int KernelGet(void** kernel, const char* name) = 0;
   virtual int KernelLaunchInit(Kernel* kernel) { }
   virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;

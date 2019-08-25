@@ -2,23 +2,28 @@
 #define BRISBANE_SRC_RT_DEVICE_CUDA_H
 
 #include "Device.h"
+#include "LoaderCUDA.h"
 
 namespace brisbane {
 namespace rt {
 
 class DeviceCUDA : public Device {
 public:
-  DeviceCUDA(CUdevice cudev, int devno, int platform);
+  DeviceCUDA(LoaderCUDA* ld, CUdevice cudev, int devno, int platform);
   ~DeviceCUDA();
 
   int Init();
-  int H2D(Mem* mem, size_t off, size_t size, void* host);
-  int D2H(Mem* mem, size_t off, size_t size, void* host);
+  int MemAlloc(void** mem, size_t size);
+  int MemFree(void* mem);
+  int MemH2D(Mem* mem, size_t off, size_t size, void* host);
+  int MemD2H(Mem* mem, size_t off, size_t size, void* host);
+  int KernelGet(void** kernel, const char* name);
   int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value);
   int KernelSetMem(Kernel* kernel, int idx, Mem* mem);
   int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws);
 
 private:
+  LoaderCUDA* ld_;
   CUdevice dev_;
   CUcontext ctx_;
   CUstream stream_;

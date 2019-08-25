@@ -74,6 +74,7 @@ private:
 
 private:
   char name_[32];
+  bool given_name_;
   Task* parent_;
   int ncmds_;
   Command* cmds_[64];

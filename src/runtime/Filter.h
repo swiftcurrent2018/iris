@@ -18,3 +18,4 @@ public:
 } /* namespace brisbane */
 
 #endif /* BRISBANE_SRC_RT_FILTER_H */
+

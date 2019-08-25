@@ -1,4 +1,5 @@
 #include "Command.h"
+#include "Debug.h"
 #include "Task.h"
 
 namespace brisbane {

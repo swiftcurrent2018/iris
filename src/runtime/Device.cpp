@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "Debug.h"
 #include "Command.h"
 #include "History.h"
 #include "Kernel.h"
@@ -16,6 +17,9 @@ Device::Device(int devno, int platform) {
   platform_ = platform;
   busy_ = false;
   enable_ = false;
+  memset(vendor_, 0, sizeof(vendor_));
+  memset(name_, 0, sizeof(name_));
+  memset(version_, 0, sizeof(version_));
   timer_ = new Timer();
 }
 
@@ -52,7 +56,6 @@ void Device::ExecuteInit(Command* cmd) {
 
 void Device::ExecuteKernel(Command* cmd) {
   timer_->Start(BRISBANE_TIMER_KERNEL);
-
   Kernel* kernel = cmd->kernel();
   int dim = cmd->dim();
   size_t* off = cmd->off();
@@ -65,7 +68,6 @@ void Device::ExecuteKernel(Command* cmd) {
   int max_idx = 0;
   int mem_idx = 0;
   KernelLaunchInit(kernel);
-//  cl_kernel clkernel = kernel->clkernel(devno_, clprog_);
   std::map<int, KernelArg*>* args = cmd->kernel_args();
   for (std::map<int, KernelArg*>::iterator I = args->begin(), E = args->end(); I != E; ++I) {
     int idx = I->first;
@@ -90,54 +92,18 @@ void Device::ExecuteKernel(Command* cmd) {
         gws[0] = lws[0] * expansion;
         mem->Expand(expansion);
         KernelSetArg(kernel, idx + 1, lws[0] * mem->type_size(), NULL);
-        /*
-        err_ = clSetKernelArg(clkernel, (cl_uint) idx + 1, lws[0] * mem->type_size(), NULL);
-        _clerror(err_);
-        */
         reduction = true;
         if (idx + 1 > max_idx) max_idx = idx + 1;
       }
       KernelSetMem(kernel, idx, mem);
-      /*
-      cl_mem clmem = mem->clmem(platform_, clctx_);
-      err_ = clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);
-      _clerror(err_);
-      */
       mem_idx++;
-    } else {
-      KernelSetArg(kernel, idx, arg->size, arg->value);
-      /*
-      err_ = clSetKernelArg(clkernel, (cl_uint) idx, arg->size, (const void*) arg->value);
-      _clerror(err_);
-      */
-    }
+    } else KernelSetArg(kernel, idx, arg->size, arg->value);
   }
   if (reduction) {
     _trace("max_idx+1[%d] gws[%lu]", max_idx + 1, gws0);
     KernelSetArg(kernel, max_idx + 1, sizeof(size_t), &gws0);
-    /*
-    err_ = clSetKernelArg(clkernel, (cl_uint) max_idx + 1, sizeof(size_t), &gws0);
-    _clerror(err_);
-    */
   }
-
   KernelLaunch(kernel, dim, off, gws, lws);
-
-  //_trace("devno[%d][%s] kernel[%s] dim[%d] off[%lu,%lu,%lu] gws[%lu,%lu,%lu] lws[%lu,%lu,%lu]", devno_, name_, kernel->name(), dim, off[0], off[1], off[2], gws[0], gws[1], gws[2], lws ? lws[0] : 0, lws ? lws[1] : 0, lws ? lws[2] : 0);
-  /*
-  if (lws && (lws[0] > gws[0] || lws[1] > gws[1] || lws[2] > gws[2])) _error("gws[%lu,%lu,%lu] and lws[%lu,%lu,%lu]", gws[0], gws[1], gws[2], lws[0], lws[1], lws[2]);
-  if (type_ == brisbane_fpga) {
-    if (off[0] != 0 || off[1] != 0 || off[2] != 0)
-      _todo("%s", "global_work_offset shoule be set to not NULL. Upgrade Intel FPGA SDK for OpenCL Pro Edition Version 19.1");
-    err_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, NULL, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
-  } else {
-    err_ = clEnqueueNDRangeKernel(clcmdq_, clkernel, (cl_uint) dim, (const size_t*) off, (const size_t*) gws, (const size_t*) lws, 0, NULL, NULL);
-  }
-  _clerror(err_);
-  err_ = clFinish(clcmdq_);
-  _clerror(err_);
-  */
-
   double time = timer_->Stop(BRISBANE_TIMER_KERNEL);
   cmd->SetTime(time);
   cmd->kernel()->history()->AddKernel(cmd, this, time);
@@ -152,7 +118,7 @@ void Device::ExecuteH2D(Command* cmd) {
   if (exclusive) mem->SetOwner(off, size, this);
   else mem->AddOwner(off, size, this);
   timer_->Start(BRISBANE_TIMER_H2D);
-  int iret = H2D(mem, off, size, host);
+  int iret = MemH2D(mem, off, size, host);
   if (iret != BRISBANE_OK) _error("iret[%d]", iret);
   double time = timer_->Stop(BRISBANE_TIMER_H2D);
   cmd->SetTime(time);
@@ -179,9 +145,9 @@ void Device::ExecuteD2H(Command* cmd) {
   timer_->Start(BRISBANE_TIMER_D2H);
   int iret = BRISBANE_OK;
   if (mode & brisbane_reduction) {
-    iret = D2H(mem, off, mem->size() * expansion, mem->host_inter());
+    iret = MemD2H(mem, off, mem->size() * expansion, mem->host_inter());
     Reduction::GetInstance()->Reduce(mem, host, size);
-  } else iret = D2H(mem, off, size, host);
+  } else iret = MemD2H(mem, off, size, host);
   if (iret != BRISBANE_OK) _error("iret[%d]", iret);
   double time = timer_->Stop(BRISBANE_TIMER_D2H);
   cmd->SetTime(time);
@@ -197,3 +163,4 @@ void Device::ExecuteReleaseMem(Command* cmd) {
 
 } /* namespace rt */
 } /* namespace brisbane */
+

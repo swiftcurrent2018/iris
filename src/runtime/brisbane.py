@@ -1,8 +1,17 @@
 import ctypes
 from ctypes import *
 
-dll_cl = CDLL("libOpenCL.so",   mode=RTLD_GLOBAL)
-dll    = CDLL("libbrisbane.so", mode=RTLD_GLOBAL)
+def dlopen(path):
+  try:
+    return CDLL(path, mode=RTLD_GLOBAL)
+  except:
+    return None
+
+dlopen("libcuda.so")
+dlopen("libhip_hcc.so")
+dlopen("libgomp.so.1")
+dlopen("libOpenCL.so")
+dll = dlopen("libbrisbane.so")
 
 brisbane_default    =   (1 << 0)
 brisbane_cpu        =   (1 << 1)
@@ -109,4 +118,38 @@ def task_release(task):
 
 def task_release_mem(task, mem):
     return dll.brisbane_task_release_mem(task, mem)
+
+class mem:
+  def __init__(self, size):
+    self.handle = mem_create(size)
+  def reduce(self, mode, type):
+    mem_reduce(self.handle, mode, type)
+  def release(self):
+    mem_release(self.handle)
+
+class kernel:
+  def __init__(self, name):
+    self.handle = kernel_create(name)
+  def setarg(self, idx, size, value):
+    kernel_setarg(self.handle, idx, size, value)
+  def setmem(self, idx, mem, mode):
+    kernel_setmem(self.handle, idx, mem.handle, mode)
+  def release(self):
+    kernel_release(self.handle)
+
+class task:
+  def __init__(self):
+    self.handle = task_create()
+  def h2d(self, mem, off, size, host):
+    task_h2d(self.handle, mem.handle, off, size, host)
+  def d2h(self, mem, off, size, host):
+    task_d2h(self.handle, meml.handle, off, size, host)
+  def h2d_full(self, mem, host):
+    task_h2d_full(self.handle, mem.handle, host)
+  def d2h_full(self, mem, host):
+    task_d2h_full(self.handle, mem.handle, host)
+  def kernel(self, kernel, dim, off, ndr):
+    task_kernel(self.handle, kernel.handle, dim, off, ndr)
+  def submit(self, device, sync):
+    task_submit(self.handle, device, sync)
 

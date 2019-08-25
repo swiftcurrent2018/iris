@@ -10,10 +10,19 @@ set(BRISBANE_RUNTIME_SOURCES
   Command.cpp
   Consistency.cpp
   Device.cpp
+  DeviceCUDA.cpp
+  DeviceHIP.cpp
+  DeviceOpenCL.cpp
+  DeviceOpenMP.cpp
   FilterTaskSplit.cpp
   History.cpp
   HubClient.cpp
   Kernel.cpp
+  Loader.cpp
+  LoaderCUDA.cpp
+  LoaderHIP.cpp
+  LoaderOpenCL.cpp
+  LoaderOpenMP.cpp
   Message.cpp
   Mem.cpp
   MemRange.cpp
@@ -41,41 +50,16 @@ set(BRISBANE_RUNTIME_SOURCES
   Utils.cpp
   Worker.cpp)
 
-if(USE_CUDA)
-  MESSAGE(STATUS "USE_CUDA")
-  #enable_language(CUDA)
-  #include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceCUDA.cpp)
-endif()
-
-if(USE_HIP)
-  MESSAGE(STATUS "USE_HIP: ROCM_DIR: ${ROCM_DIR}")
-  if(NOT DEFINED ROCM_DIR)
-    MESSAGE(STATUS "DEFINE ROCM_DIR")
-  endif()
-  add_definitions(-D__HIP_PLATFORM_HCC__)
-  include_directories(${ROCM_DIR}/hip/include)
-  include_directories(${ROCM_DIR}/hsa/include)
-  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceHIP.cpp)
-endif()
-
-if(USE_OPENCL)
-  MESSAGE(STATUS "USE_OPENCL")
-  #find_package(OpenCL REQUIRED)
-  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenCL.cpp)
-endif()
-
-if(USE_OPENMP)
-  MESSAGE(STATUS "USE_OPENMP")
-  find_package(OpenMP REQUIRED)
-  list(APPEND BRISBANE_RUNTIME_SOURCES DeviceOpenMP.cpp)
-endif()
-
 if(USE_FORTRAN)
   MESSAGE(STATUS "USE_FORTRAN")
   enable_language(Fortran)
   list(APPEND BRISBANE_RUNTIME_SOURCES FortranAPI.f90)
   install(DIRECTORY ${BRISBANE_BIN_DIR}/runtime/brisbane.mod DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/brisbane)
+endif()
+
+if(USE_PYTHON)
+  MESSAGE(STATUS "USE_PYTHON")
+  install(FILES brisbane.py DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/brisbane)
 endif()
 
 add_library(brisbane ${BRISBANE_RUNTIME_SOURCES})

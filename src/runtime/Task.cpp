@@ -24,6 +24,7 @@ Task::Task(Platform* platform, int type, const char* name) {
   time_start_ = 0.0;
   time_end_ = 0.0;
   system_ = false;
+  given_name_ = name != NULL;
   if (name) strcpy(name_, name);
   else sprintf(name_, "task%ld", uid());
   status_ = BRISBANE_NONE;
@@ -57,6 +58,7 @@ void Task::AddCommand(Command* cmd) {
   cmds_[ncmds_++] = cmd;
   if (cmd->type() == BRISBANE_CMD_KERNEL) {
     if (cmd_kernel_) _error("kernel[%s] is already set", cmd->kernel()->name());
+    if (!given_name_) strcpy(name_, cmd->kernel()->name());
     cmd_kernel_ = cmd;
   }
 }

@@ -1,5 +1,6 @@
 #include "Kernel.h"
 #include "Debug.h"
+#include "Device.h"
 #include "History.h"
 #include <string.h>
 
@@ -12,15 +13,10 @@ Kernel::Kernel(const char* name, Platform* platform) {
   name_[len] = 0;
   platform_ = platform;
   history_ = new History(this);
-#ifdef USE_CUDA
-  for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) cukernels_[i] = NULL;
-#endif
-#ifdef USE_HIP
-  for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) hipkernels_[i] = NULL;
-#endif
-#ifdef USE_OPENCL
-  for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) clkernels_[i] = NULL;
-#endif
+  for (int i = 0; i < BRISBANE_MAX_NDEVS; i++) {
+    archs_[i] = NULL;
+    archs_devs_[i] = NULL;
+  }
 }
 
 Kernel::~Kernel() {
@@ -63,35 +59,11 @@ std::map<int, KernelArg*>* Kernel::ExportArgs() {
   return new_args;
 }
 
-#ifdef USE_HIP
-hipFunction_t Kernel::hipkernel(int devno, hipModule_t module) {
-  if (hipkernels_[devno] == NULL) {
-    hiperr_ = hipModuleGetFunction(hipkernels_ + devno, module, (const char*) name_);
-    _hiperror(hiperr_);
-  }
-  return hipkernels_[devno];
+void* Kernel::arch(Device* dev) {
+  int devno = dev->devno();
+  if (archs_[devno] == NULL) dev->KernelGet(archs_ + devno, (const char*) name_);
+  return archs_[devno];
 }
-#endif
-
-#ifdef USE_CUDA
-CUfunction Kernel::cukernel(int devno, CUmodule module) {
-  if (cukernels_[devno] == NULL) {
-    cuerr_ = cuModuleGetFunction(cukernels_ + devno, module, (const char*) name_);
-    _cuerror(cuerr_);
-  }
-  return cukernels_[devno];
-}
-#endif
-
-#ifdef USE_OPENCL
-cl_kernel Kernel::clkernel(int i, cl_program clprog) {
-  if (clkernels_[i] == NULL) {
-    clkernels_[i] = clCreateKernel(clprog, (const char*) name_, &clerr_);
-    _clerror(clerr_);
-  }
-  return clkernels_[i];
-}
-#endif
 
 } /* namespace rt */
 } /* namespace brisbane */

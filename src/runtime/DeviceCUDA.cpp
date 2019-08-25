@@ -1,7 +1,9 @@
 #include "DeviceCUDA.h"
+#include "Debug.h"
 #include "Command.h"
 #include "History.h"
 #include "Kernel.h"
+#include "LoaderCUDA.h"
 #include "Mem.h"
 #include "Reduction.h"
 #include "Timer.h"
@@ -10,25 +12,26 @@
 namespace brisbane {
 namespace rt {
 
-DeviceCUDA::DeviceCUDA(CUdevice cudev, int devno, int platform) : Device(devno, platform) {
+DeviceCUDA::DeviceCUDA(LoaderCUDA* ld, CUdevice cudev, int devno, int platform) : Device(devno, platform) {
+  ld_ = ld;
   max_arg_idx_ = 0;
   shared_mem_bytes_ = 0;
   dev_ = cudev;
   strcpy(vendor_, "NVIDIA Corporation");
-  err_ = cuDeviceGetName(name_, sizeof(name_), dev_);
+  err_ = ld_->cuDeviceGetName(name_, sizeof(name_), dev_);
   _cuerror(err_);
   type_ = brisbane_nvidia;
-  err_ = cuDriverGetVersion(&driver_version_);
+  err_ = ld_->cuDriverGetVersion(&driver_version_);
   _cuerror(err_);
   sprintf(version_, "NVIDIA CUDA %d", driver_version_);
   int tb, bx, by, bz, dx, dy, dz;
-  err_ = cuDeviceGetAttribute(&tb, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, dev_);
-  err_ = cuDeviceGetAttribute(&bx, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, dev_);
-  err_ = cuDeviceGetAttribute(&by, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y, dev_);
-  err_ = cuDeviceGetAttribute(&bz, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z, dev_);
-  err_ = cuDeviceGetAttribute(&dx, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, dev_);
-  err_ = cuDeviceGetAttribute(&dy, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y, dev_);
-  err_ = cuDeviceGetAttribute(&dz, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&tb, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&bx, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&by, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&bz, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&dx, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&dy, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&dz, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z, dev_);
   max_compute_units_ = tb;
   max_work_item_sizes_[0] = (size_t) bx * (size_t) dx;
   max_work_item_sizes_[1] = (size_t) by * (size_t) dy;
@@ -40,10 +43,9 @@ DeviceCUDA::~DeviceCUDA() {
 }
 
 int DeviceCUDA::Init() {
-  err_ = cuCtxCreate(&ctx_, CU_CTX_SCHED_AUTO, dev_);
+  err_ = ld_->cuCtxCreate(&ctx_, CU_CTX_SCHED_AUTO, dev_);
   _cuerror(err_);
-
-  err_ = cuStreamCreate(&stream_, CU_STREAM_DEFAULT);
+  err_ = ld_->cuStreamCreate(&stream_, CU_STREAM_DEFAULT);
   _cuerror(err_);
 
   char path[256];
@@ -55,7 +57,7 @@ int DeviceCUDA::Init() {
     return BRISBANE_OK;
   }
   _trace("dev[%d][%s] kernels[%s]", devno_, name_, path);
-  err_ = cuModuleLoadData(&module_, src);
+  err_ = ld_->cuModuleLoad(&module_, "kernel.ptx");
   if (err_ != CUDA_SUCCESS) {
     _cuerror(err_);
     _error("srclen[%lu] src\n%s", srclen, src);
@@ -66,16 +68,37 @@ int DeviceCUDA::Init() {
   return BRISBANE_OK;
 }
 
-int DeviceCUDA::H2D(Mem* mem, size_t off, size_t size, void* host) {
-  CUdeviceptr cumem = mem->cumem(devno_);
-  err_ = cuMemcpyHtoD(cumem + off, host, size);
+int DeviceCUDA::MemAlloc(void** mem, size_t size) {
+  CUdeviceptr* cumem = (CUdeviceptr*) mem;
+  err_ = ld_->cuMemAlloc(cumem, size);
   _cuerror(err_);
   return BRISBANE_OK;
 }
 
-int DeviceCUDA::D2H(Mem* mem, size_t off, size_t size, void* host) {
-  CUdeviceptr cumem = mem->cumem(devno_);
-  err_ = cuMemcpyDtoH(host, cumem + off, size);
+int DeviceCUDA::MemFree(void* mem) {
+  CUdeviceptr cumem = (CUdeviceptr) mem;
+  err_ = ld_->cuMemFree(cumem);
+  _cuerror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceCUDA::MemH2D(Mem* mem, size_t off, size_t size, void* host) {
+  CUdeviceptr cumem = (CUdeviceptr) mem->arch(this);
+  err_ = ld_->cuMemcpyHtoD(cumem + off, host, size);
+  _cuerror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceCUDA::MemD2H(Mem* mem, size_t off, size_t size, void* host) {
+  CUdeviceptr cumem = (CUdeviceptr) mem->arch(this);
+  err_ = ld_->cuMemcpyDtoH(host, cumem + off, size);
+  _cuerror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceCUDA::KernelGet(void** kernel, const char* name) {
+  CUfunction* cukernel = (CUfunction*) kernel;
+  err_ = ld_->cuModuleGetFunction(cukernel, module_, name);
   _cuerror(err_);
   return BRISBANE_OK;
 }
@@ -88,22 +111,22 @@ int DeviceCUDA::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) 
 }
 
 int DeviceCUDA::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
-  mem->cumem(devno_);
-  params_[idx] = mem->cumems() + devno_;
+  mem->arch(this);
+  params_[idx] = mem->archs() + devno_;
   if (max_arg_idx_ < idx) max_arg_idx_ = idx;
   return BRISBANE_OK;
 }
 
 int DeviceCUDA::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) {
-  CUfunction func = kernel->cukernel(devno_, module_);
-  int block[3] = { lws ? lws[0] : 1, lws ? lws[1] : 1, lws ? lws[2] : 1 };
-  int grid[3] = { gws[0] / block[0], gws[1] / block[1], gws[2] / block[2] };
+  CUfunction cukernel = (CUfunction) kernel->arch(this);
+  int block[3] = { lws ? (int) lws[0] : 1, lws ? (int) lws[1] : 1, lws ? (int) lws[2] : 1 };
+  int grid[3] = { (int) (gws[0] / block[0]), (int) (gws[1] / block[1]), (int) (gws[2] / block[2]) };
   size_t blockOff_x = off[0] / (lws ? lws[0] : 1);
   params_[max_arg_idx_ + 1] = &blockOff_x;
   _debug("grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
-  err_ = cuLaunchKernel(func, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
+  err_ = ld_->cuLaunchKernel(cukernel, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
   _cuerror(err_);
-  err_ = cuStreamSynchronize(stream_);
+  err_ = ld_->cuStreamSynchronize(stream_);
   _cuerror(err_);
   return BRISBANE_OK;
 }

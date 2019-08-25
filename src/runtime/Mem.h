@@ -1,7 +1,7 @@
 #ifndef BRISBANE_SRC_RT_MEM_H
 #define BRISBANE_SRC_RT_MEM_H
 
-#include "Headers.h"
+#include "Config.h"
 #include "Retainable.h"
 #include "MemRange.h"
 #include <pthread.h>
@@ -35,6 +35,9 @@ public:
   int expansion() { return expansion_; }
   void* host_inter();
 
+  void** archs() { return archs_; }
+  void* arch(Device* dev);
+
 private:
   size_t size_;
   int mode_;
@@ -45,42 +48,10 @@ private:
   int type_;
   int type_size_;
   int expansion_;
+  void* archs_[BRISBANE_MAX_NDEVS];
+  Device* archs_devs_[BRISBANE_MAX_NDEVS];
 
   pthread_mutex_t mutex_;
-
-#ifdef USE_CUDA
-public:
-  CUdeviceptr* cumems() { return cumems_; }
-  CUdeviceptr cumem(int devno);
-private:
-  CUdeviceptr cumems_[BRISBANE_MAX_NDEVS];
-  CUresult cuerr_;
-#endif
-
-#ifdef USE_HIP
-public:
-  void** hipmems() { return hipmems_; }
-  void* hipmem(int devno);
-private:
-  void* hipmems_[BRISBANE_MAX_NDEVS];
-  hipError_t hiperr_;
-#endif
-
-#ifdef USE_OPENCL
-public:
-  cl_mem clmem(int platform, cl_context clctx);
-private:
-  cl_mem clmems_[BRISBANE_MAX_NDEVS];
-  cl_int clerr_;
-#endif
-
-#ifdef USE_OPENMP
-public:
-  void* mpmem(int devno);
-private:
-  void* mpmems_[BRISBANE_MAX_NDEVS];
-#endif
-
 };
 
 } /* namespace rt */

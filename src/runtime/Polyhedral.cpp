@@ -25,11 +25,11 @@ int Polyhedral::Load() {
   *(void**) (&kernel_) = dlsym(handle_, "brisbane_poly_kernel");
   if (!kernel_) _error("%s", dlerror());
   *(void**) (&setarg_) = dlsym(handle_, "brisbane_poly_setarg");
-  if (!kernel_) _error("%s", dlerror());
+  if (!setarg_) _error("%s", dlerror());
   *(void**) (&launch_) = dlsym(handle_, "brisbane_poly_launch");
-  if (!kernel_) _error("%s", dlerror());
+  if (!launch_) _error("%s", dlerror());
   *(void**) (&getmem_) = dlsym(handle_, "brisbane_poly_getmem");
-  if (!kernel_) _error("%s", dlerror());
+  if (!getmem_) _error("%s", dlerror());
 
   *(void**) (&init_) = dlsym(handle_, "brisbane_poly_init");
   if (!init_) _error("%s", dlerror());

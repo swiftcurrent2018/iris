@@ -2,23 +2,28 @@
 #define BRISBANE_SRC_RT_DEVICE_HIP_H
 
 #include "Device.h"
+#include "LoaderHIP.h"
 
 namespace brisbane {
 namespace rt {
 
 class DeviceHIP : public Device {
 public:
-  DeviceHIP(hipDevice_t cudev, int devno, int platform);
+  DeviceHIP(LoaderHIP* ld, hipDevice_t cudev, int devno, int platform);
   ~DeviceHIP();
 
   int Init();
-  int H2D(Mem* mem, size_t off, size_t size, void* host);
-  int D2H(Mem* mem, size_t off, size_t size, void* host);
+  int MemAlloc(void** mem, size_t size);
+  int MemFree(void* mem);
+  int MemH2D(Mem* mem, size_t off, size_t size, void* host);
+  int MemD2H(Mem* mem, size_t off, size_t size, void* host);
+  int KernelGet(void** kernel, const char* name);
   int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value);
   int KernelSetMem(Kernel* kernel, int idx, Mem* mem);
   int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws);
 
 private:
+  LoaderHIP* ld_;
   hipDevice_t dev_;
   hipCtx_t ctx_;
   hipModule_t module_;
