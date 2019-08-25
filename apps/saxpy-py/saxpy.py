@@ -6,6 +6,11 @@ import sys
 
 brisbane.init(False)
 
+#print 'nplatforms:', brisbane.info_nplatforms()
+#print 'ndevs:', brisbane.info_ndevs()
+
+t1 = brisbane.timer_now()
+
 SIZE = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 A = 5.0
 
@@ -36,7 +41,10 @@ task.kernel(kernel, 1, off, ndr)
 task.d2h_full(mem_z, z)
 task.submit(brisbane.brisbane_gpu, True)
 
+t2 = brisbane.timer_now()
+
 print 'Z =', A, '* X + Y', z
+#print "execution time:", t2 - t1, "secs"
 
 brisbane.finalize()
 

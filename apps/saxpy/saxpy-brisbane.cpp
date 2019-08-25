@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   brisbane_task_h2d_full(task0, mem_Y, Y);
   brisbane_task_kernel(task0, kernel_saxpy, 1, kernel_saxpy_off, kernel_saxpy_idx);
   brisbane_task_d2h_full(task0, mem_Z, Z);
-  brisbane_task_submit(task0, brisbane_random, NULL, true);
+  brisbane_task_submit(task0, brisbane_all, NULL, true);
 
   /*
 #pragma omp target map(from:Z) map(to:X, Y)

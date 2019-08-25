@@ -40,6 +40,11 @@ Platform::Platform() {
   filter_task_split_ = NULL;
   timer_ = NULL;
   null_kernel_ = NULL;
+  loaderCUDA_ = NULL;
+  loaderHIP_ = NULL;
+  loaderOpenCL_ = NULL;
+  loaderOpenMP_ = NULL;
+  arch_available_ = 0UL;
   enable_profiler_ = getenv("BRISBANE_PROFILE");
   nprofilers_ = 0;
   time_app_ = 0.0;
@@ -50,6 +55,10 @@ Platform::~Platform() {
   if (!init_) return;
 
   if (scheduler_) delete scheduler_;
+  if (loaderCUDA_) delete loaderCUDA_;
+  if (loaderHIP_) delete loaderHIP_;
+  if (loaderOpenCL_) delete loaderOpenCL_;
+  if (loaderOpenMP_) delete loaderOpenMP_;
   if (polyhedral_) delete polyhedral_;
   if (filter_task_split_) delete filter_task_split_;
   if (timer_) delete timer_;
@@ -71,11 +80,25 @@ int Platform::Init(int* argc, char*** argv, int sync) {
   timer_->Start(BRISBANE_TIMER_APP);
 
   timer_->Start(BRISBANE_TIMER_PLATFORM);
-  InitCUDA();
-  InitHIP();
-  InitOpenMP();
-  InitOpenCL();
-  polyhedral_ = new Polyhedral(this);
+  const char* arch = getenv("BRISBANE_ARCH");
+  if (!arch) arch = BRISBANE_ARCH;
+  _info("Brisbane architectures[%s]", arch);
+  const char* delim = " :;.,";
+  char arch_str[32];
+  memset(arch_str, 0, 32);
+  strncpy(arch_str, arch, strlen(arch));
+  for (char* a = strtok(arch_str, delim); a != NULL; a = strtok(NULL, delim)) {
+    if (strcasecmp(a, "cuda") == 0) {
+      if (!loaderCUDA_) InitCUDA();
+    } else if (strcasecmp(a, "hip") == 0) {
+      if (loaderHIP_ == NULL) InitHIP();
+    } else if (strcasecmp(a, "opencl") == 0) {
+      if (loaderOpenCL_ == NULL) InitOpenCL();
+    } else if (strcasecmp(a, "openmp") == 0) {
+      if (loaderOpenMP_ == NULL) InitOpenMP();
+    } else _error("not support arch[%s]", a);
+  }
+  polyhedral_ = new Polyhedral();
   polyhedral_available_ = polyhedral_->Load() == BRISBANE_OK;
   if (polyhedral_available_)
     filter_task_split_ = new FilterTaskSplit(polyhedral_, this);
@@ -113,9 +136,13 @@ int Platform::Synchronize() {
 }
 
 int Platform::InitCUDA() {
+  if (arch_available_ & brisbane_nvidia) {
+    _trace("%s", "skipping CUDA architecture");
+    return BRISBANE_ERR;
+  }
   loaderCUDA_ = new LoaderCUDA();
   if (loaderCUDA_->Load() != BRISBANE_OK) {
-    _error("%s", "cannot load CUDA");
+    _trace("%s", "skipping CUDA architecture");
     return BRISBANE_ERR;
   }
   CUresult err = CUDA_SUCCESS;
@@ -124,12 +151,13 @@ int Platform::InitCUDA() {
   int ndevs = 0;
   err = loaderCUDA_->cuDeviceGetCount(&ndevs);
   _cuerror(err);
-  _info("CUDA platform[%d] ndevs[%d]", nplatforms_, ndevs);
+  _trace("CUDA platform[%d] ndevs[%d]", nplatforms_, ndevs);
   for (int i = 0; i < ndevs; i++) {
     CUdevice dev;
     err = loaderCUDA_->cuDeviceGet(&dev, i);
     _cuerror(err);
     devices_[ndevs_] = new DeviceCUDA(loaderCUDA_, dev, ndevs_, nplatforms_);
+    arch_available_ |= devices_[ndevs_]->type();
     ndevs_++;
   }
   if (ndevs) nplatforms_++;
@@ -137,9 +165,13 @@ int Platform::InitCUDA() {
 }
 
 int Platform::InitHIP() {
+  if (arch_available_ & brisbane_amd) {
+    _trace("%s", "skipping HIP architecture");
+    return BRISBANE_ERR;
+  }
   loaderHIP_ = new LoaderHIP();
   if (loaderHIP_->Load() != BRISBANE_OK) {
-    _error("%s", "cannot load HIP");
+    _trace("%s", "skipping HIP architecture");
     return BRISBANE_ERR;
   }
   hipError_t err = hipSuccess;
@@ -148,12 +180,13 @@ int Platform::InitHIP() {
   int ndevs = 0;
   err = loaderHIP_->hipGetDeviceCount(&ndevs);
   _hiperror(err);
-  _info("HIP platform[%d] ndevs[%d]", nplatforms_, ndevs);
+  _trace("HIP platform[%d] ndevs[%d]", nplatforms_, ndevs);
   for (int i = 0; i < ndevs; i++) {
     hipDevice_t dev;
     err = loaderHIP_->hipDeviceGet(&dev, i);
     _hiperror(err);
     devices_[ndevs_] = new DeviceHIP(loaderHIP_, dev, ndevs_, nplatforms_);
+    arch_available_ |= devices_[ndevs_]->type();
     ndevs_++;
   }
   if (ndevs) nplatforms_++;
@@ -161,15 +194,20 @@ int Platform::InitHIP() {
 }
 
 int Platform::InitOpenMP() {
+  if (arch_available_ & brisbane_cpu) {
+    _trace("%s", "skipping OpenMP architecture");
+    return BRISBANE_ERR;
+  }
   loaderOpenMP_ = new LoaderOpenMP();
   if (loaderOpenMP_->Load() != BRISBANE_OK) {
-    _error("%s", "cannot load OpenMP");
+    _trace("%s", "skipping OpenMP architecture");
     return BRISBANE_ERR;
   }
   int max_threads = loaderOpenMP_->omp_get_max_threads();
   int nprocs = loaderOpenMP_->omp_get_num_procs();
-  _info("OpenMP platform[%d] ndevs[%d]", nplatforms_, 1);
+  _trace("OpenMP platform[%d] ndevs[%d]", nplatforms_, 1);
   devices_[ndevs_] = new DeviceOpenMP(loaderOpenMP_, ndevs_, nplatforms_);
+  arch_available_ |= devices_[ndevs_]->type();
   ndevs_++;
   nplatforms_++;
   return BRISBANE_OK;
@@ -178,7 +216,7 @@ int Platform::InitOpenMP() {
 int Platform::InitOpenCL() {
   loaderOpenCL_ = new LoaderOpenCL();
   if (loaderOpenCL_->Load() != BRISBANE_OK) {
-    _error("%s", "cannot load OpenCL");
+    _trace("%s", "skipping OpenCL architecture");
     return BRISBANE_ERR;
   }
   cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
@@ -189,7 +227,7 @@ int Platform::InitOpenCL() {
   cl_uint nplatforms = BRISBANE_MAX_NDEVS;
 
   err = loaderOpenCL_->clGetPlatformIDs(nplatforms, cl_platforms_, &nplatforms);
-  _info("OpenCL nplatforms[%u]", nplatforms);
+  _trace("OpenCL nplatforms[%u]", nplatforms);
   cl_uint ndevs = 0;
   char vendor[64];
   char platform_name[64];
@@ -198,25 +236,20 @@ int Platform::InitOpenCL() {
     _clerror(err);
     err = loaderOpenCL_->clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
     _clerror(err);
-#if 0
-    if (strstr(vendor, "NVIDIA") != NULL) {
-      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+
+    if ((arch_available_ & brisbane_nvidia) && strstr(vendor, "NVIDIA") != NULL) {
+      _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
-#endif
-#if 0
-    if (strstr(vendor, "Advanced Micro Devices") != NULL) {
-      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+    if ((arch_available_ & brisbane_amd) && strstr(vendor, "Advanced Micro Devices") != NULL) {
+      _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
-#endif
-#if 0
-    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR | CL_DEVICE_TYPE_CUSTOM, 0, NULL, &ndevs);
-#else
-    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
-#endif
+    if (arch_available_ & brisbane_cpu) err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR | CL_DEVICE_TYPE_CUSTOM, 0, NULL, &ndevs);
+    else err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
+
     if (!ndevs) {
-      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+      _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
     err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
@@ -224,14 +257,15 @@ int Platform::InitOpenCL() {
     cl_contexts_[i] = loaderOpenCL_->clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
     _clerror(err);
     if (err != CL_SUCCESS) {
-      _info("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+      _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
     for (cl_uint j = 0; j < ndevs; j++) {
       devices_[ndevs_] = new DeviceOpenCL(loaderOpenCL_, cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
+      arch_available_ |= devices_[ndevs_]->type();
       ndevs_++;
     }
-    _info("adding platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+    _trace("adding platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
     nplatforms_++;
   }
   if (ndevs_) device_default_ = devices_[0]->type();

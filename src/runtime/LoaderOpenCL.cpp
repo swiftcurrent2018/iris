@@ -5,16 +5,12 @@ namespace brisbane {
 namespace rt {
 
 LoaderOpenCL::LoaderOpenCL() {
-
 }
 
 LoaderOpenCL::~LoaderOpenCL() {
-
 }
 
 int LoaderOpenCL::LoadFunctions() {
-  if (!handle_) return BRISBANE_ERR;
-
   LOADFUNC(clGetPlatformIDs);
   LOADFUNC(clGetPlatformInfo);
   LOADFUNC(clGetDeviceIDs);

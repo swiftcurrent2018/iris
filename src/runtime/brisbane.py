@@ -1,17 +1,7 @@
 import ctypes
 from ctypes import *
 
-def dlopen(path):
-  try:
-    return CDLL(path, mode=RTLD_GLOBAL)
-  except:
-    return None
-
-dlopen("libcuda.so")
-dlopen("libhip_hcc.so")
-dlopen("libgomp.so.1")
-dlopen("libOpenCL.so")
-dll = dlopen("libbrisbane.so")
+dll = CDLL("libbrisbane.so", mode=RTLD_GLOBAL)
 
 brisbane_default    =   (1 << 0)
 brisbane_cpu        =   (1 << 1)
@@ -30,6 +20,17 @@ brisbane_r          =   (1 << 0)
 brisbane_w          =   (1 << 1)
 brisbane_rw         =   (brisbane_r | brisbane_w)
 
+brisbane_int        =   (1 << 0)
+brisbane_long       =   (1 << 1)
+brisbane_float      =   (1 << 2)
+brisbane_double     =   (1 << 3)
+
+brisbane_normal     = (1 << 10)
+brisbane_reduction  = (1 << 11)
+brisbane_sum        = ((1 << 12) | brisbane_reduction)
+brisbane_max        = ((1 << 13) | brisbane_reduction)
+brisbane_min        = ((1 << 14) | brisbane_reduction)
+
 class brisbane_kernel(Structure):
     _fields_ = [("class_obj", c_void_p)]
 
@@ -47,6 +48,16 @@ def finalize():
 
 def synchronize():
     return dll.brisbane_synchronize()
+
+def info_nplatforms():
+    i = c_int()
+    dll.brisbane_info_nplatforms(byref(i))
+    return i.value
+
+def info_ndevs():
+    i = c_int()
+    dll.brisbane_info_ndevs(byref(i))
+    return i.value
 
 def mem_create(size):
     m = brisbane_mem()
@@ -118,6 +129,11 @@ def task_release(task):
 
 def task_release_mem(task, mem):
     return dll.brisbane_task_release_mem(task, mem)
+
+def timer_now():
+    d = c_double()
+    dll.brisbane_timer_now(byref(d))
+    return d.value
 
 class mem:
   def __init__(self, size):

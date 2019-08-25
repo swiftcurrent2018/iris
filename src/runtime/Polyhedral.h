@@ -3,34 +3,32 @@
 
 #include <brisbane/brisbane.h>
 #include <brisbane/brisbane_poly_types.h>
+#include "Loader.h"
 
 namespace brisbane {
 namespace rt {
 
-class Platform;
-
-class Polyhedral {
+class Polyhedral : public Loader {
 public:
-  Polyhedral(Platform* platform);
+  Polyhedral();
   ~Polyhedral();
-  int Load();
+
+  const char* library() { return "brisbane.poly.so"; }
+
+  int LoadFunctions();
+
   int Kernel(const char* name);
   int SetArg(int idx, size_t size, void* value);
   int Launch(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws);
   int GetMem(int idx, brisbane_poly_mem* plmem);
 
 private:
-  Platform* platform_;
-  void* handle_;
-  int dlerr_;
-
-  int (*kernel_)(const char* name);
-  int (*setarg_)(int idx, size_t size, void* value);
-  int (*launch_)(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws);
-  int (*getmem_)(int idx, brisbane_poly_mem* plmem);
-
-  int (*init_)();
-  int (*finalize_)();
+  int (*brisbane_poly_init)();
+  int (*brisbane_poly_finalize)();
+  int (*brisbane_poly_kernel)(const char* name);
+  int (*brisbane_poly_setarg)(int idx, size_t size, void* value);
+  int (*brisbane_poly_launch)(int dim, size_t* wgo, size_t* wgs, size_t* gws, size_t* lws);
+  int (*brisbane_poly_getmem)(int idx, brisbane_poly_mem* plmem);
 };
 
 } /* namespace rt */

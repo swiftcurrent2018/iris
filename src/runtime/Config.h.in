@@ -8,10 +8,7 @@
 #define BRISBANE_MAX_NDEVS            16
 #define BRISBANE_MAX_KERNEL_NARGS     64
 
-#cmakedefine USE_CUDA
-#cmakedefine USE_HIP
-#cmakedefine USE_OPENCL
-#cmakedefine USE_OPENMP
+#define BRISBANE_ARCH                 "openmp:cuda:hip:opencl"
 
 #include <brisbane/brisbane.h>
 #include <stddef.h>

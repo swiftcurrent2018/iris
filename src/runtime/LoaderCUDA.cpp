@@ -5,16 +5,12 @@ namespace brisbane {
 namespace rt {
 
 LoaderCUDA::LoaderCUDA() {
-
 }
 
 LoaderCUDA::~LoaderCUDA() {
-
 }
 
 int LoaderCUDA::LoadFunctions() {
-  if (!handle_) return BRISBANE_ERR;
-
   LOADFUNC(cuInit);
   LOADFUNC(cuDriverGetVersion);
   LOADFUNC(cuDeviceGet);

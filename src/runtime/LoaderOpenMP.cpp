@@ -5,16 +5,12 @@ namespace brisbane {
 namespace rt {
 
 LoaderOpenMP::LoaderOpenMP() {
-
 }
 
 LoaderOpenMP::~LoaderOpenMP() {
-
 }
 
 int LoaderOpenMP::LoadFunctions() {
-  if (!handle_) return BRISBANE_ERR;
-
   LOADFUNC(omp_get_num_procs);
   LOADFUNC(omp_get_max_threads);
 

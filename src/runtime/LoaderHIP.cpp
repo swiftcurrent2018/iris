@@ -5,16 +5,12 @@ namespace brisbane {
 namespace rt {
 
 LoaderHIP::LoaderHIP() {
-
 }
 
 LoaderHIP::~LoaderHIP() {
-
 }
 
 int LoaderHIP::LoadFunctions() {
-  if (!handle_) return BRISBANE_ERR;
-
   LOADFUNC(hipInit);
   LOADFUNC(hipDriverGetVersion);
   LOADFUNC(hipGetDeviceCount);

@@ -123,7 +123,7 @@ int DeviceCUDA::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, 
   int grid[3] = { (int) (gws[0] / block[0]), (int) (gws[1] / block[1]), (int) (gws[2] / block[2]) };
   size_t blockOff_x = off[0] / (lws ? lws[0] : 1);
   params_[max_arg_idx_ + 1] = &blockOff_x;
-  _debug("grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
+  _trace("grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
   err_ = ld_->cuLaunchKernel(cukernel, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
   _cuerror(err_);
   err_ = ld_->cuStreamSynchronize(stream_);

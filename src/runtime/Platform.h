@@ -105,6 +105,7 @@ private:
   LoaderHIP* loaderHIP_;
   LoaderOpenCL* loaderOpenCL_;
   LoaderOpenMP* loaderOpenMP_;
+  size_t arch_available_;
 
   std::set<Kernel*> kernels_;
   std::set<Mem*> mems_;
