@@ -260,7 +260,7 @@ int Platform::InitOpenCL() {
     }
     for (cl_uint j = 0; j < ndevs; j++) {
       cl_device_type dev_type;
-      err = ld_->clGetDeviceInfo(cl_devices[j], CL_DEVICE_TYPE, sizeof(dev_type), &dev_type, NULL);
+      err = loaderOpenCL_->clGetDeviceInfo(cl_devices[j], CL_DEVICE_TYPE, sizeof(dev_type), &dev_type, NULL);
       _clerror(err);
       if ((arch_available_ & brisbane_cpu) && (dev_type == CL_DEVICE_TYPE_CPU)) continue;
       devices_[ndevs_] = new DeviceOpenCL(loaderOpenCL_, cl_devices[j], cl_contexts[i], ndevs_, nplatforms_);
