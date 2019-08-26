@@ -16,7 +16,7 @@ Loader::~Loader() {
 
 int Loader::Load() {
   handle_ = dlopen(library(), RTLD_LAZY);
-  if (!handle_) return BRISBANE_ERR;
+  if (!handle_ && !library_ext()) return BRISBANE_ERR;
   if (library_ext()) {
     handle_ext_ = dlopen(library_ext(), RTLD_LAZY);
     if (!handle_ext_) return BRISBANE_ERR;

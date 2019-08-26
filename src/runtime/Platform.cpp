@@ -203,8 +203,8 @@ int Platform::InitOpenMP() {
     _trace("%s", "skipping OpenMP architecture");
     return BRISBANE_ERR;
   }
-  int max_threads = loaderOpenMP_->omp_get_max_threads();
-  int nprocs = loaderOpenMP_->omp_get_num_procs();
+  int max_threads = loaderOpenMP_->handle() ? loaderOpenMP_->omp_get_max_threads() : omp_get_max_threads();
+  int nprocs = loaderOpenMP_->handle() ? loaderOpenMP_->omp_get_num_procs() : omp_get_num_procs();
   _trace("OpenMP platform[%d] ndevs[%d]", nplatforms_, 1);
   devices_[ndevs_] = new DeviceOpenMP(loaderOpenMP_, ndevs_, nplatforms_);
   arch_available_ |= devices_[ndevs_]->type();
@@ -219,22 +219,22 @@ int Platform::InitOpenCL() {
     _trace("%s", "skipping OpenCL architecture");
     return BRISBANE_ERR;
   }
-  cl_platform_id cl_platforms_[BRISBANE_MAX_NDEVS];
-  cl_context cl_contexts_[BRISBANE_MAX_NDEVS];
-  cl_device_id cl_devices_[BRISBANE_MAX_NDEVS];
+  cl_platform_id cl_platforms[BRISBANE_MAX_NDEVS];
+  cl_context cl_contexts[BRISBANE_MAX_NDEVS];
+  cl_device_id cl_devices[BRISBANE_MAX_NDEVS];
   cl_int err;
 
   cl_uint nplatforms = BRISBANE_MAX_NDEVS;
 
-  err = loaderOpenCL_->clGetPlatformIDs(nplatforms, cl_platforms_, &nplatforms);
+  err = loaderOpenCL_->clGetPlatformIDs(nplatforms, cl_platforms, &nplatforms);
   _trace("OpenCL nplatforms[%u]", nplatforms);
   cl_uint ndevs = 0;
   char vendor[64];
   char platform_name[64];
   for (int i = 0; i < nplatforms; i++) {
-    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
     _clerror(err);
-    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms_[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
+    err = loaderOpenCL_->clGetPlatformInfo(cl_platforms[i], CL_PLATFORM_NAME, sizeof(platform_name), platform_name, NULL);
     _clerror(err);
 
     if ((arch_available_ & brisbane_nvidia) && strstr(vendor, "NVIDIA") != NULL) {
@@ -245,23 +245,25 @@ int Platform::InitOpenCL() {
       _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
-    if (arch_available_ & brisbane_cpu) err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR | CL_DEVICE_TYPE_CUSTOM, 0, NULL, &ndevs);
-    else err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
-
+    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ndevs);
     if (!ndevs) {
       _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
-    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms_[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices_ + ndevs_, NULL);
+    err = loaderOpenCL_->clGetDeviceIDs(cl_platforms[i], CL_DEVICE_TYPE_ALL, ndevs, cl_devices, NULL);
     _clerror(err);
-    cl_contexts_[i] = loaderOpenCL_->clCreateContext(NULL, ndevs, cl_devices_ + ndevs_, NULL, NULL, &err);
+    cl_contexts[i] = loaderOpenCL_->clCreateContext(NULL, ndevs, cl_devices, NULL, NULL, &err);
     _clerror(err);
     if (err != CL_SUCCESS) {
       _trace("skipping platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
       continue;
     }
     for (cl_uint j = 0; j < ndevs; j++) {
-      devices_[ndevs_] = new DeviceOpenCL(loaderOpenCL_, cl_devices_[ndevs_], cl_contexts_[i], ndevs_, nplatforms_);
+      cl_device_type dev_type;
+      err = ld_->clGetDeviceInfo(cl_devices[j], CL_DEVICE_TYPE, sizeof(dev_type), &dev_type, NULL);
+      _clerror(err);
+      if ((arch_available_ & brisbane_cpu) && (dev_type == CL_DEVICE_TYPE_CPU)) continue;
+      devices_[ndevs_] = new DeviceOpenCL(loaderOpenCL_, cl_devices[j], cl_contexts[i], ndevs_, nplatforms_);
       arch_available_ |= devices_[ndevs_]->type();
       ndevs_++;
     }

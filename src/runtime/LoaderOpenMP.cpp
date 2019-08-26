@@ -11,8 +11,10 @@ LoaderOpenMP::~LoaderOpenMP() {
 }
 
 int LoaderOpenMP::LoadFunctions() {
-  LOADFUNC(omp_get_num_procs);
-  LOADFUNC(omp_get_max_threads);
+  if (handle_) {
+    LOADFUNC(omp_get_num_procs);
+    LOADFUNC(omp_get_max_threads);
+  }
 
   LOADFUNCEXT(brisbane_openmp_init);
   LOADFUNCEXT(brisbane_openmp_finalize);

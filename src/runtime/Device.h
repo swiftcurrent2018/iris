@@ -32,7 +32,7 @@ public:
   virtual int MemH2D(Mem* mem, size_t off, size_t size, void* host) = 0;
   virtual int MemD2H(Mem* mem, size_t off, size_t size, void* host) = 0;
   virtual int KernelGet(void** kernel, const char* name) = 0;
-  virtual int KernelLaunchInit(Kernel* kernel) { }
+  virtual int KernelLaunchInit(Kernel* kernel) { return BRISBANE_OK; }
   virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
