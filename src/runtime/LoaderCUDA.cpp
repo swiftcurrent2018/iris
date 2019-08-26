@@ -27,7 +27,6 @@ int LoaderCUDA::LoadFunctions() {
   LOADFUNC(cuMemcpyHtoD);
   LOADFUNC(cuMemcpyDtoH);
   LOADFUNC(cuLaunchKernel);
-
   return BRISBANE_OK;
 }
 

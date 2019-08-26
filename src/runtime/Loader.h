@@ -17,8 +17,6 @@ public:
   Loader();
   virtual ~Loader();
 
-  void* handle() { return handle_; }
-
   int Load();
   virtual const char* library() = 0;
   virtual const char* library_ext() { return NULL; }

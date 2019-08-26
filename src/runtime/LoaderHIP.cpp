@@ -25,7 +25,6 @@ int LoaderHIP::LoadFunctions() {
   LOADFUNC(hipMemcpyDtoH);
   LOADFUNC(hipModuleLaunchKernel);
   LOADFUNC(hipDeviceSynchronize);
-
   return BRISBANE_OK;
 }
 

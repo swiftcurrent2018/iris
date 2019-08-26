@@ -203,8 +203,6 @@ int Platform::InitOpenMP() {
     _trace("%s", "skipping OpenMP architecture");
     return BRISBANE_ERR;
   }
-  int max_threads = loaderOpenMP_->handle() ? loaderOpenMP_->omp_get_max_threads() : omp_get_max_threads();
-  int nprocs = loaderOpenMP_->handle() ? loaderOpenMP_->omp_get_num_procs() : omp_get_num_procs();
   _trace("OpenMP platform[%d] ndevs[%d]", nplatforms_, 1);
   devices_[ndevs_] = new DeviceOpenMP(loaderOpenMP_, ndevs_, nplatforms_);
   arch_available_ |= devices_[ndevs_]->type();

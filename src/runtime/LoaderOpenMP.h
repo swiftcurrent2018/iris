@@ -12,12 +12,8 @@ public:
   LoaderOpenMP();
   ~LoaderOpenMP();
 
-  const char* library() { return "libgomp.so.1"; }
-  const char* library_ext() { return "kernel.openmp.so"; }
+  const char* library() { return "kernel.openmp.so"; }
   int LoadFunctions();
-
-  int (*omp_get_num_procs)(void);
-  int (*omp_get_max_threads)(void);
 
   int (*brisbane_openmp_init)();
   int (*brisbane_openmp_finalize)();
