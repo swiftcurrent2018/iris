@@ -1,3 +1,4 @@
+include_directories(${BRISBANE_INC_DIR})
 include_directories(${BRISBANE_SRC_DIR}/runtime)
 include_directories(${BRISBANE_BIN_DIR}/runtime)
 

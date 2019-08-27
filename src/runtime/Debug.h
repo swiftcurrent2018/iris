@@ -31,12 +31,12 @@
 #define BPURPLE "\033[1;35m"
 #define BCYAN   "\033[1;36m"
 #define BGRAY   "\033[1;37m"
-#define _RED    "\033[22;41m"
-#define _GREEN  "\033[22;42m"
-#define _YELLOW "\033[22;43m"
-#define _BLUE   "\033[22;44m"
-#define _PURPLE "\033[22;45m"
-#define _CYAN   "\033[22;46m"
+#define _RED    "\033[22;41m" BGRAY
+#define _GREEN  "\033[22;42m" BGRAY
+#define _YELLOW "\033[22;43m" BGRAY
+#define _BLUE   "\033[22;44m" BGRAY
+#define _PURPLE "\033[22;45m" BGRAY
+#define _CYAN   "\033[22;46m" BGRAY
 #define _GRAY   "\033[22;47m"
 #define RESET   "\x1b[m"
 #else

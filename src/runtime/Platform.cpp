@@ -115,7 +115,8 @@ int Platform::Init(int* argc, char*** argv, int sync) {
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
 
-  _info("available: hub[%d] polyhedral[%d] profile[%d] nplatforms[%d] ndevs[%d]", scheduler_->hub_available(), polyhedral_available_, enable_profiler_, nplatforms_, ndevs_);
+  _info("nplatforms[%d] ndevs[%d] hub[%d] polyhedral[%d] profile[%d]", nplatforms_, ndevs_, scheduler_->hub_available(), polyhedral_available_, enable_profiler_);
+  if (!ndevs_) __error("%s", "NO AVAILABLE DEVICES!");
 
   InitDevices(sync);
 
@@ -147,7 +148,10 @@ int Platform::InitCUDA() {
   }
   CUresult err = CUDA_SUCCESS;
   err = loaderCUDA_->cuInit(0);
-  _cuerror(err);
+  if (err != CUDA_SUCCESS) {
+    _trace("skipping CUDA architecture CUDA_ERROR[%d]", err);
+    return BRISBANE_ERR;
+  }
   int ndevs = 0;
   err = loaderCUDA_->cuDeviceGetCount(&ndevs);
   _cuerror(err);
@@ -226,6 +230,7 @@ int Platform::InitOpenCL() {
 
   err = loaderOpenCL_->clGetPlatformIDs(nplatforms, cl_platforms, &nplatforms);
   _trace("OpenCL nplatforms[%u]", nplatforms);
+  if (!nplatforms) return BRISBANE_OK;
   cl_uint ndevs = 0;
   char vendor[64];
   char platform_name[64];

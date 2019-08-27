@@ -16,10 +16,14 @@ Loader::~Loader() {
 
 int Loader::Load() {
   handle_ = dlopen(library(), RTLD_LAZY);
+  if (!handle_) _trace("%s", dlerror());
   if (!handle_ && !library_ext()) return BRISBANE_ERR;
   if (library_ext()) {
     handle_ext_ = dlopen(library_ext(), RTLD_LAZY);
-    if (!handle_ext_) return BRISBANE_ERR;
+    if (!handle_ext_) {
+      _trace("%s", dlerror());
+      return BRISBANE_ERR;
+    }
   }
   return LoadFunctions();
 }

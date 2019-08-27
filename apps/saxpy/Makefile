@@ -6,7 +6,7 @@ saxpy: saxpy.cpp
 	g++ -g -o $@ $^
 
 saxpy-brisbane: saxpy-brisbane.cpp
-	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib64 -lbrisbane -lpthread -ldl
+	g++ -g -I$(BRISBANE)/include -o $@ $^ -L$(BRISBANE)/lib -lbrisbane -lpthread -ldl
 
 kernel.ptx: kernel.cu
 	nvcc -ptx $^

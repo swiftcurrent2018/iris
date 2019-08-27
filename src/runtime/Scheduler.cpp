@@ -109,6 +109,11 @@ void Scheduler::SubmitTaskDirect(Task* task, Device* dev) {
 }
 
 void Scheduler::Submit(Task* task) {
+  if (!ndevs_) {
+    if (!task->marker()) _error("%s", "no device");
+    task->Complete();
+    return;
+  }
   if (task->marker()) {
     for (int i = 0; i < ndevs_; i++) workers_[i]->Enqueue(task->subtask(i));
     return;
