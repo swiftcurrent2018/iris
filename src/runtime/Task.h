@@ -58,7 +58,7 @@ public:
   double time() { return time_; }
   double time_start() { return time_start_; }
   double time_end() { return time_end_; }
-  void set_parent(Task* task) { parent_ = task; }
+  void set_parent(Task* task);
   void set_brs_policy(int brs_policy);
   int brs_policy() { return brs_policy_; }
   bool sync() { return sync_; }
@@ -73,7 +73,7 @@ private:
   void CompleteSub();
 
 private:
-  char name_[32];
+  char name_[64];
   bool given_name_;
   Task* parent_;
   int ncmds_;
@@ -99,8 +99,9 @@ private:
   double time_start_;
   double time_end_;
 
-  pthread_mutex_t executable_mutex_;
-  pthread_mutex_t complete_mutex_;
+  pthread_mutex_t mutex_executable_;
+  pthread_mutex_t mutex_complete_;
+  pthread_mutex_t mutex_subtasks_;
   pthread_cond_t complete_cond_;
 };
 

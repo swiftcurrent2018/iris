@@ -29,21 +29,27 @@ Task::Task(Platform* platform, int type, const char* name) {
   else sprintf(name_, "task%ld", uid());
   status_ = BRISBANE_NONE;
 
-  pthread_mutex_init(&executable_mutex_, NULL);
-  pthread_mutex_init(&complete_mutex_, NULL);
+  pthread_mutex_init(&mutex_executable_, NULL);
+  pthread_mutex_init(&mutex_complete_, NULL);
+  pthread_mutex_init(&mutex_subtasks_, NULL);
   pthread_cond_init(&complete_cond_, NULL);
 }
 
 Task::~Task() {
   for (int i = 0; i < ncmds_; i++) delete cmds_[i];
-  pthread_mutex_destroy(&executable_mutex_);
-  pthread_mutex_destroy(&complete_mutex_);
+  pthread_mutex_destroy(&mutex_executable_);
+  pthread_mutex_destroy(&mutex_complete_);
+  pthread_mutex_destroy(&mutex_subtasks_);
   pthread_cond_destroy(&complete_cond_);
 }
 
 double Task::TimeInc(double t) {
   time_ += t;
   return time_;
+}
+
+void Task::set_parent(Task* task) {
+  parent_ = task;
 }
 
 void Task::set_brs_policy(int brs_policy) {
@@ -76,34 +82,36 @@ bool Task::Submittable() {
 }
 
 bool Task::Executable() {
-  pthread_mutex_lock(&executable_mutex_);
+  pthread_mutex_lock(&mutex_executable_);
   if (status_ == BRISBANE_NONE) {
     status_ = BRISBANE_RUNNING;
-    pthread_mutex_unlock(&executable_mutex_);
+    pthread_mutex_unlock(&mutex_executable_);
     return true;
   }
-  pthread_mutex_unlock(&executable_mutex_);
+  pthread_mutex_unlock(&mutex_executable_);
   return false;
 }
 
 void Task::Complete() {
-  pthread_mutex_lock(&complete_mutex_);
+  pthread_mutex_lock(&mutex_complete_);
   status_ = BRISBANE_COMPLETE;
   pthread_cond_broadcast(&complete_cond_);
-  pthread_mutex_unlock(&complete_mutex_);
+  pthread_mutex_unlock(&mutex_complete_);
   if (parent_) parent_->CompleteSub();
   else scheduler_->Invoke();
 }
 
 void Task::CompleteSub() {
+  pthread_mutex_lock(&mutex_subtasks_);
   if (++subtasks_complete_ == subtasks_.size()) Complete();
+  pthread_mutex_unlock(&mutex_subtasks_);
 }
 
 void Task::Wait() {
-  pthread_mutex_lock(&complete_mutex_);
+  pthread_mutex_lock(&mutex_complete_);
   if (status_ != BRISBANE_COMPLETE)
-    pthread_cond_wait(&complete_cond_, &complete_mutex_);
-  pthread_mutex_unlock(&complete_mutex_);
+    pthread_cond_wait(&complete_cond_, &mutex_complete_);
+  pthread_mutex_unlock(&mutex_complete_);
 }
 
 void Task::AddSubtask(Task* subtask) {

@@ -286,12 +286,7 @@ int Platform::InitDevices(bool sync) {
     tasks[i]->AddCommand(cmd);
     scheduler_->worker(i)->Enqueue(tasks[i]);
   }
-  if (sync) {
-    for (int i = 0; i < ndevs_; i++) {
-      tasks[i]->Wait();
-      tasks[i]->Release();
-    }
-  }
+  if (sync) for (int i = 0; i < ndevs_; i++) tasks[i]->Wait();
   delete[] tasks;
   return BRISBANE_OK;
 }
