@@ -3,18 +3,18 @@ from ctypes import *
 
 dll = CDLL("libbrisbane.so", mode=RTLD_GLOBAL)
 
-brisbane_default    =   (1 << 0)
-brisbane_cpu        =   (1 << 1)
-brisbane_nvidia     =   (1 << 2)
-brisbane_amd        =   (1 << 3)
+brisbane_default    =   (1 << 5)
+brisbane_cpu        =   (1 << 6)
+brisbane_nvidia     =   (1 << 7)
+brisbane_amd        =   (1 << 8)
 brisbane_gpu        =   (brisbane_nvidia | brisbane_amd)
-brisbane_phi        =   (1 << 4)
-brisbane_fpga       =   (1 << 5)
-brisbane_data       =   (1 << 6)
-brisbane_profile    =   (1 << 7)
-brisbane_random     =   (1 << 8)
-brisbane_any        =   (1 << 9)
-brisbane_all        =   (1 << 10)
+brisbane_phi        =   (1 << 9)
+brisbane_fpga       =   (1 << 10)
+brisbane_data       =   (1 << 11)
+brisbane_profile    =   (1 << 12)
+brisbane_random     =   (1 << 13)
+brisbane_any        =   (1 << 14)
+brisbane_all        =   (1 << 15)
 
 brisbane_r          =   (1 << 0)
 brisbane_w          =   (1 << 1)
@@ -25,11 +25,16 @@ brisbane_long       =   (1 << 1)
 brisbane_float      =   (1 << 2)
 brisbane_double     =   (1 << 3)
 
-brisbane_normal     = (1 << 10)
-brisbane_reduction  = (1 << 11)
-brisbane_sum        = ((1 << 12) | brisbane_reduction)
-brisbane_max        = ((1 << 13) | brisbane_reduction)
-brisbane_min        = ((1 << 14) | brisbane_reduction)
+brisbane_normal     =   (1 << 10)
+brisbane_reduction  =   (1 << 11)
+brisbane_sum        =   ((1 << 12) | brisbane_reduction)
+brisbane_max        =   ((1 << 13) | brisbane_reduction)
+brisbane_min        =   ((1 << 14) | brisbane_reduction)
+
+brisbane_platform   =   0x1001
+brisbane_vendor     =   0x1002
+brisbane_name       =   0x1003
+brisbane_type       =   0x1004
 
 class brisbane_kernel(Structure):
     _fields_ = [("class_obj", c_void_p)]
