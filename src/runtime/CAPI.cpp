@@ -16,12 +16,20 @@ int brisbane_synchronize() {
   return Platform::GetPlatform()->Synchronize();
 }
 
-int brisbane_info_nplatforms(int* nplatforms) {
-  return Platform::GetPlatform()->InfoNumPlatforms(nplatforms);
+int brisbane_platform_count(int* nplatforms) {
+  return Platform::GetPlatform()->PlatformCount(nplatforms);
 }
 
-int brisbane_info_ndevs(int* ndevs) {
-  return Platform::GetPlatform()->InfoNumDevices(ndevs);
+int brisbane_platform_info(int platform, int param, void* value, size_t* size) {
+  return Platform::GetPlatform()->PlatformInfo(platform, param, value, size);
+}
+
+int brisbane_device_count(int *ndevs) {
+  return Platform::GetPlatform()->DeviceCount(ndevs);
+}
+
+int brisbane_device_info(int device, int param, void* value, size_t* size) {
+  return Platform::GetPlatform()->DeviceInfo(device, param, value, size);
 }
 
 int brisbane_device_set_default(int device) {

@@ -17,7 +17,7 @@ namespace rt {
 
 Scheduler::Scheduler(Platform* platform) {
   platform_ = platform;
-  devices_ = platform_->devices();
+  devs_ = platform_->devices();
   ndevs_ = platform_->ndevs();
   enable_profiler_ = platform->enable_profiler();
   nprofilers_ = platform->nprofilers();
@@ -44,7 +44,7 @@ Scheduler::~Scheduler() {
 
 void Scheduler::InitWorkers() {
   for (int i = 0; i < ndevs_; i++) {
-    workers_[i] = new Worker(devices_[i], this);
+    workers_[i] = new Worker(devs_[i], this);
     workers_[i]->Start();
   }
 }
@@ -131,7 +131,13 @@ void Scheduler::SubmitTask(Task* task) {
   int brs_policy = task->brs_policy();
   int ndevs = 0;
   Device* devs[BRISBANE_MAX_NDEVS];
-  policies_->GetPolicy(brs_policy)->GetDevices(task, devs, &ndevs);
+  if (brs_policy < BRISBANE_MAX_NDEVS) {
+    if (brs_policy >= ndevs_) ndevs = 0;
+    else {
+      ndevs = 1;
+      devs[0] = devs_[brs_policy];
+    }
+  } else policies_->GetPolicy(brs_policy)->GetDevices(task, devs, &ndevs);
   if (ndevs == 0) {
     _error("no device for policy[0x%x]", brs_policy);
     task->Complete();

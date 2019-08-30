@@ -29,7 +29,7 @@ public:
   void SubmitTaskDirect(Task* task, Device* dev);
 
   Platform* platform() { return platform_; }
-  Device** devices() { return devices_; }
+  Device** devices() { return devs_; }
   Worker** workers() { return workers_; }
   Worker* worker(int i) { return workers_[i]; }
   Consistency* consistency() { return consistency_; }
@@ -58,7 +58,7 @@ private:
   Platform* platform_;
 
   Policies* policies_;
-  Device** devices_;
+  Device** devs_;
   Worker* workers_[BRISBANE_MAX_NDEVS];
   Consistency* consistency_;
   size_t ntasks_on_devs_[BRISBANE_MAX_NDEVS];

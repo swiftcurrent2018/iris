@@ -164,7 +164,10 @@ int Platform::InitCUDA() {
     arch_available_ |= devices_[ndevs_]->type();
     ndevs_++;
   }
-  if (ndevs) nplatforms_++;
+  if (ndevs) {
+    strcpy(platform_names_[nplatforms_], "CUDA");
+    nplatforms_++;
+  }
   return BRISBANE_OK;
 }
 
@@ -193,7 +196,10 @@ int Platform::InitHIP() {
     arch_available_ |= devices_[ndevs_]->type();
     ndevs_++;
   }
-  if (ndevs) nplatforms_++;
+  if (ndevs) {
+    strcpy(platform_names_[nplatforms_], "HIP");
+    nplatforms_++;
+  }
   return BRISBANE_OK;
 }
 
@@ -211,6 +217,7 @@ int Platform::InitOpenMP() {
   devices_[ndevs_] = new DeviceOpenMP(loaderOpenMP_, ndevs_, nplatforms_);
   arch_available_ |= devices_[ndevs_]->type();
   ndevs_++;
+  strcpy(platform_names_[nplatforms_], "OpenMP");
   nplatforms_++;
   return BRISBANE_OK;
 }
@@ -271,6 +278,7 @@ int Platform::InitOpenCL() {
       ndevs_++;
     }
     _trace("adding platform[%d] [%s %s] ndevs[%u]", nplatforms_, vendor, platform_name, ndevs);
+    sprintf(platform_names_[nplatforms_], "OpenCL %s", vendor);
     nplatforms_++;
   }
   if (ndevs_) device_default_ = devices_[0]->type();
@@ -291,13 +299,38 @@ int Platform::InitDevices(bool sync) {
   return BRISBANE_OK;
 }
 
-int Platform::InfoNumPlatforms(int* nplatforms) {
-  *nplatforms = nplatforms_;
+int Platform::PlatformCount(int* nplatforms) {
+  if (nplatforms) *nplatforms = nplatforms_;
   return BRISBANE_OK;
 }
 
-int Platform::InfoNumDevices(int* ndevs) {
-  *ndevs = ndevs_;
+int Platform::PlatformInfo(int platform, int param, void* value, size_t* size) {
+  if (platform >= nplatforms_) return BRISBANE_ERR;
+  switch (param) {
+    case brisbane_type:
+      if (size) *size = strlen(platform_names_[platform]);
+      strcpy((char*) value, platform_names_[platform]);
+      break;
+    default: return BRISBANE_ERR;
+  }
+  return BRISBANE_OK;
+}
+
+int Platform::DeviceCount(int* ndevs) {
+  if (ndevs) *ndevs = ndevs_;
+  return BRISBANE_OK;
+}
+
+int Platform::DeviceInfo(int device, int param, void* value, size_t* size) {
+  if (device >= ndevs_) return BRISBANE_ERR;
+  Device* dev = devices_[device];
+  switch (param) {
+    case brisbane_platform  : if (size) *size = sizeof(int);            *((int*) value) = dev->platform();      break;
+    case brisbane_vendor    : if (size) *size = strlen(dev->vendor());  strcpy((char*) value, dev->vendor());   break;
+    case brisbane_name      : if (size) *size = strlen(dev->name());    strcpy((char*) value, dev->name());     break;
+    case brisbane_type      : if (size) *size = sizeof(int);            *((int*) value) = dev->type();          break;
+    default: return BRISBANE_ERR;
+  }
   return BRISBANE_OK;
 }
 

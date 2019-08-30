@@ -8,18 +8,21 @@
 extern "C" {
 #endif
 
-#define brisbane_default            (1 << 0)
-#define brisbane_cpu                (1 << 1)
-#define brisbane_nvidia             (1 << 2)
-#define brisbane_amd                (1 << 3)
+#define BRISBANE_MAX_NPLATFORMS     32
+#define BRISBANE_MAX_NDEVS          (1 << 5) - 1
+
+#define brisbane_default            (1 << 5)
+#define brisbane_cpu                (1 << 6)
+#define brisbane_nvidia             (1 << 7)
+#define brisbane_amd                (1 << 8)
 #define brisbane_gpu                (brisbane_nvidia | brisbane_amd)
-#define brisbane_phi                (1 << 4)
-#define brisbane_fpga               (1 << 5)
-#define brisbane_data               (1 << 6)
-#define brisbane_profile            (1 << 7)
-#define brisbane_random             (1 << 8)
-#define brisbane_any                (1 << 9)
-#define brisbane_all                (1 << 10)
+#define brisbane_phi                (1 << 9)
+#define brisbane_fpga               (1 << 10)
+#define brisbane_data               (1 << 11)
+#define brisbane_profile            (1 << 12)
+#define brisbane_random             (1 << 13)
+#define brisbane_any                (1 << 14)
+#define brisbane_all                (1 << 15)
 
 #define brisbane_r                  (1 << 0)
 #define brisbane_w                  (1 << 1)
@@ -36,6 +39,11 @@ extern "C" {
 #define brisbane_max                ((1 << 13) | brisbane_reduction)
 #define brisbane_min                ((1 << 14) | brisbane_reduction)
 
+#define brisbane_platform           0x1001
+#define brisbane_vendor             0x1002
+#define brisbane_name               0x1003
+#define brisbane_type               0x1004
+
 typedef struct _brisbane_task*      brisbane_task;
 typedef struct _brisbane_mem*       brisbane_mem;
 typedef struct _brisbane_kernel*    brisbane_kernel;
@@ -44,9 +52,11 @@ extern int brisbane_init(int* argc, char*** argv, int sync);
 extern int brisbane_finalize();
 extern int brisbane_synchronize();
 
-extern int brisbane_info_nplatforms(int* nplatforms);
-extern int brisbane_info_ndevs(int* ndevs);
+extern int brisbane_platform_count(int* nplatforms);
+extern int brisbane_platform_info(int platform, int param, void* value, size_t* size);
 
+extern int brisbane_device_count(int *ndevs);
+extern int brisbane_device_info(int device, int param, void* value, size_t* size);
 extern int brisbane_device_set_default(int device);
 extern int brisbane_device_get_default(int* device);
 

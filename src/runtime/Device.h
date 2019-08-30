@@ -37,8 +37,10 @@ public:
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
 
+  int platform() { return platform_; }
   int devno() { return devno_; }
   int type() { return type_; }
+  char* vendor() { return vendor_; }
   char* name() { return name_; }
   bool busy() { return busy_; }
   bool idle() { return !busy_; }

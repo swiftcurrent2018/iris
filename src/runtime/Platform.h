@@ -38,9 +38,11 @@ public:
   int InitOpenMP();
   int InitDevices(bool sync);
 
-  int InfoNumPlatforms(int* nplatforms);
-  int InfoNumDevices(int* ndevs);
+  int PlatformCount(int* nplatforms);
+  int PlatformInfo(int platform, int param, void* value, size_t* size);
 
+  int DeviceCount(int* ndevs);
+  int DeviceInfo(int device, int param, void* value, size_t* size);
   int DeviceSetDefault(int device);
   int DeviceGetDefault(int* device);
 
@@ -96,8 +98,9 @@ public:
 private:
   bool init_;
 
-  Device* devices_[BRISBANE_MAX_NDEVS];
+  char platform_names_[BRISBANE_MAX_NPLATFORMS][64];
   int nplatforms_;
+  Device* devices_[BRISBANE_MAX_NDEVS];
   int ndevs_;
   int device_default_;
 
