@@ -54,15 +54,25 @@ def finalize():
 def synchronize():
     return dll.brisbane_synchronize()
 
-def info_nplatforms():
+def platform_count():
     i = c_int()
-    dll.brisbane_info_nplatforms(byref(i))
+    dll.brisbane_platform_count(byref(i))
     return i.value
 
-def info_ndevs():
+def platform_info(platform, param):
+    s = (c_char * 64)()
+    dll.brisbane_platform_info(c_int(platform), c_int(param), s, None)
+    return s.value
+
+def device_count():
     i = c_int()
-    dll.brisbane_info_ndevs(byref(i))
+    dll.brisbane_device_count(byref(i))
     return i.value
+
+def device_info(device, param):
+    s = (c_char * 64)()
+    dll.brisbane_device_info(c_int(device), c_int(param), s, None)
+    return s.value
 
 def mem_create(size):
     m = brisbane_mem()

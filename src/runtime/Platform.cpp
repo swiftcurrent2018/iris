@@ -307,7 +307,7 @@ int Platform::PlatformCount(int* nplatforms) {
 int Platform::PlatformInfo(int platform, int param, void* value, size_t* size) {
   if (platform >= nplatforms_) return BRISBANE_ERR;
   switch (param) {
-    case brisbane_type:
+    case brisbane_name:
       if (size) *size = strlen(platform_names_[platform]);
       strcpy((char*) value, platform_names_[platform]);
       break;
