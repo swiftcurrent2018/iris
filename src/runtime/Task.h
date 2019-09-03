@@ -60,6 +60,8 @@ public:
   double time_end() { return time_end_; }
   void set_parent(Task* task);
   void set_brs_policy(int brs_policy);
+  void set_opt(const char* opt);
+  char* opt() { return opt_; }
   int brs_policy() { return brs_policy_; }
   bool sync() { return sync_; }
   void set_sync(bool sync) { sync_ = sync; }
@@ -89,6 +91,7 @@ private:
   int ndepends_;
 
   int brs_policy_;
+  char opt_[64];
   bool sync_;
 
   int type_;

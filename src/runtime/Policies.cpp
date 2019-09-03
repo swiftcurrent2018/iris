@@ -1,5 +1,6 @@
 #include "Policies.h"
 #include "Debug.h"
+#include "LoaderPolicy.h"
 #include "PolicyAll.h"
 #include "PolicyAny.h"
 #include "PolicyData.h"
@@ -31,9 +32,11 @@ Policies::~Policies() {
   delete policy_device_;
   delete policy_profile_;
   delete policy_random_;
+  for (std::map<std::string, LoaderPolicy*>::iterator I = policy_customs_.begin(), E = policy_customs_.end(); I != E; ++I)
+    delete I->second;
 }
 
-Policy* Policies::GetPolicy(int brs_policy) {
+Policy* Policies::GetPolicy(int brs_policy, char* opt) {
   if (brs_policy &  brisbane_cpu    ||
       brs_policy &  brisbane_nvidia ||
       brs_policy &  brisbane_amd    ||
@@ -46,9 +49,33 @@ Policy* Policies::GetPolicy(int brs_policy) {
   if (brs_policy == brisbane_default) return policy_default_;
   if (brs_policy == brisbane_profile) return policy_profile_;
   if (brs_policy == brisbane_random)  return policy_random_;
-  _error("unknown policy [%d] [0x%x]", brs_policy, brs_policy);
+  if (brs_policy == brisbane_custom) {
+    if (policy_customs_.find(std::string(opt)) != policy_customs_.end()) {
+      Policy* policy = policy_customs_[opt]->policy();
+      policy->SetScheduler(scheduler_);
+      return policy;
+    }
+  }
+  _error("unknown policy [%d] [0x%x] [%s]", brs_policy, brs_policy, opt);
   return policy_any_;
+}
+
+int Policies::Register(const char* lib, const char* name) {
+  LoaderPolicy* loader = new LoaderPolicy(lib, name);
+  std::string namestr = std::string(name);
+  if (policy_customs_.find(namestr) != policy_customs_.end()) {
+    _error("existing policy name[%s]", name);
+    return BRISBANE_ERR;
+  }
+  if (loader->Load() != BRISBANE_OK) {
+    _error("cannot load custom policy[%s]", name);
+    return BRISBANE_ERR;
+  }
+  _debug("lib[%s] name[%s]", lib, name);
+  policy_customs_.insert(std::pair<std::string, LoaderPolicy*>(namestr, loader));
+  return BRISBANE_OK;
 }
 
 } /* namespace rt */
 } /* namespace brisbane */
+

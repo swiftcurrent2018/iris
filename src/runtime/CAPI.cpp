@@ -40,6 +40,10 @@ int brisbane_device_get_default(int* device) {
   return Platform::GetPlatform()->DeviceGetDefault(device);
 }
 
+int brisbane_policy_register(const char* lib, const char* name) {
+  return Platform::GetPlatform()->PolicyRegister(lib, name);
+}
+
 int brisbane_kernel_create(const char* name, brisbane_kernel* kernel) {
   return Platform::GetPlatform()->KernelCreate(name, kernel);
 }
@@ -88,7 +92,7 @@ int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, si
   return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }
 
-int brisbane_task_submit(brisbane_task task, int device, char* opt, int sync) {
+int brisbane_task_submit(brisbane_task task, int device, const char* opt, int sync) {
   return Platform::GetPlatform()->TaskSubmit(task, device, opt, sync);
 }
 

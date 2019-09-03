@@ -33,6 +33,7 @@ public:
   Worker** workers() { return workers_; }
   Worker* worker(int i) { return workers_[i]; }
   Consistency* consistency() { return consistency_; }
+  Policies* policies() { return policies_; }
   int ndevs() { return ndevs_; }
   int nworkers() { return ndevs_; }
   void StartTask(Task* task, Worker* worker);

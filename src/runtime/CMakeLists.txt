@@ -23,6 +23,7 @@ set(BRISBANE_RUNTIME_SOURCES
   LoaderHIP.cpp
   LoaderOpenCL.cpp
   LoaderOpenMP.cpp
+  LoaderPolicy.cpp
   Message.cpp
   Mem.cpp
   MemRange.cpp

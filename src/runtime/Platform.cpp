@@ -14,6 +14,7 @@
 #include "LoaderOpenCL.h"
 #include "LoaderOpenMP.h"
 #include "Mem.h"
+#include "Policies.h"
 #include "Polyhedral.h"
 #include "Profiler.h"
 #include "ProfilerDOT.h"
@@ -344,6 +345,10 @@ int Platform::DeviceGetDefault(int* device) {
   return BRISBANE_OK;
 }
 
+int Platform::PolicyRegister(const char* lib, const char* name) {
+  return scheduler_->policies()->Register(lib, name);
+}
+
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
   for (std::set<Kernel*>::iterator I = kernels_.begin(), E = kernels_.end(); I != E; ++I) {
     Kernel* kernel = *I;
@@ -421,9 +426,10 @@ int Platform::TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* ho
   return TaskD2H(brs_task, brs_mem, 0ULL, brs_mem->class_obj->size(), host);
 }
 
-int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, char* opt, int sync) {
+int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, const char* opt, int sync) {
   Task* task = brs_task->class_obj;
   task->set_brs_policy(brs_policy);
+  task->set_opt(opt);
   task->set_sync(sync);
   FilterSubmitExecute(task);
   scheduler_->Enqueue(task);

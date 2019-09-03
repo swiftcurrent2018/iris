@@ -59,6 +59,12 @@ void Task::set_brs_policy(int brs_policy) {
     (*I)->set_brs_policy(brs_policy);
 }
 
+void Task::set_opt(const char* opt) {
+  if (!opt) return;
+  memset(opt_, 0, sizeof(opt_));
+  strncpy(opt_, opt, strlen(opt));
+}
+
 void Task::AddCommand(Command* cmd) {
   if (ncmds_ == 63) _error("ncmds[%d]", ncmds_);
   cmds_[ncmds_++] = cmd;

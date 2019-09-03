@@ -46,6 +46,8 @@ public:
   int DeviceSetDefault(int device);
   int DeviceGetDefault(int* device);
 
+  int PolicyRegister(const char* lib, const char* name);
+
   int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
   int KernelSetArg(brisbane_kernel kernel, int idx, size_t size, void* value);
   int KernelSetMem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
@@ -58,7 +60,7 @@ public:
   int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
   int TaskH2DFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
   int TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
-  int TaskSubmit(brisbane_task brs_task, int brs_policy, char* opt, int wait);
+  int TaskSubmit(brisbane_task brs_task, int brs_policy, const char* opt, int wait);
   int TaskWait(brisbane_task brs_task);
   int TaskWaitAll(int ntasks, brisbane_task* brs_tasks);
   int TaskAddSubtask(brisbane_task brs_task, brisbane_task brs_subtask);

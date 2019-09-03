@@ -23,6 +23,7 @@ extern "C" {
 #define brisbane_random             (1 << 13)
 #define brisbane_any                (1 << 14)
 #define brisbane_all                (1 << 15)
+#define brisbane_custom             (1 << 30)
 
 #define brisbane_r                  (1 << 0)
 #define brisbane_w                  (1 << 1)
@@ -60,6 +61,8 @@ extern int brisbane_device_info(int device, int param, void* value, size_t* size
 extern int brisbane_device_set_default(int device);
 extern int brisbane_device_get_default(int* device);
 
+extern int brisbane_policy_register(const char* lib, const char* name);
+
 extern int brisbane_kernel_create(const char* name, brisbane_kernel* kernel);
 extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* value);
 extern int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
@@ -73,7 +76,7 @@ extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, s
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host);
-extern int brisbane_task_submit(brisbane_task task, int device, char* opt, int sync);
+extern int brisbane_task_submit(brisbane_task task, int device, const char* opt, int sync);
 extern int brisbane_task_wait(brisbane_task task);
 extern int brisbane_task_wait_all(int ntasks, brisbane_task* tasks);
 extern int brisbane_task_add_subtask(brisbane_task task, brisbane_task subtask);
