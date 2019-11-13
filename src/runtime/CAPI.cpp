@@ -9,7 +9,7 @@ int brisbane_init(int* argc, char*** argv, int sync) {
 }
 
 int brisbane_finalize() {
-  return Platform::Finalize();
+  return Platform::GetPlatform()->Finalize();
 }
 
 int brisbane_synchronize() {

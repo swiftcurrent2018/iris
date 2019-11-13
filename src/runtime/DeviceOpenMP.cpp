@@ -18,6 +18,7 @@ DeviceOpenMP::DeviceOpenMP(LoaderOpenMP* ld, int devno, int platform) : Device(d
   size_t size = 0;
   while (getdelim(&arg, &size, 0, fd) != -1) {
     if (GetProcessorNameIntel(arg) == BRISBANE_OK) break;
+    if (GetProcessorNamePower(arg) == BRISBANE_OK) break;
     if (GetProcessorNameARM(arg) == BRISBANE_OK) break;
     strcpy(name_, "Unknown CPU"); break;
   }
@@ -37,6 +38,16 @@ int DeviceOpenMP::GetProcessorNameIntel(char* cpuinfo) {
   char* c3 = strstr(c2, "GHz");
   if (!c3) return BRISBANE_ERR;
   strncpy(name_, c2, c3 - c2 + 3);
+  return BRISBANE_OK;
+}
+
+int DeviceOpenMP::GetProcessorNamePower(char* cpuinfo) {
+  char* c1 = strstr(cpuinfo, "cpu\t\t: ");
+  if (!c1) return BRISBANE_ERR;
+  char* c2 = c1 + strlen("cpu\t\t: ");
+  char* c3 = strstr(c2, "clock");
+  if (!c3) return BRISBANE_ERR;
+  strncpy(name_, c2, c3 - c2 - 1);
   return BRISBANE_OK;
 }
 

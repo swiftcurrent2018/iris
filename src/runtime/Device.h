@@ -58,6 +58,7 @@ protected:
   char version_[64];
   int driver_version_;
   int max_compute_units_;
+  size_t max_work_group_size_;
   size_t max_work_item_sizes_[3];
 
   bool busy_;

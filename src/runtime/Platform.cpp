@@ -33,6 +33,7 @@ char brisbane_log_prefix_[256];
 
 Platform::Platform() {
   init_ = false;
+  finalize_ = false;
   nplatforms_ = 0;
   ndevs_ = 0;
 
@@ -50,6 +51,8 @@ Platform::Platform() {
   nprofilers_ = 0;
   time_app_ = 0.0;
   time_init_ = 0.0;
+
+  pthread_mutex_init(&mutex_, NULL);
 }
 
 Platform::~Platform() {
@@ -66,10 +69,16 @@ Platform::~Platform() {
   if (null_kernel_) delete null_kernel_;
   if (enable_profiler_)
     for (int i = 0; i < nprofilers_; i++) delete profilers_[i];
+
+  pthread_mutex_destroy(&mutex_);
 }
 
 int Platform::Init(int* argc, char*** argv, int sync) {
-  if (init_) return BRISBANE_ERR;
+  pthread_mutex_lock(&mutex_);
+  if (init_) {
+    pthread_mutex_unlock(&mutex_);
+    return BRISBANE_ERR;
+  }
   Utils::Logo(true);
 
   gethostname(brisbane_log_prefix_, 256);
@@ -121,9 +130,11 @@ int Platform::Init(int* argc, char*** argv, int sync) {
 
   InitDevices(sync);
 
+  timer_->Stop(BRISBANE_TIMER_PLATFORM);
+
   init_ = true;
 
-  timer_->Stop(BRISBANE_TIMER_PLATFORM);
+  pthread_mutex_unlock(&mutex_);
 
   return BRISBANE_OK;
 }
@@ -524,23 +535,28 @@ int Platform::ShowKernelHistory() {
 }
 
 Platform* Platform::singleton_ = NULL;
+std::once_flag Platform::flag_singleton_;
+std::once_flag Platform::flag_finalize_;
 
 Platform* Platform::GetPlatform() {
-  if (singleton_ == NULL) singleton_ = new Platform();
+//  if (singleton_ == NULL) singleton_ = new Platform();
+  std::call_once(flag_singleton_, []() { singleton_ = new Platform(); });
   return singleton_;
 }
 
 int Platform::Finalize() {
-  singleton_->Synchronize();
-  singleton_->ShowKernelHistory();
-  singleton_->time_app_ = singleton_->timer()->Stop(BRISBANE_TIMER_APP);
-  singleton_->time_init_ = singleton_->timer()->Total(BRISBANE_TIMER_PLATFORM);
-  double time_app = singleton_->time_app();
-  double time_init = singleton_->time_init();
-  if (singleton_ == NULL) return BRISBANE_ERR;
-  if (singleton_) delete singleton_;
-  singleton_ = NULL;
-  _info("total execution time:[%lf] sec. initialize:[%lf] sec. t-i:[%lf] sec", time_app, time_init, time_app - time_init);
+  pthread_mutex_lock(&mutex_);
+  if (finalize_) {
+    pthread_mutex_unlock(&mutex_);
+    return BRISBANE_ERR;
+  }
+  Synchronize();
+  ShowKernelHistory();
+  time_app_ = timer()->Stop(BRISBANE_TIMER_APP);
+  time_init_ = timer()->Total(BRISBANE_TIMER_PLATFORM);
+  _info("total execution time:[%lf] sec. initialize:[%lf] sec. t-i:[%lf] sec", time_app_, time_init_, time_app_ - time_init_);
+  finalize_ = true;
+  pthread_mutex_unlock(&mutex_);
   return BRISBANE_OK;
 }
 

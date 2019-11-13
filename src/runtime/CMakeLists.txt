@@ -5,6 +5,8 @@ include_directories(${BRISBANE_BIN_DIR}/runtime)
 
 configure_file(Config.h.in Config.h)
 
+set(CMAKE_CXX_STANDARD 11)
+
 set(BRISBANE_RUNTIME_SOURCES
   CAPI.cpp
   Command.cpp
@@ -67,5 +69,6 @@ add_library(brisbane ${BRISBANE_RUNTIME_SOURCES})
 
 #target_compile_options(brisbane PRIVATE -Wall)
 
-install(TARGETS brisbane DESTINATION ${CMAKE_INSTALL_LIBDIR})
+#install(TARGETS brisbane DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS brisbane DESTINATION ${CMAKE_INSTALL_PREFIX}/lib64)
 

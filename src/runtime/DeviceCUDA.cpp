@@ -24,19 +24,24 @@ DeviceCUDA::DeviceCUDA(LoaderCUDA* ld, CUdevice cudev, int devno, int platform) 
   err_ = ld_->cuDriverGetVersion(&driver_version_);
   _cuerror(err_);
   sprintf(version_, "NVIDIA CUDA %d", driver_version_);
-  int tb, bx, by, bz, dx, dy, dz;
+  int tb, mc, bx, by, bz, dx, dy, dz;
   err_ = ld_->cuDeviceGetAttribute(&tb, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, dev_);
+  err_ = ld_->cuDeviceGetAttribute(&mc, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev_);
   err_ = ld_->cuDeviceGetAttribute(&bx, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, dev_);
   err_ = ld_->cuDeviceGetAttribute(&by, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y, dev_);
   err_ = ld_->cuDeviceGetAttribute(&bz, CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z, dev_);
   err_ = ld_->cuDeviceGetAttribute(&dx, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, dev_);
   err_ = ld_->cuDeviceGetAttribute(&dy, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y, dev_);
   err_ = ld_->cuDeviceGetAttribute(&dz, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z, dev_);
-  max_compute_units_ = tb;
+  max_work_group_size_ = tb;
+  max_compute_units_ = mc;
   max_work_item_sizes_[0] = (size_t) bx * (size_t) dx;
   max_work_item_sizes_[1] = (size_t) by * (size_t) dy;
   max_work_item_sizes_[2] = (size_t) bz * (size_t) dz;
-  _info("device[%d] platform[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_item_sizes[%lu,%lu,%lu]", devno_, platform_, vendor_, name_, type_, version_, max_compute_units_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2]);
+  max_block_dims_[0] = bx;
+  max_block_dims_[1] = by;
+  max_block_dims_[2] = bz;
+  _info("device[%d] platform[%d] vendor[%s] device[%s] type[%d] version[%s] max_compute_units[%d] max_work_group_size_[%lu] max_work_item_sizes[%lu,%lu,%lu] max_block_dims[%d,%d,%d]", devno_, platform_, vendor_, name_, type_, version_, max_compute_units_, max_work_group_size_, max_work_item_sizes_[0], max_work_item_sizes_[1], max_work_item_sizes_[2], max_block_dims_[0], max_block_dims_[1], max_block_dims_[2]);
 }
 
 DeviceCUDA::~DeviceCUDA() {
@@ -120,10 +125,14 @@ int DeviceCUDA::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
 int DeviceCUDA::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) {
   CUfunction cukernel = (CUfunction) kernel->arch(this);
   int block[3] = { lws ? (int) lws[0] : 1, lws ? (int) lws[1] : 1, lws ? (int) lws[2] : 1 };
+  if (!lws) {
+    while (max_compute_units_ * block[0] < gws[0]) block[0] <<= 1;
+//    while (max_block
+  }
   int grid[3] = { (int) (gws[0] / block[0]), (int) (gws[1] / block[1]), (int) (gws[2] / block[2]) };
-  size_t blockOff_x = off[0] / (lws ? lws[0] : 1);
+  size_t blockOff_x = off[0] / block[0];
   params_[max_arg_idx_ + 1] = &blockOff_x;
-  _trace("grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
+  _trace("dim[%d] grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", dim, grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
   err_ = ld_->cuLaunchKernel(cukernel, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
   _cuerror(err_);
   err_ = ld_->cuStreamSynchronize(stream_);

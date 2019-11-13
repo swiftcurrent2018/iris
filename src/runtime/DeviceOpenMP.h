@@ -26,6 +26,7 @@ public:
 private:
   LoaderOpenMP* ld_;
   int GetProcessorNameIntel(char* cpuinfo);
+  int GetProcessorNamePower(char* cpuinfo);
   int GetProcessorNameARM(char* cpuinfo);
 };
 

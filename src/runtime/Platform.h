@@ -2,8 +2,10 @@
 #define BRISBANE_SRC_RT_PLATFORM_H
 
 #include <brisbane/brisbane.h>
+#include <pthread.h>
 #include <stddef.h>
 #include <set>
+#include <mutex>
 #include "Config.h"
 
 namespace brisbane {
@@ -30,6 +32,7 @@ private:
 
 public:
   int Init(int* argc, char*** argv, int sync);
+  int Finalize();
   int Synchronize();
 
   int InitCUDA();
@@ -95,10 +98,10 @@ private:
 
 public:
   static Platform* GetPlatform();
-  static int Finalize();
 
 private:
   bool init_;
+  bool finalize_;
 
   char platform_names_[BRISBANE_MAX_NPLATFORMS][64];
   int nplatforms_;
@@ -126,6 +129,8 @@ private:
 
   Kernel* null_kernel_;
 
+  pthread_mutex_t mutex_;
+
   char app_[256];
   char host_[256];
   double time_app_;
@@ -133,6 +138,8 @@ private:
 
 private:
   static Platform* singleton_;
+  static std::once_flag flag_singleton_;
+  static std::once_flag flag_finalize_;
 };
 
 } /* namespace rt */
