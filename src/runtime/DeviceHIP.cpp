@@ -114,6 +114,8 @@ int DeviceHIP::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, s
   _hiperror(err_);
   err_ = ld_->hipDeviceSynchronize();
   _hiperror(err_);
+  for (int i = 0; i < BRISBANE_MAX_KERNEL_NARGS; i++) params_[i] = NULL;
+  max_arg_idx_ = 0;
   return BRISBANE_OK;
 }
 

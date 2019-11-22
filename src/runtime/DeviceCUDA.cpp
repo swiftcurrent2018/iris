@@ -89,6 +89,7 @@ int DeviceCUDA::MemFree(void* mem) {
 
 int DeviceCUDA::MemH2D(Mem* mem, size_t off, size_t size, void* host) {
   CUdeviceptr cumem = (CUdeviceptr) mem->arch(this);
+  _trace("mem[%lu] off[%lu] size[%lu] host[%p]", mem->uid(), off, size, host);
   err_ = ld_->cuMemcpyHtoD(cumem + off, host, size);
   _cuerror(err_);
   return BRISBANE_OK;
@@ -96,6 +97,7 @@ int DeviceCUDA::MemH2D(Mem* mem, size_t off, size_t size, void* host) {
 
 int DeviceCUDA::MemD2H(Mem* mem, size_t off, size_t size, void* host) {
   CUdeviceptr cumem = (CUdeviceptr) mem->arch(this);
+  _trace("mem[%lu] off[%lu] size[%lu] host[%p]", mem->uid(), off, size, host);
   err_ = ld_->cuMemcpyDtoH(host, cumem + off, size);
   _cuerror(err_);
   return BRISBANE_OK;
@@ -132,11 +134,13 @@ int DeviceCUDA::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, 
   int grid[3] = { (int) (gws[0] / block[0]), (int) (gws[1] / block[1]), (int) (gws[2] / block[2]) };
   size_t blockOff_x = off[0] / block[0];
   params_[max_arg_idx_ + 1] = &blockOff_x;
-  _trace("dim[%d] grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", dim, grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
+  _trace("kernel[%s] dim[%d] grid[%d,%d,%d] block[%d,%d,%d] blockOff_x[%lu]", kernel->name(), dim, grid[0], grid[1], grid[2], block[0], block[1], block[2], blockOff_x);
   err_ = ld_->cuLaunchKernel(cukernel, grid[0], grid[1], grid[2], block[0], block[1], block[2], shared_mem_bytes_, stream_, params_, NULL);
   _cuerror(err_);
   err_ = ld_->cuStreamSynchronize(stream_);
   _cuerror(err_);
+  for (int i = 0; i < BRISBANE_MAX_KERNEL_NARGS; i++) params_[i] = NULL;
+  max_arg_idx_ = 0;
   return BRISBANE_OK;
 }
 
