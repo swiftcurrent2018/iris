@@ -22,7 +22,7 @@ public:
 private:
   void Resolve(Task* task, Command* cmd);
   void ResolveWithPolymem(Task* task, Command* cmd, Mem* mem, KernelArg* arg, brisbane_poly_mem* polymem);
-  void ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem);
+  void ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem, KernelArg* arg);
 
 private:
   Scheduler* scheduler_;

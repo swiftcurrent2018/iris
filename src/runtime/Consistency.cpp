@@ -40,7 +40,7 @@ void Consistency::Resolve(Task* task, Command* cmd) {
     if (!mem) continue;
 
     if (npolymems) ResolveWithPolymem(task, cmd, mem, arg, polymems + mem_idx);
-    else ResolveWithoutPolymem(task, cmd, mem);
+    else ResolveWithoutPolymem(task, cmd, mem, arg);
 
     mem_idx++;
   }
@@ -84,10 +84,11 @@ void Consistency::ResolveWithPolymem(Task* task, Command* cmd, Mem* mem, KernelA
   Command::Release(h2d);
 }
 
-void Consistency::ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem) {
+void Consistency::ResolveWithoutPolymem(Task* task, Command* cmd, Mem* mem, KernelArg* arg) {
   Device* dev = task->dev();
   Kernel* kernel = cmd->kernel();
   Device* owner = mem->Owner();
+
   if (!owner || mem->IsOwner(0, mem->size(), dev)) return;
 
   Task* task_d2h = new Task(scheduler_->platform());

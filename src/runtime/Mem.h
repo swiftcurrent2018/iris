@@ -28,12 +28,17 @@ public:
   void Reduce(int mode, int type);
   void Expand(int expansion);
 
+  void SetMap(void* host, size_t size);
+
   size_t size() { return size_; }
   int mode() { return mode_; }
   int type() { return type_; }
   int type_size() { return type_size_; }
   int expansion() { return expansion_; }
   void* host_inter();
+  void* mapped_host() { return mapped_host_; }
+  size_t mapped_size() { return mapped_size_; }
+  bool mapped() { return mapped_host_ != NULL; }
 
   void** archs() { return archs_; }
   void* arch(Device* dev);
@@ -48,6 +53,8 @@ private:
   int type_;
   int type_size_;
   int expansion_;
+  void* mapped_host_;
+  size_t mapped_size_;
   void* archs_[BRISBANE_MAX_NDEVS];
   Device* archs_devs_[BRISBANE_MAX_NDEVS];
 

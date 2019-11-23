@@ -16,6 +16,7 @@
 #include "Mem.h"
 #include "Policies.h"
 #include "Polyhedral.h"
+#include "PresentTable.h"
 #include "Profiler.h"
 #include "ProfilerDOT.h"
 #include "ProfilerGoogleCharts.h"
@@ -47,6 +48,7 @@ Platform::Platform() {
   loaderOpenCL_ = NULL;
   loaderOpenMP_ = NULL;
   arch_available_ = 0UL;
+  present_table_ = NULL;
   enable_profiler_ = getenv("BRISBANE_PROFILE");
   nprofilers_ = 0;
   time_app_ = 0.0;
@@ -63,6 +65,7 @@ Platform::~Platform() {
   if (loaderHIP_) delete loaderHIP_;
   if (loaderOpenCL_) delete loaderOpenCL_;
   if (loaderOpenMP_) delete loaderOpenMP_;
+  if (present_table_) delete present_table_;
   if (polyhedral_) delete polyhedral_;
   if (filter_task_split_) delete filter_task_split_;
   if (timer_) delete timer_;
@@ -121,6 +124,8 @@ int Platform::Init(int* argc, char*** argv, int sync) {
     profilers_[nprofilers_++] = new ProfilerDOT(this);
     profilers_[nprofilers_++] = new ProfilerGoogleCharts(this);
   }
+
+  present_table_ = new PresentTable();
 
   scheduler_ = new Scheduler(this);
   scheduler_->Start();
@@ -361,6 +366,13 @@ int Platform::PolicyRegister(const char* lib, const char* name) {
 }
 
 int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
+  Kernel* kernel = new Kernel(name, this);
+  if (brs_kernel) *brs_kernel = kernel->struct_obj();
+  kernels_.insert(kernel);
+  return BRISBANE_OK;
+}
+
+int Platform::KernelGet(const char* name, brisbane_kernel* brs_kernel) {
   for (std::set<Kernel*>::iterator I = kernels_.begin(), E = kernels_.end(); I != E; ++I) {
     Kernel* kernel = *I;
     if (strcmp(kernel->name(), name) == 0) {
@@ -368,10 +380,7 @@ int Platform::KernelCreate(const char* name, brisbane_kernel* brs_kernel) {
       return BRISBANE_OK;
     }
   }
-  Kernel* kernel = new Kernel(name, this);
-  if (brs_kernel) *brs_kernel = kernel->struct_obj();
-  kernels_.insert(kernel);
-  return BRISBANE_OK;
+  return KernelCreate(name, brs_kernel);
 }
 
 int Platform::KernelSetArg(brisbane_kernel brs_kernel, int idx, size_t size, void* value) {
@@ -384,6 +393,15 @@ int Platform::KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem brs
   Kernel* kernel = brs_kernel->class_obj;
   Mem* mem = brs_mem->class_obj;
   kernel->SetMem(idx, mem, mode);
+  return BRISBANE_OK;
+}
+
+int Platform::KernelSetMap(brisbane_kernel brs_kernel, int idx, void* host, int mode) {
+  Kernel* kernel = brs_kernel->class_obj;
+  size_t off = 0ULL;
+  Mem* mem = present_table_->Get(host, &off);
+  if (mem) kernel->SetMem(idx, mem, mode);
+  else _error("no mem for host[%p]", host);
   return BRISBANE_OK;
 }
 
@@ -437,6 +455,24 @@ int Platform::TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* ho
   return TaskD2H(brs_task, brs_mem, 0ULL, brs_mem->class_obj->size(), host);
 }
 
+int Platform::TaskMapTo(brisbane_task brs_task, void* host, size_t size) {
+  Task* task = brs_task->class_obj;
+  size_t off = 0ULL;
+  Mem* mem = present_table_->Get(host, &off);
+  Command* cmd = Command::CreateH2D(task, mem, off, size, host);
+  task->AddCommand(cmd);
+  return BRISBANE_OK;
+}
+
+int Platform::TaskMapFrom(brisbane_task brs_task, void* host, size_t size) {
+  Task* task = brs_task->class_obj;
+  size_t off = 0ULL;
+  Mem* mem = present_table_->Get(host, &off);
+  Command* cmd = Command::CreateD2H(task, mem, off, size, host);
+  task->AddCommand(cmd);
+  return BRISBANE_OK;
+}
+
 int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, const char* opt, int sync) {
   Task* task = brs_task->class_obj;
   task->set_brs_policy(brs_policy);
@@ -483,8 +519,22 @@ int Platform::TaskReleaseMem(brisbane_task brs_task, brisbane_mem brs_mem) {
 
 int Platform::MemCreate(size_t size, brisbane_mem* brs_mem) {
   Mem* mem = new Mem(size, this);
-  *brs_mem = mem->struct_obj();
+  if (brs_mem) *brs_mem = mem->struct_obj();
   mems_.insert(mem);
+  return BRISBANE_OK;
+}
+
+int Platform::MemMap(void* host, size_t size) {
+  Mem* mem = new Mem(size, this);
+  mem->SetMap(host, size);
+  mems_.insert(mem);
+  present_table_->Add(host, size, mem);
+  return BRISBANE_OK;
+}
+
+int Platform::MemUnmap(void* host) {
+  Mem* mem = present_table_->Remove(host);
+  mem->Release();
   return BRISBANE_OK;
 }
 

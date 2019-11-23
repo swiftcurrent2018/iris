@@ -20,6 +20,7 @@ class LoaderOpenCL;
 class LoaderOpenMP;
 class Mem;
 class Polyhedral;
+class PresentTable;
 class Profiler;
 class Scheduler;
 class Task;
@@ -52,9 +53,11 @@ public:
   int PolicyRegister(const char* lib, const char* name);
 
   int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
-  int KernelSetArg(brisbane_kernel kernel, int idx, size_t size, void* value);
-  int KernelSetMem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
-  int KernelRelease(brisbane_kernel kernel);
+  int KernelGet(const char* name, brisbane_kernel* brs_kernel);
+  int KernelSetArg(brisbane_kernel brs_kernel, int idx, size_t size, void* value);
+  int KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem mem, int mode);
+  int KernelSetMap(brisbane_kernel brs_kernel, int idx, void* host, int mode);
+  int KernelRelease(brisbane_kernel brs_kernel);
 
   int TaskCreate(const char* name, brisbane_task* brs_task);
   int TaskDepend(brisbane_task task, int ntasks, brisbane_task* tasks);
@@ -63,6 +66,8 @@ public:
   int TaskD2H(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host);
   int TaskH2DFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
   int TaskD2HFull(brisbane_task brs_task, brisbane_mem brs_mem, void* host);
+  int TaskMapTo(brisbane_task brs_task, void* host, size_t size);
+  int TaskMapFrom(brisbane_task brs_task, void* host, size_t size);
   int TaskSubmit(brisbane_task brs_task, int brs_policy, const char* opt, int wait);
   int TaskWait(brisbane_task brs_task);
   int TaskWaitAll(int ntasks, brisbane_task* brs_tasks);
@@ -71,6 +76,8 @@ public:
   int TaskReleaseMem(brisbane_task brs_task, brisbane_mem brs_mem);
 
   int MemCreate(size_t size, brisbane_mem* brs_mem);
+  int MemMap(void* host, size_t size);
+  int MemUnmap(void* host);
   int MemReduce(brisbane_mem brs_mem, int mode, int type);
   int MemRelease(brisbane_mem brs_mem);
 
@@ -117,6 +124,8 @@ private:
 
   std::set<Kernel*> kernels_;
   std::set<Mem*> mems_;
+
+  PresentTable* present_table_;
 
   Scheduler* scheduler_;
   Timer* timer_;

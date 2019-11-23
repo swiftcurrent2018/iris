@@ -64,18 +64,22 @@ extern int brisbane_device_get_default(int* device);
 extern int brisbane_policy_register(const char* lib, const char* name);
 
 extern int brisbane_kernel_create(const char* name, brisbane_kernel* kernel);
+extern int brisbane_kernel_get(const char* name, brisbane_kernel* kernel);
 extern int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* value);
 extern int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode);
+extern int brisbane_kernel_setmap(brisbane_kernel kernel, int idx, void* host, int mode);
 extern int brisbane_kernel_release(brisbane_kernel kernel);
 
 extern int brisbane_task_create(brisbane_task* task);
 extern int brisbane_task_create_name(const char* name, brisbane_task* task);
 extern int brisbane_task_depend(brisbane_task task, int ntasks, brisbane_task* tasks);
-extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
 extern int brisbane_task_h2d(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_d2h(brisbane_task task, brisbane_mem mem, size_t off, size_t size, void* host);
 extern int brisbane_task_h2d_full(brisbane_task task, brisbane_mem mem, void* host);
 extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host);
+extern int brisbane_task_mapto(brisbane_task task, void* host, size_t size);
+extern int brisbane_task_mapfrom(brisbane_task task, void* host, size_t size);
+extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
 extern int brisbane_task_submit(brisbane_task task, int device, const char* opt, int sync);
 extern int brisbane_task_wait(brisbane_task task);
 extern int brisbane_task_wait_all(int ntasks, brisbane_task* tasks);
@@ -84,6 +88,8 @@ extern int brisbane_task_release(brisbane_task task);
 extern int brisbane_task_release_mem(brisbane_task task, brisbane_mem mem);
 
 extern int brisbane_mem_create(size_t size, brisbane_mem* mem);
+extern int brisbane_mem_map(void* host, size_t size);
+extern int brisbane_mem_unmap(void* host);
 extern int brisbane_mem_reduce(brisbane_mem mem, int mode, int type);
 extern int brisbane_mem_release(brisbane_mem mem);
 

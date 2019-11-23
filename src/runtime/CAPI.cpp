@@ -48,12 +48,20 @@ int brisbane_kernel_create(const char* name, brisbane_kernel* kernel) {
   return Platform::GetPlatform()->KernelCreate(name, kernel);
 }
 
+int brisbane_kernel_get(const char* name, brisbane_kernel* kernel) {
+  return Platform::GetPlatform()->KernelGet(name, kernel);
+}
+
 int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* value) {
   return Platform::GetPlatform()->KernelSetArg(kernel, idx, size, value);
 }
 
 int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode) {
   return Platform::GetPlatform()->KernelSetMem(kernel, idx, mem, mode);
+}
+
+int brisbane_kernel_setmap(brisbane_kernel kernel, int idx, void* host, int mode) {
+  return Platform::GetPlatform()->KernelSetMap(kernel, idx, host, mode);
 }
 
 int brisbane_kernel_release(brisbane_kernel kernel) {
@@ -88,6 +96,14 @@ int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* host) {
   return Platform::GetPlatform()->TaskD2HFull(task, mem, host);
 }
 
+int brisbane_task_mapto(brisbane_task task, void* host, size_t size) {
+  return Platform::GetPlatform()->TaskMapTo(task, host, size);
+}
+
+int brisbane_task_mapfrom(brisbane_task task, void* host, size_t size) {
+  return Platform::GetPlatform()->TaskMapFrom(task, host, size);
+}
+
 int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr) {
   return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }
@@ -118,6 +134,14 @@ int brisbane_task_release_mem(brisbane_task task, brisbane_mem mem) {
 
 int brisbane_mem_create(size_t size, brisbane_mem* mem) {
   return Platform::GetPlatform()->MemCreate(size, mem);
+}
+
+int brisbane_mem_map(void* host, size_t size) {
+  return Platform::GetPlatform()->MemMap(host, size);
+}
+
+int brisbane_mem_unmap(void* host) {
+  return Platform::GetPlatform()->MemUnmap(host);
 }
 
 int brisbane_mem_reduce(brisbane_mem mem, int mode, int type) {

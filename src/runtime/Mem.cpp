@@ -14,11 +14,12 @@ Mem::Mem(size_t size, Platform* platform) {
   platform_ = platform;
   ndevs_ = platform->ndevs();
   host_inter_ = NULL;
-  pthread_mutex_init(&mutex_, NULL);
+  mapped_host_ = NULL;
   for (int i = 0; i < ndevs_; i++) {
     archs_[i] = NULL;
     archs_devs_[i] = NULL;
   }
+  pthread_mutex_init(&mutex_, NULL);
 }
 
 Mem::~Mem() {
@@ -130,6 +131,11 @@ void Mem::Reduce(int mode, int type) {
 
 void Mem::Expand(int expansion) {
   expansion_ = expansion;
+}
+
+void Mem::SetMap(void* host, size_t size) {
+  mapped_host_ = host;
+  mapped_size_ = size;
 }
 
 } /* namespace rt */

@@ -40,6 +40,7 @@ set(BRISBANE_RUNTIME_SOURCES
   PolicyProfile.cpp
   PolicyRandom.cpp
   Polyhedral.cpp
+  PresentTable.cpp
   Profiler.cpp
   ProfilerDOT.cpp
   ProfilerGoogleCharts.cpp
