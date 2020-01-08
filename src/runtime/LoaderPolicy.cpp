@@ -24,7 +24,7 @@ const char* LoaderPolicy::library() {
 }
 
 int LoaderPolicy::LoadFunctions() {
-  char func[64];
+  char func[128];
   sprintf(func, "%s_instance", name_);
   *(void**) (&instance_) = dlsym(handle_, func);
   if (!instance_) {
