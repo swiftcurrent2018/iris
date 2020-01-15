@@ -56,7 +56,7 @@ extern int brisbane_synchronize();
 extern int brisbane_platform_count(int* nplatforms);
 extern int brisbane_platform_info(int platform, int param, void* value, size_t* size);
 
-extern int brisbane_device_count(int *ndevs);
+extern int brisbane_device_count(int* ndevs);
 extern int brisbane_device_info(int device, int param, void* value, size_t* size);
 extern int brisbane_device_set_default(int device);
 extern int brisbane_device_get_default(int* device);

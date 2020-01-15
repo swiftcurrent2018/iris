@@ -24,7 +24,7 @@ int brisbane_platform_info(int platform, int param, void* value, size_t* size) {
   return Platform::GetPlatform()->PlatformInfo(platform, param, value, size);
 }
 
-int brisbane_device_count(int *ndevs) {
+int brisbane_device_count(int* ndevs) {
   return Platform::GetPlatform()->DeviceCount(ndevs);
 }
 

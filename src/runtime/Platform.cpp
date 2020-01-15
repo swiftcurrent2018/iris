@@ -401,7 +401,12 @@ int Platform::KernelSetMap(brisbane_kernel brs_kernel, int idx, void* host, int 
   size_t off = 0ULL;
   Mem* mem = present_table_->Get(host, &off);
   if (mem) kernel->SetMem(idx, mem, mode);
-  else _error("no mem for host[%p]", host);
+  else {
+    _todo("clearing [%p]", host);
+    MemMap(host, 8192);
+    Mem* mem = present_table_->Get(host, &off);
+    kernel->SetMem(idx, mem, mode);
+  }
   return BRISBANE_OK;
 }
 
