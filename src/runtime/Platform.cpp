@@ -131,9 +131,14 @@ int Platform::Init(int* argc, char*** argv, int sync) {
   scheduler_->Start();
 
   _info("nplatforms[%d] ndevs[%d] hub[%d] polyhedral[%d] profile[%d]", nplatforms_, ndevs_, scheduler_->hub_available(), polyhedral_available_, enable_profiler_);
-  if (!ndevs_) __error("%s", "NO AVAILABLE DEVICES!");
 
-  InitDevices(sync);
+  if (ndevs_) {
+    device_default_ = 0;
+    InitDevices(sync);
+  } else {
+    device_default_ = -1;
+    __error("%s", "NO AVAILABLE DEVICES!");
+  }
 
   timer_->Stop(BRISBANE_TIMER_PLATFORM);
 
@@ -298,7 +303,6 @@ int Platform::InitOpenCL() {
     sprintf(platform_names_[nplatforms_], "OpenCL %s", vendor);
     nplatforms_++;
   }
-  if (ndevs_) device_default_ = 0;
   return BRISBANE_OK;
 }
 
