@@ -298,7 +298,7 @@ int Platform::InitOpenCL() {
     sprintf(platform_names_[nplatforms_], "OpenCL %s", vendor);
     nplatforms_++;
   }
-  if (ndevs_) device_default_ = devices_[0]->type();
+  if (ndevs_) device_default_ = 0;
   return BRISBANE_OK;
 }
 
