@@ -15,6 +15,7 @@ typedef struct _KernelArg {
   size_t size;
   char value[256];
   Mem* mem;
+  size_t off;
   int mode;
 } KernelArg;
 
@@ -24,7 +25,7 @@ public:
   virtual ~Kernel();
 
   int SetArg(int idx, size_t size, void* value);
-  int SetMem(int idx, Mem* mem, int mode);
+  int SetMem(int idx, Mem* mem, size_t off, int mode);
   std::map<int, KernelArg*>* ExportArgs();
 
   int nargs() { return (int) args_.size(); }

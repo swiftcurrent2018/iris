@@ -42,6 +42,7 @@ public:
 
   void** archs() { return archs_; }
   void* arch(Device* dev);
+  void** archs_off() { return archs_off_; }
 
 private:
   size_t size_;
@@ -56,7 +57,8 @@ private:
   void* mapped_host_;
   size_t mapped_size_;
   void* archs_[BRISBANE_MAX_NDEVS];
-  Device* archs_devs_[BRISBANE_MAX_NDEVS];
+  void* archs_off_[BRISBANE_MAX_NDEVS];
+  Device* archs_dev_[BRISBANE_MAX_NDEVS];
 
   pthread_mutex_t mutex_;
 };

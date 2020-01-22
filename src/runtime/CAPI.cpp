@@ -57,7 +57,11 @@ int brisbane_kernel_setarg(brisbane_kernel kernel, int idx, size_t size, void* v
 }
 
 int brisbane_kernel_setmem(brisbane_kernel kernel, int idx, brisbane_mem mem, int mode) {
-  return Platform::GetPlatform()->KernelSetMem(kernel, idx, mem, mode);
+  return Platform::GetPlatform()->KernelSetMem(kernel, idx, mem, 0, mode);
+}
+
+int brisbane_kernel_setmem_off(brisbane_kernel kernel, int idx, brisbane_mem mem, size_t off, int mode) {
+  return Platform::GetPlatform()->KernelSetMem(kernel, idx, mem, off, mode);
 }
 
 int brisbane_kernel_setmap(brisbane_kernel kernel, int idx, void* host, int mode) {

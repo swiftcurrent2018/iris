@@ -95,7 +95,7 @@ void Device::ExecuteKernel(Command* cmd) {
         reduction = true;
         if (idx + 1 > max_idx) max_idx = idx + 1;
       }
-      KernelSetMem(kernel, idx, mem);
+      KernelSetMem(kernel, idx, mem, arg->off);
       mem_idx++;
     } else KernelSetArg(kernel, idx, arg->size, arg->value);
   }

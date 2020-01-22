@@ -29,13 +29,15 @@ int Kernel::SetArg(int idx, size_t size, void* value) {
   arg->size = size;
   if (value) memcpy(arg->value, value, size);
   arg->mem = NULL;
+  arg->off = 0;
   args_[idx] = arg;
   return BRISBANE_OK;
 }
 
-int Kernel::SetMem(int idx, Mem* mem, int mode) {
+int Kernel::SetMem(int idx, Mem* mem, size_t off, int mode) {
   KernelArg* arg = new KernelArg;
   arg->mem = mem;
+  arg->off = off;
   arg->mode = mode;
   args_[idx] = arg;
   return BRISBANE_OK;
@@ -48,11 +50,13 @@ std::map<int, KernelArg*>* Kernel::ExportArgs() {
     KernelArg* new_arg = new KernelArg;
     if (arg->mem) {
       new_arg->mem = arg->mem;
+      new_arg->off = arg->off;
       new_arg->mode = arg->mode;
     } else {
       new_arg->size = arg->size; 
       memcpy(new_arg->value, arg->value, arg->size);
       new_arg->mem = NULL;
+      new_arg->off = 0;
     }
     (*new_args)[I->first] = new_arg;
   }

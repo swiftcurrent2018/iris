@@ -20,7 +20,7 @@ public:
   int KernelGet(void** kernel, const char* name);
   int KernelLaunchInit(Kernel* kernel);
   int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value);
-  int KernelSetMem(Kernel* kernel, int idx, Mem* mem);
+  int KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off);
   int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws);
 
 private:

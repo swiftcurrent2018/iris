@@ -55,7 +55,7 @@ public:
   int KernelCreate(const char* name, brisbane_kernel* brs_kernel);
   int KernelGet(const char* name, brisbane_kernel* brs_kernel);
   int KernelSetArg(brisbane_kernel brs_kernel, int idx, size_t size, void* value);
-  int KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem mem, int mode);
+  int KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem mem, size_t off, int mode);
   int KernelSetMap(brisbane_kernel brs_kernel, int idx, void* host, int mode);
   int KernelRelease(brisbane_kernel brs_kernel);
 

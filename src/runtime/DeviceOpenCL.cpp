@@ -132,7 +132,7 @@ int DeviceOpenCL::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value
   return BRISBANE_OK;
 }
 
-int DeviceOpenCL::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
+int DeviceOpenCL::KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) {
   cl_kernel clkernel = (cl_kernel) kernel->arch(this);
   cl_mem clmem = (cl_mem) mem->arch(this);
   err_ = ld_->clSetKernelArg(clkernel, (cl_uint) idx, sizeof(clmem), (const void*) &clmem);

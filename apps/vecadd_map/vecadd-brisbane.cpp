@@ -75,13 +75,23 @@ int main(int argc, char** argv) {
 
   brisbane_kernel kernel_loop2;
   brisbane_kernel_create("loop2", &kernel_loop2);
+//#define HALF_MAPPING
+#ifdef HALF_MAPPING
+  brisbane_kernel_setmap(kernel_loop2, 0, E + SIZE / 2, brisbane_w);
+  brisbane_kernel_setmap(kernel_loop2, 1, D + SIZE / 2, brisbane_r);
+#else
   brisbane_kernel_setmap(kernel_loop2, 0, E, brisbane_w);
   brisbane_kernel_setmap(kernel_loop2, 1, D, brisbane_r);
+#endif
 
   brisbane_task task2;
   brisbane_task_create_name("loop2", &task2);
   size_t kernel_loop2_off[1] = { 0 };
+#ifdef HALF_MAPPING
+  size_t kernel_loop2_idx[1] = { SIZE / 2 };
+#else
   size_t kernel_loop2_idx[1] = { SIZE };
+#endif
   brisbane_task_kernel(task2, kernel_loop2, 1, kernel_loop2_off, kernel_loop2_idx);
   brisbane_task_mapfrom(task2, E, SIZE * sizeof(int));
   brisbane_task_submit(task2, brisbane_nvidia, NULL, true);

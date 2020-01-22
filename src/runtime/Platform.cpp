@@ -393,10 +393,10 @@ int Platform::KernelSetArg(brisbane_kernel brs_kernel, int idx, size_t size, voi
   return BRISBANE_OK;
 }
 
-int Platform::KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem brs_mem, int mode) {
+int Platform::KernelSetMem(brisbane_kernel brs_kernel, int idx, brisbane_mem brs_mem, size_t off, int mode) {
   Kernel* kernel = brs_kernel->class_obj;
   Mem* mem = brs_mem->class_obj;
-  kernel->SetMem(idx, mem, mode);
+  kernel->SetMem(idx, mem, off, mode);
   return BRISBANE_OK;
 }
 
@@ -404,12 +404,12 @@ int Platform::KernelSetMap(brisbane_kernel brs_kernel, int idx, void* host, int 
   Kernel* kernel = brs_kernel->class_obj;
   size_t off = 0ULL;
   Mem* mem = present_table_->Get(host, &off);
-  if (mem) kernel->SetMem(idx, mem, mode);
+  if (mem) kernel->SetMem(idx, mem, off, mode);
   else {
     _todo("clearing [%p]", host);
     MemMap(host, 8192);
     Mem* mem = present_table_->Get(host, &off);
-    kernel->SetMem(idx, mem, mode);
+    kernel->SetMem(idx, mem, off, mode);
   }
   return BRISBANE_OK;
 }

@@ -117,9 +117,14 @@ int DeviceCUDA::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) 
   return BRISBANE_OK;
 }
 
-int DeviceCUDA::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
+int DeviceCUDA::KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) {
   mem->arch(this);
-  params_[idx] = mem->archs() + devno_;
+  if (off) {
+    *(mem->archs_off() + devno_) = (void*) ((CUdeviceptr) mem->arch(this) + off);
+    params_[idx] = mem->archs_off() + devno_;
+  } else {
+    params_[idx] = mem->archs() + devno_;
+  }
   if (max_arg_idx_ < idx) max_arg_idx_ = idx;
   return BRISBANE_OK;
 }

@@ -17,14 +17,15 @@ Mem::Mem(size_t size, Platform* platform) {
   mapped_host_ = NULL;
   for (int i = 0; i < ndevs_; i++) {
     archs_[i] = NULL;
-    archs_devs_[i] = NULL;
+    archs_off_[i] = NULL;
+    archs_dev_[i] = NULL;
   }
   pthread_mutex_init(&mutex_, NULL);
 }
 
 Mem::~Mem() {
   for (int i = 0; i < ndevs_; i++) {
-    if (archs_devs_[i]) archs_devs_[i]->MemFree(archs_[i]);
+    if (archs_dev_[i]) archs_dev_[i]->MemFree(archs_[i]);
   }
   if (!host_inter_) free(host_inter_);
   pthread_mutex_destroy(&mutex_);

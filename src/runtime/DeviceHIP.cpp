@@ -96,7 +96,7 @@ int DeviceHIP::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) {
   return BRISBANE_OK;
 }
 
-int DeviceHIP::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
+int DeviceHIP::KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) {
   mem->arch(this);
   params_[idx] = mem->archs() + devno_;
   if (max_arg_idx_ < idx) max_arg_idx_ = idx;

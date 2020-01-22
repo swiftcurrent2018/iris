@@ -105,7 +105,7 @@ int DeviceOpenMP::KernelSetArg(Kernel* kernel, int idx, size_t size, void* value
   return ld_->brisbane_openmp_setarg(idx, size, value);
 }
 
-int DeviceOpenMP::KernelSetMem(Kernel* kernel, int idx, Mem* mem) {
+int DeviceOpenMP::KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) {
   void* mpmem = mem->arch(this);
   return ld_->brisbane_openmp_setmem(idx, mpmem);
 }

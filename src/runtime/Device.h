@@ -34,7 +34,7 @@ public:
   virtual int KernelGet(void** kernel, const char* name) = 0;
   virtual int KernelLaunchInit(Kernel* kernel) { return BRISBANE_OK; }
   virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
-  virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem) = 0;
+  virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
 
   int platform() { return platform_; }

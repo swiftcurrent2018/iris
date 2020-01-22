@@ -1,6 +1,8 @@
 BRISBANE=$(HOME)/.local
-CC=xlc
-CXX=xlC
+#CC=xlc
+#CXX=xlC
+CC=gcc
+CXX=g++
 
 all: saxpy saxpy-brisbane
 
@@ -17,8 +19,8 @@ kernel.hip: kernel.hip.cpp
 	hipcc --genco -o $@ $^
 
 kernel.openmp.so: kernel.cl.openmp.c
-	$(CC) -g -qsmp -fPIC -shared -I. -I$(BRISBANE)/include -o $@ $^
-	#$(CC) -g -fopenmp -fPIC -shared -I. -I$(BRISBANE)/include -o $@ $^
+	#$(CC) -g -qsmp -fPIC -shared -I. -I$(BRISBANE)/include -o $@ $^
+	$(CC) -g -fopenmp -fPIC -shared -I. -I$(BRISBANE)/include -o $@ $^
 
 clean:
 	rm -f saxpy saxpy-brisbane libbrisbane-poly.so
