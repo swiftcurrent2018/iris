@@ -81,6 +81,7 @@ extern int brisbane_task_d2h_full(brisbane_task task, brisbane_mem mem, void* ho
 extern int brisbane_task_mapto(brisbane_task task, void* host, size_t size);
 extern int brisbane_task_mapfrom(brisbane_task task, void* host, size_t size);
 extern int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr);
+extern int brisbane_task_kernel_lws(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr, size_t* lws);
 extern int brisbane_task_submit(brisbane_task task, int device, const char* opt, int sync);
 extern int brisbane_task_wait(brisbane_task task);
 extern int brisbane_task_wait_all(int ntasks, brisbane_task* tasks);

@@ -38,7 +38,7 @@ Command* Command::CreateInit(Task* task) {
   return Create(task, BRISBANE_CMD_INIT);
 }
 
-Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr) {
+Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, size_t* lws) {
   Command* cmd = Create(task, BRISBANE_CMD_KERNEL);
   cmd->kernel_ = kernel;
   cmd->kernel_args_ = kernel->ExportArgs();
@@ -46,16 +46,18 @@ Command* Command::CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off,
   for (int i = 0; i < dim; i++) {
     cmd->off_[i] = off ? off[i] : 0ULL;
     cmd->ndr_[i] = ndr[i];
+    cmd->lws_[i] = lws ? lws[i] : 0ULL;
   }
   for (int i = dim; i < 3; i++) {
     cmd->off_[i] = 0;
     cmd->ndr_[i] = 1;
+    cmd->lws_[i] = 1;
   }
   return cmd;
 }
 
 Command* Command::CreateKernelPolyMem(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, brisbane_poly_mem* polymems, int npolymems) {
-  Command* cmd = CreateKernel(task, kernel, dim, off, ndr);
+  Command* cmd = CreateKernel(task, kernel, dim, off, ndr, NULL);
   cmd->npolymems_ = npolymems;
   cmd->polymems_ = new brisbane_poly_mem[npolymems];
   memcpy(cmd->polymems_, polymems, sizeof(brisbane_poly_mem) * npolymems);
@@ -99,7 +101,7 @@ Command* Command::CreateReleaseMem(Task* task, Mem* mem) {
 
 Command* Command::Duplicate(Command* cmd) {
   switch (cmd->type()) {
-    case BRISBANE_CMD_KERNEL: return CreateKernel(cmd->task(), cmd->kernel(), cmd->dim(), cmd->off(), cmd->ndr());
+    case BRISBANE_CMD_KERNEL: return CreateKernel(cmd->task(), cmd->kernel(), cmd->dim(), cmd->off(), cmd->ndr(), cmd->lws());
     case BRISBANE_CMD_H2D:    return CreateH2D(cmd->task(), cmd->mem(), cmd->off(0), cmd->size(), cmd->host());
     case BRISBANE_CMD_D2H:    return CreateD2H(cmd->task(), cmd->mem(), cmd->off(0), cmd->size(), cmd->host());
   }

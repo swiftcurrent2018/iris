@@ -435,7 +435,15 @@ int Platform::TaskDepend(brisbane_task brs_task, int ntasks, brisbane_task* brs_
 int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr) {
   Task* task = brs_task->class_obj;
   Kernel* kernel = brs_kernel->class_obj;
-  Command* cmd = Command::CreateKernel(task, kernel, dim, off, ndr);
+  Command* cmd = Command::CreateKernel(task, kernel, dim, off, ndr, NULL);
+  task->AddCommand(cmd);
+  return BRISBANE_OK;
+}
+
+int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int dim, size_t* off, size_t* ndr, size_t* lws) {
+  Task* task = brs_task->class_obj;
+  Kernel* kernel = brs_kernel->class_obj;
+  Command* cmd = Command::CreateKernel(task, kernel, dim, off, ndr, lws);
   task->AddCommand(cmd);
   return BRISBANE_OK;
 }
@@ -443,6 +451,7 @@ int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int
 int Platform::TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host) {
   Task* task = brs_task->class_obj;
   Mem* mem = brs_mem->class_obj;
+  _debug("mem[%lu] off[%lu] size[%lu] host[%p]", mem->uid(), off, size, host);
   Command* cmd = Command::CreateH2D(task, mem, off, size, host);
   task->AddCommand(cmd);
   return BRISBANE_OK;

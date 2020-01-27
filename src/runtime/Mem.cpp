@@ -62,7 +62,10 @@ void Mem::SetOwner(size_t off, size_t size, Device* dev) {
   _trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E;) {
     MemRange* r = *I;
-    if (r->Overlap(off, size)) {
+    if (r->Contain(off, size) && r->dev() == dev) {
+      pthread_mutex_unlock(&mutex_);
+      return;
+    } else if (r->Overlap(off, size)) {
       _todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
       ranges_.erase(I);
       I = ranges_.begin();

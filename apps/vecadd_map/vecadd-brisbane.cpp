@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
   brisbane_kernel kernel_loop2;
   brisbane_kernel_create("loop2", &kernel_loop2);
-//#define HALF_MAPPING
+#define HALF_MAPPING
 #ifdef HALF_MAPPING
   brisbane_kernel_setmap(kernel_loop2, 0, E + SIZE / 2, brisbane_w);
   brisbane_kernel_setmap(kernel_loop2, 1, D + SIZE / 2, brisbane_r);

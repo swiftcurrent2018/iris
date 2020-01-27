@@ -112,6 +112,10 @@ int brisbane_task_kernel(brisbane_task task, brisbane_kernel kernel, int dim, si
   return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr);
 }
 
+int brisbane_task_kernel_lws(brisbane_task task, brisbane_kernel kernel, int dim, size_t* off, size_t* ndr, size_t* lws) {
+  return Platform::GetPlatform()->TaskKernel(task, kernel, dim, off, ndr, lws);
+}
+
 int brisbane_task_submit(brisbane_task task, int device, const char* opt, int sync) {
   return Platform::GetPlatform()->TaskSubmit(task, device, opt, sync);
 }

@@ -37,6 +37,8 @@ public:
   size_t off(int i) { return off_[i]; }
   size_t* ndr() { return ndr_; }
   size_t ndr(int i) { return ndr_[i]; }
+  size_t* lws() { return lws_; }
+  size_t lws(int i) { return lws_[i]; }
   Kernel* kernel() { return kernel_; }
   std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
   Mem* mem() { return mem_; }
@@ -54,6 +56,7 @@ private:
   int dim_;
   size_t off_[3];
   size_t ndr_[3];
+  size_t lws_[3];
   Kernel* kernel_;
   Mem* mem_;
   Task* task_;
@@ -66,7 +69,7 @@ private:
 public:
   static Command* Create(Task* task, int type);
   static Command* CreateInit(Task* task);
-  static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr);
+  static Command* CreateKernel(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, size_t* lws);
   static Command* CreateKernelPolyMem(Task* task, Kernel* kernel, int dim, size_t* off, size_t* ndr, brisbane_poly_mem* polymems, int npolymems);
   static Command* CreateH2D(Task* task, Mem* mem, size_t off, size_t size, void* host);
   static Command* CreateH2DNP(Task* task, Mem* mem, size_t off, size_t size, void* host);

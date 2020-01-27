@@ -61,7 +61,7 @@ void Device::ExecuteKernel(Command* cmd) {
   size_t* off = cmd->off();
   size_t* gws = cmd->ndr();
   size_t gws0 = gws[0];
-  size_t* lws = NULL;
+  size_t* lws = cmd->lws();
   bool reduction = false;
   brisbane_poly_mem* polymems = cmd->polymems();
   int npolymems = cmd->npolymems();
@@ -82,6 +82,7 @@ void Device::ExecuteKernel(Command* cmd) {
         } else mem->SetOwner(this);
       }
       if (mem->mode() & brisbane_reduction) {
+        _todo("lws[%p]", lws);
         lws = (size_t*) alloca(3 * sizeof(size_t));
         lws[0] = 1;
         lws[1] = 1;
@@ -103,7 +104,7 @@ void Device::ExecuteKernel(Command* cmd) {
     _trace("max_idx+1[%d] gws[%lu]", max_idx + 1, gws0);
     KernelSetArg(kernel, max_idx + 1, sizeof(size_t), &gws0);
   }
-  KernelLaunch(kernel, dim, off, gws, lws);
+  KernelLaunch(kernel, dim, off, gws, lws[0] > 0 ? lws : NULL);
   double time = timer_->Stop(BRISBANE_TIMER_KERNEL);
   cmd->SetTime(time);
   cmd->kernel()->history()->AddKernel(cmd, this, time);
