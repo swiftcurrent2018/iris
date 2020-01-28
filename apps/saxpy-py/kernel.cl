@@ -1,5 +1,10 @@
-__kernel void saxpy(__global float* restrict Z, float A, __global float* restrict X, __global float* restrict Y) {
+__kernel void saxpy0(__global float* Z, float A, __global float* X) {
     int id = get_global_id(0);
-    Z[id] = A * X[id] + Y[id];
+    Z[id] = A * X[id];
+}
+
+__kernel void saxpy1(__global float* Z, __global float* Y) {
+    int id = get_global_id(0);
+    Z[id] += Y[id];
 }
 

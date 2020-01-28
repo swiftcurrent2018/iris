@@ -163,6 +163,12 @@ class kernel:
     self.handle = kernel_create(name)
   def setarg(self, idx, size, value):
     kernel_setarg(self.handle, idx, size, value)
+  def setint(self, idx, value):
+    kernel_setarg(self.handle, idx, 4, value)
+  def setfloat(self, idx, value):
+    kernel_setarg(self.handle, idx, 8, value)
+  def setdouble(self, idx, value):
+    kernel_setarg(self.handle, idx, 8, value)
   def setmem(self, idx, mem, mode):
     kernel_setmem(self.handle, idx, mem.handle, mode)
   def release(self):
@@ -181,6 +187,6 @@ class task:
     task_d2h_full(self.handle, mem.handle, host)
   def kernel(self, kernel, dim, off, ndr):
     task_kernel(self.handle, kernel.handle, dim, off, ndr)
-  def submit(self, device, sync):
+  def submit(self, device, sync = 1):
     task_submit(self.handle, device, sync)
 
