@@ -11,6 +11,9 @@ saxpy-brisbane: saxpy-brisbane.cpp
 kernel.ptx: kernel.cu
 	$(NVCC) -ptx $^
 
+kernel.hip: kernel.hip.cpp
+	hipcc --genco -o $@ $^
+
 kernel.openmp.so: kernel.cl.openmp.c
 	$(CC) -g -fopenmp -fPIC -shared -I. -I$(BRISBANE)/include -o $@ $^
 

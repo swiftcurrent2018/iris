@@ -8,23 +8,29 @@ int main(int argc, char** argv) {
 
   size_t SIZE;
   float *X, *Y, *Z;
-  float A = 4;
+  float A = 10;
   int ERROR = 0;
 
   int nteams = 8;
   int chunk_size = SIZE / nteams;
 
   SIZE = argc > 1 ? atol(argv[1]) : 8;
-  printf("SIZE[%lu]\n", SIZE);
 
   X = (float*) malloc(SIZE * sizeof(float));
   Y = (float*) malloc(SIZE * sizeof(float));
   Z = (float*) malloc(SIZE * sizeof(float));
 
   for (int i = 0; i < SIZE; i++) {
-    X[i] = 2 * i;
+    X[i] = i;
     Y[i] = i;
   }
+
+  printf("X [");
+  for (int i = 0; i < SIZE; i++) printf(" %2.0f.", X[i]);
+  printf("]\n");
+  printf("Y [");
+  for (int i = 0; i < SIZE; i++) printf(" %2.0f.", Y[i]);
+  printf("]\n");
 
   brisbane_mem mem_X;
   brisbane_mem mem_Y;
@@ -75,7 +81,9 @@ int main(int argc, char** argv) {
     if (Z[i] != A * X[i] + Y[i]) ERROR++;
   }
 
-  printf("ERROR[%d]\n", ERROR);
+  printf("S = 10.0 * X + Y [");
+  for (int i = 0; i < SIZE; i++) printf(" %3.0f.", Z[i]);
+  printf("]\n");
 
   brisbane_mem_release(mem_X);
   brisbane_mem_release(mem_Y);
