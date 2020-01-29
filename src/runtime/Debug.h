@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define _TRACE_ENABLE
+//#define _TRACE_ENABLE
 #define _CHECK_ENABLE
 #define _DEBUG_ENABLE
 #define _INFO_ENABLE

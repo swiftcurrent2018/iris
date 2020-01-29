@@ -46,11 +46,11 @@ void* Mem::host_inter() {
 
 void Mem::AddOwner(size_t off, size_t size, Device* dev) {
   pthread_mutex_lock(&mutex_);
-  _trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
+  //_trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E; ++I) {
     MemRange* r = *I;
     if (r->Overlap(off, size)) {
-      _trace("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
+      //_trace("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
     }
   }
   ranges_.insert(new MemRange(off, size, dev));
@@ -59,14 +59,14 @@ void Mem::AddOwner(size_t off, size_t size, Device* dev) {
 
 void Mem::SetOwner(size_t off, size_t size, Device* dev) {
   pthread_mutex_lock(&mutex_);
-  _trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
+  //_trace("mem[%lu] off[%lu] size[%lu] dev[%d]", uid(), off, size, dev->devno());
   for (std::set<MemRange*>::iterator I = ranges_.begin(), E = ranges_.end(); I != E;) {
     MemRange* r = *I;
     if (r->Contain(off, size) && r->dev() == dev) {
       pthread_mutex_unlock(&mutex_);
       return;
     } else if (r->Overlap(off, size)) {
-      _todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
+      //_todo("old[%lu,%lu,%d] new[%lu,%lu,%d]", r->off(), r->size(), r->dev()->devno(), off, size, dev->devno());
       ranges_.erase(I);
       I = ranges_.begin();
     } else ++I;

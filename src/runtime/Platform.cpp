@@ -451,7 +451,6 @@ int Platform::TaskKernel(brisbane_task brs_task, brisbane_kernel brs_kernel, int
 int Platform::TaskH2D(brisbane_task brs_task, brisbane_mem brs_mem, size_t off, size_t size, void* host) {
   Task* task = brs_task->class_obj;
   Mem* mem = brs_mem->class_obj;
-  _debug("mem[%lu] off[%lu] size[%lu] host[%p]", mem->uid(), off, size, host);
   Command* cmd = Command::CreateH2D(task, mem, off, size, host);
   task->AddCommand(cmd);
   return BRISBANE_OK;
