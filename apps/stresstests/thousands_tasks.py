@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import brisbane
-import numpy as np
 import sys
 
 brisbane.init()

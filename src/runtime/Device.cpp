@@ -41,7 +41,7 @@ void Device::Execute(Task* task) {
       default: _error("cmd type[0x%x]", cmd->type());
     }
   }
-  _trace("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), devno(), name(), task->time());
+  if (!task->system()) _info("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), devno(), name(), task->time());
   busy_ = false;
 }
 

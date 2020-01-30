@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
   brisbane_task_create(&task0);
   brisbane_task_h2d_full(task0, mem_X, X);
   brisbane_task_kernel(task0, kernel_saxpy0, 1, kernel_saxpy0_off, kernel_saxpy0_idx);
-  brisbane_task_submit(task0, brisbane_cpu, NULL, true);
+  brisbane_task_submit(task0, brisbane_gpu, NULL, true);
 
   size_t kernel_saxpy1_off[1] = { 0 };
   size_t kernel_saxpy1_idx[1] = { SIZE };
