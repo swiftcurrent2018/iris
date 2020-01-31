@@ -3,6 +3,7 @@
 #include "Kernel.h"
 #include "LoaderOpenMP.h"
 #include "Mem.h"
+#include "Task.h"
 #include "Utils.h"
 #include <dlfcn.h>
 #include <stdlib.h>
@@ -112,6 +113,15 @@ int DeviceOpenMP::KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) {
 
 int DeviceOpenMP::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) {
   return ld_->brisbane_openmp_launch(dim, off[0], gws[0]);
+}
+
+int DeviceOpenMP::Synchronize() {
+  return BRISBANE_OK;
+}
+
+int DeviceOpenMP::AddCallback(Task* task) {
+  task->Complete();
+  return BRISBANE_OK;
 }
 
 } /* namespace rt */

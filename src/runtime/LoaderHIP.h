@@ -21,6 +21,7 @@ public:
   hipError_t (*hipDeviceGet)(hipDevice_t* device, int ordinal);
   hipError_t (*hipDeviceGetName)(char* name, int len, hipDevice_t device);
   hipError_t (*hipCtxCreate)(hipCtx_t* ctx, unsigned int flags, hipDevice_t device);
+  hipError_t (*hipCtxSynchronize)(void);
   hipError_t (*hipModuleLoad)(hipModule_t* module, const char* fname);
   hipError_t (*hipModuleGetFunction)(hipFunction_t* function, hipModule_t module, const char* kname);
   hipError_t (*hipMalloc)(void** ptr, size_t size);

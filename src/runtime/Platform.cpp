@@ -492,9 +492,7 @@ int Platform::TaskMapFrom(brisbane_task brs_task, void* host, size_t size) {
 
 int Platform::TaskSubmit(brisbane_task brs_task, int brs_policy, const char* opt, int sync) {
   Task* task = brs_task->class_obj;
-  task->set_brs_policy(brs_policy);
-  task->set_opt(opt);
-  task->set_sync(sync);
+  task->Submit(brs_policy, opt, sync);
   FilterSubmitExecute(task);
   scheduler_->Enqueue(task);
   if (sync) task->Wait();

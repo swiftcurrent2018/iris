@@ -23,7 +23,7 @@ bool TaskQueue::Peek(Task** task) {
   }
   for (std::list<Task*>::iterator I = tasks_.begin(), E = tasks_.end(); I != E; ++I) {
     Task* t = *I;
-    if (!t->Submittable()) continue;
+    if (!t->Dispatchable()) continue;
     if (t->marker() && I != tasks_.begin()) continue;
     *task = t;
     pthread_mutex_unlock(&mutex_);

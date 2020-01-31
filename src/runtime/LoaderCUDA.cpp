@@ -18,6 +18,8 @@ int LoaderCUDA::LoadFunctions() {
   LOADFUNC(cuDeviceGetCount);
   LOADFUNC(cuDeviceGetName);
   LOADFUNC(cuCtxCreate);
+  LOADFUNC(cuCtxSynchronize);
+  LOADFUNC(cuStreamAddCallback);
   LOADFUNC(cuStreamCreate);
   LOADFUNC(cuStreamSynchronize);
   LOADFUNC(cuModuleGetFunction);
@@ -25,7 +27,10 @@ int LoaderCUDA::LoadFunctions() {
   LOADFUNC(cuMemAlloc);
   LOADFUNC(cuMemFree);
   LOADFUNC(cuMemcpyHtoD);
+  LOADFUNC(cuMemcpyHtoDAsync);
   LOADFUNC(cuMemcpyDtoH);
+  LOADFUNC(cuMemcpyDtoHAsync);
+//  LOADFUNC(cuLaunchHostFunc);
   LOADFUNC(cuLaunchKernel);
   return BRISBANE_OK;
 }

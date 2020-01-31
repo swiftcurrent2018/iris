@@ -6,7 +6,7 @@
 #include "LoaderHIP.h"
 #include "Mem.h"
 #include "Reduction.h"
-#include "Timer.h"
+#include "Task.h"
 #include "Utils.h"
 
 namespace brisbane {
@@ -116,6 +116,17 @@ int DeviceHIP::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, s
   _hiperror(err_);
   for (int i = 0; i < BRISBANE_MAX_KERNEL_NARGS; i++) params_[i] = NULL;
   max_arg_idx_ = 0;
+  return BRISBANE_OK;
+}
+
+int DeviceHIP::Synchronize() {
+  err_ = ld_->hipCtxSynchronize();
+  _hiperror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceHIP::AddCallback(Task* task) {
+  task->Complete();
   return BRISBANE_OK;
 }
 

@@ -67,7 +67,8 @@ void Scheduler::CompleteTask(Task* task, Worker* worker) {
   if (hub_available_) hub_client_->TaskDec(devno, 1);
   if (enable_profiler_ & !task->system()) {
     task->set_time_end(timer_->Now());
-    pthread_mutex_lock(&mutex_); //TODO: no lock
+    pthread_mutex_lock(&mutex_);
+    _todo("remove lock profile[%d]", enable_profiler_);
     for (int i = 0; i < nprofilers_; i++) profilers_[i]->CompleteTask(task); 
     pthread_mutex_unlock(&mutex_);
   }

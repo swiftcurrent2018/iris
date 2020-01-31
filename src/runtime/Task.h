@@ -34,7 +34,9 @@ public:
 
   void AddDepend(Task* task);
 
-  bool Submittable();
+  void Submit(int brs_policy, const char* opt, int sync);
+
+  bool Dispatchable();
   bool Executable();
   void Complete();
   void Wait();
@@ -50,6 +52,7 @@ public:
   Task* parent() { return parent_; }
   Command* cmd(int i) { return cmds_[i]; }
   Command* cmd_kernel() { return cmd_kernel_; }
+  Command* cmd_last() { return cmd_last_; }
   void set_dev(Device* dev) { dev_ = dev; }
   Device* dev() { return dev_; }
   int ncmds() { return ncmds_; }
@@ -64,7 +67,6 @@ public:
   char* opt() { return opt_; }
   int brs_policy() { return brs_policy_; }
   bool sync() { return sync_; }
-  void set_sync(bool sync) { sync_ = sync; }
   std::vector<Task*>* subtasks() { return &subtasks_; }
   Task* subtask(int i) { return subtasks_[i]; }
   bool is_subtask() { return parent_ != NULL; }
@@ -81,6 +83,7 @@ private:
   int ncmds_;
   Command* cmds_[64];
   Command* cmd_kernel_;
+  Command* cmd_last_;
   Device* dev_;
   Platform* platform_;
   Scheduler* scheduler_;

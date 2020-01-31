@@ -149,6 +149,13 @@ CL_API_ENTRY CL_EXT_PREFIX__VERSION_1_2_DEPRECATED cl_command_queue CL_API_CALL
                      cl_command_queue_properties    properties,
                      cl_int *                       errcode_ret) CL_EXT_SUFFIX__VERSION_1_2_DEPRECATED;
 
+CL_API_ENTRY cl_int CL_API_CALL
+(*clSetEventCallback)(cl_event    event,
+                   cl_int      command_exec_callback_type,
+                   void (CL_CALLBACK * pfn_notify)(cl_event event,
+                                                   cl_int   event_command_status,
+                                                   void *   user_data),
+                   void *      user_data) CL_API_SUFFIX__VERSION_1_1;
 };
 
 } /* namespace rt */

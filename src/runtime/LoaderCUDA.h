@@ -22,6 +22,8 @@ public:
   CUresult (*cuDeviceGetCount)(int* count);
   CUresult (*cuDeviceGetName)(char* name, int len, CUdevice dev);
   CUresult (*cuCtxCreate)(CUcontext* pctx, unsigned int flags,CUdevice dev);
+  CUresult (*cuCtxSynchronize)(void);
+  CUresult (*cuStreamAddCallback)(CUstream hStream, CUstreamCallback callback, void *userData, unsigned int flags);
   CUresult (*cuStreamCreate)(CUstream* phStream, unsigned int Flags);
   CUresult (*cuStreamSynchronize)(CUstream hStream);
   CUresult (*cuModuleGetFunction)(CUfunction* hfunc, CUmodule hmod, const char* name);
@@ -29,7 +31,10 @@ public:
   CUresult (*cuMemAlloc)(CUdeviceptr* dptr, size_t bytesize);
   CUresult (*cuMemFree)(CUdeviceptr dptr);
   CUresult (*cuMemcpyHtoD)(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount);
+  CUresult (*cuMemcpyHtoDAsync)(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount, CUstream hStream);
   CUresult (*cuMemcpyDtoH)(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount);
+  CUresult (*cuMemcpyDtoHAsync)(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount, CUstream hStream);
+//  CUresult (*cuLaunchHostFunc)(CUstream hStream, CUhostFn fn, void *userData);
   CUresult (*cuLaunchKernel)(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ, unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ, unsigned int sharedMemBytes, CUstream hStream, void** kernelParams, void** extra);
 };
 

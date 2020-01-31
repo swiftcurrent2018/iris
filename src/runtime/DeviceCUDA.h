@@ -21,12 +21,17 @@ public:
   int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value);
   int KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off);
   int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws);
+  int Synchronize();
+  int AddCallback(Task* task);
+
+private:
+  static void Callback(CUstream stream, CUresult status, void* data);
 
 private:
   LoaderCUDA* ld_;
   CUdevice dev_;
   CUcontext ctx_;
-  CUstream stream_;
+  CUstream streams_[BRISBANE_MAX_DEVICE_NQUEUES];
   CUmodule module_;
   CUresult err_;
   unsigned int shared_mem_bytes_;

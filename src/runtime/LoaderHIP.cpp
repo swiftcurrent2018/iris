@@ -17,6 +17,7 @@ int LoaderHIP::LoadFunctions() {
   LOADFUNC(hipDeviceGet);
   LOADFUNC(hipDeviceGetName);
   LOADFUNC(hipCtxCreate);
+  LOADFUNC(hipCtxSynchronize);
   LOADFUNC(hipModuleLoad);
   LOADFUNC(hipModuleGetFunction);
   LOADFUNC(hipMalloc);

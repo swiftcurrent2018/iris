@@ -43,6 +43,8 @@ public:
   std::map<int, KernelArg*>* kernel_args() { return kernel_args_; }
   Mem* mem() { return mem_; }
   Task* task() { return task_; }
+  bool last() { return last_; }
+  void set_last() { last_ = true; }
   bool exclusive() { return exclusive_; }
   brisbane_poly_mem* polymems() { return polymems_; }
   int npolymems() { return npolymems_; }
@@ -61,6 +63,7 @@ private:
   Mem* mem_;
   Task* task_;
   double time_;
+  bool last_;
   bool exclusive_;
   std::map<int, KernelArg*>* kernel_args_;
   brisbane_poly_mem* polymems_;

@@ -36,6 +36,8 @@ public:
   virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
+  virtual int Synchronize() { return BRISBANE_OK; }
+  virtual int AddCallback(Task* task) { return BRISBANE_OK; }
 
   int platform() { return platform_; }
   int devno() { return devno_; }
@@ -60,6 +62,8 @@ protected:
   int max_compute_units_;
   size_t max_work_group_size_;
   size_t max_work_item_sizes_[3];
+  int nqueues_;
+  int q_;
 
   bool busy_;
   bool enable_;

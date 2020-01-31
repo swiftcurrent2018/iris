@@ -10,6 +10,7 @@ Command::Command(Task* task, int type) {
   type_ = type;
   time_ = 0.0;
   kernel_args_ = NULL;
+  last_ = false;
   polymems_ = NULL;
   npolymems_ = 0;
 }

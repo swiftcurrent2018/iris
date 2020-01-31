@@ -29,6 +29,7 @@ void Worker::Enqueue(Task* task) {
 void Worker::Execute(Task* task) {
   if (!task->Executable()) return;
   if (task->marker()) {
+    dev_->Synchronize();
     task->Complete();
     return;
   }
@@ -37,8 +38,10 @@ void Worker::Execute(Task* task) {
   scheduler_->StartTask(task, this);
   consistency_->Resolve(task);
   dev_->Execute(task);
-  scheduler_->CompleteTask(task, this);
-  task->Complete();
+  if (!task->cmd_last()) {
+    scheduler_->CompleteTask(task, this);
+    task->Complete();
+  }
   busy_ = false;
 }
 

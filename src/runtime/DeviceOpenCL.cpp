@@ -6,7 +6,7 @@
 #include "LoaderOpenCL.h"
 #include "Mem.h"
 #include "Reduction.h"
-#include "Timer.h"
+#include "Task.h"
 #include "Utils.h"
 
 namespace brisbane {
@@ -146,6 +146,17 @@ int DeviceOpenCL::KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws
   _clerror(err_);
   err_ = ld_->clFinish(clcmdq_);
   _clerror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceOpenCL::Synchronize() {
+  err_ = ld_->clFinish(clcmdq_);
+  _clerror(err_);
+  return BRISBANE_OK;
+}
+
+int DeviceOpenCL::AddCallback(Task* task) {
+  task->Complete();
   return BRISBANE_OK;
 }
 

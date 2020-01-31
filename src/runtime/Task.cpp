@@ -13,6 +13,7 @@ Task::Task(Platform* platform, int type, const char* name) {
   type_ = type;
   ncmds_ = 0;
   cmd_kernel_ = NULL;
+  cmd_last_ = NULL;
   platform_ = platform;
   scheduler_ = platform->scheduler();
   dev_ = NULL;
@@ -73,6 +74,10 @@ void Task::AddCommand(Command* cmd) {
     if (!given_name_) strcpy(name_, cmd->kernel()->name());
     cmd_kernel_ = cmd;
   }
+  if (!system_ &&
+     (cmd->type() == BRISBANE_CMD_KERNEL || cmd->type() == BRISBANE_CMD_H2D ||
+      cmd->type() == BRISBANE_CMD_H2DNP  || cmd->type() == BRISBANE_CMD_D2H))
+    cmd_last_ = cmd;
 }
 
 void Task::ClearCommands() {
@@ -80,7 +85,7 @@ void Task::ClearCommands() {
   ncmds_ = 0;
 }
 
-bool Task::Submittable() {
+bool Task::Dispatchable() {
   for (int i = 0; i < ndepends_; i++) {
     if (depends_[i]->status() != BRISBANE_COMPLETE) return false;
   }
@@ -134,6 +139,13 @@ void Task::AddDepend(Task* task) {
   for (int i = 0; i < ndepends_; i++) if (task == depends_[i]) return;
   if (ndepends_ == 63) _error("ndepends[%d]", ndepends_);
   depends_[ndepends_++] = task;
+}
+
+void Task::Submit(int brs_policy, const char* opt, int sync) {
+  set_brs_policy(brs_policy);
+  set_opt(opt);
+  sync_ = sync;
+  cmd_last_->set_last();
 }
 
 } /* namespace rt */

@@ -29,6 +29,7 @@ int LoaderOpenCL::LoadFunctions() {
   LOADFUNC(clEnqueueWriteBuffer);
   LOADFUNC(clEnqueueNDRangeKernel);
   LOADFUNC(clCreateCommandQueue);
+  LOADFUNC(clSetEventCallback);
   return BRISBANE_OK;
 }
 

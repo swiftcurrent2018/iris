@@ -6,6 +6,7 @@
 #define BRISBANE_VERSION_PATCH        @BRISBANE_VERSION_PATCH@
 
 #define BRISBANE_MAX_KERNEL_NARGS     64
+#define BRISBANE_MAX_DEVICE_NQUEUES   128 
 
 #define BRISBANE_ARCH                 "openmp:cuda:hip:opencl"
 

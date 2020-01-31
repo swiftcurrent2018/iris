@@ -17,6 +17,8 @@ Device::Device(int devno, int platform) {
   platform_ = platform;
   busy_ = false;
   enable_ = false;
+  nqueues_ = 32;
+  q_ = 0;
   memset(vendor_, 0, sizeof(vendor_));
   memset(name_, 0, sizeof(name_));
   memset(version_, 0, sizeof(version_));
@@ -40,7 +42,9 @@ void Device::Execute(Task* task) {
       case BRISBANE_CMD_RELEASE_MEM:  ExecuteReleaseMem(cmd); break;
       default: _error("cmd type[0x%x]", cmd->type());
     }
+    if (cmd->last()) AddCallback(task);
   }
+  if (++q_ >= nqueues_) q_ = 0;
   if (!task->system()) _info("task[%lu][%s] complete dev[%d][%s] time[%lf]", task->uid(), task->name(), devno(), name(), task->time());
   busy_ = false;
 }
