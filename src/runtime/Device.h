@@ -36,8 +36,8 @@ public:
   virtual int KernelSetArg(Kernel* kernel, int idx, size_t size, void* value) = 0;
   virtual int KernelSetMem(Kernel* kernel, int idx, Mem* mem, size_t off) = 0;
   virtual int KernelLaunch(Kernel* kernel, int dim, size_t* off, size_t* gws, size_t* lws) = 0;
-  virtual int Synchronize() { return BRISBANE_OK; }
-  virtual int AddCallback(Task* task) { return BRISBANE_OK; }
+  virtual int Synchronize() = 0;
+  virtual int AddCallback(Task* task) = 0;
 
   int platform() { return platform_; }
   int devno() { return devno_; }
